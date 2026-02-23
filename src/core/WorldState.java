@@ -46,8 +46,8 @@ public final class WorldState {
                 List.of(),
                 false,
                 -1,
-                4000,
-                4000
+                2000,
+                2000
         );
     }
 

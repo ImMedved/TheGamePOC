@@ -28,11 +28,12 @@ public class RenderEngine {
     private final CircleShape remotePlayerShape;
     private final CircleShape projectileShape;
 
-    private static final int TILE_SIZE = 200;
+    private static final int TILE_SIZE = 100;
     private static final int TILES_X = 20;
     private static final int TILES_Y = 20;
 
     private Texture tileTexture;
+    private Texture wallTexture;
     private RectangleShape[][] tiles;
 
     private View worldView;
@@ -68,6 +69,13 @@ public class RenderEngine {
             throw new RuntimeException(e);
         }
 
+        wallTexture = new Texture();
+        try {
+            wallTexture.loadFromFile(Paths.get("assets/wallTile.png"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         tiles = new RectangleShape[TILES_X][TILES_Y];
 
         for (int x = 0; x < TILES_X; x++) {
@@ -77,7 +85,12 @@ public class RenderEngine {
                         new Vector2f(TILE_SIZE, TILE_SIZE)
                 );
 
-                tile.setTexture(tileTexture);
+                boolean isWall =
+                        x == 0 || y == 0 ||
+                                x == TILES_X - 1 ||
+                                y == TILES_Y - 1;
+
+                tile.setTexture(isWall ? wallTexture : tileTexture);
                 tile.setPosition(x * TILE_SIZE, y * TILE_SIZE);
 
                 tiles[x][y] = tile;
@@ -95,12 +108,6 @@ public class RenderEngine {
 
         renderThread.setName("RenderThread");
         renderThread.start();
-
-        cameraRunning = true;
-
-        cameraThread = new Thread(this::cameraLoop);
-        cameraThread.setName("CameraThread");
-        cameraThread.start();
     }
 
     public void stop() {
@@ -125,9 +132,9 @@ public class RenderEngine {
         System.out.println("Entered renderLoop");
 
         window = new RenderWindow(
-                new VideoMode(800, 600),
+                new VideoMode(1920, 1080),
                 "Game",
-                WindowStyle.DEFAULT
+                WindowStyle.FULLSCREEN
         );
 
         try {
@@ -136,6 +143,23 @@ public class RenderEngine {
             e.printStackTrace();
             return;
         }
+
+        worldView = new View(
+                new FloatRect(
+                        0, 0,
+                        window.getSize().x,
+                        window.getSize().y
+                )
+        );
+
+        cameraX = window.getSize().x / 2f;
+        cameraY = window.getSize().y / 2f;
+
+        cameraRunning = true;
+        cameraThread = new Thread(this::cameraLoop);
+        cameraThread.setName("CameraThread");
+        cameraThread.start();
+
         //System.out.println("Entered renderLoop; window.isOpen=" + window.isOpen());
 
         // плавная скользящая камера
@@ -147,9 +171,6 @@ public class RenderEngine {
 
         cameraX = window.getSize().x / 2f;
         cameraY = window.getSize().y / 2f;
-
-        worldView.setCenter(cameraX, cameraY); // точно тут надо ставить это?
-        window.setView(worldView);
 
         while (running && window.isOpen()) {
 
@@ -207,7 +228,7 @@ public class RenderEngine {
             //System.out.println("LiveInputState: " + inputModule.debugLiveState());
 
             // Также печатаем последний snapshot (immutable)
-            //System.out.println("Latest Snapshot (render): " + inputModule.getLatestSnapshot());
+            // System.out.println("Latest Snapshot (render): " + inputModule.getLatestSnapshot());
 
             // ОБРАБОТКА СОБЫТИЙ КАЖДЫЙ КАДР
             /*for (org.jsfml.window.event.Event event : window.pollEvents()) {
@@ -222,14 +243,20 @@ public class RenderEngine {
             }*/ //дубликат
 
             // Вывод snapshot каждый кадр
-            //System.out.println("Input snapshot (render side): "
+            // System.out.println("Input snapshot (render side): "
             //        + inputModule.getLatestSnapshot());
 
             WorldState state = worldProvider.getLatestWorldState();
 
             window.clear(Color.BLACK);
 
+            worldView.setCenter(cameraX, cameraY);
+            window.setView(worldView);
+            // System.out.println("Player pos X: " + state.localPlayer.x + ". Player pos Y: " +
+            //         state.localPlayer.y + ". Camera pos X: " + cameraX + ". Camera pos Y: " + cameraY);
             drawLevel();
+
+            window.setView(window.getDefaultView());
 
             drawPlayer(state.localPlayer, localPlayerShape);
             drawPlayer(state.remotePlayer, remotePlayerShape);
@@ -255,47 +282,58 @@ public class RenderEngine {
 
     private void cameraLoop() {
 
+        long lastTime = System.nanoTime();
+
         while (cameraRunning) {
+
+            long now = System.nanoTime();
+            float dt = (now - lastTime) / 1_000_000_000f;
+            lastTime = now;
 
             WorldState state = worldProvider.getLatestWorldState();
             PlayerState player = state.localPlayer;
 
-            float viewWidth = window.getSize().x;
-            float viewHeight = window.getSize().y;
-
-            float deadZoneWidth = viewWidth * DEAD_ZONE_PERCENT;
-            float deadZoneHeight = viewHeight * DEAD_ZONE_PERCENT;
-
-            float left = cameraX - deadZoneWidth / 2f;
-            float right = cameraX + deadZoneWidth / 2f;
-            float top = cameraY - deadZoneHeight / 2f;
-            float bottom = cameraY + deadZoneHeight / 2f;
-
-            float targetX = cameraX;
-            float targetY = cameraY;
-
-            if (player.x < left) targetX = player.x + deadZoneWidth / 2f;
-            if (player.x > right) targetX = player.x - deadZoneWidth / 2f;
-            if (player.y < top) targetY = player.y + deadZoneHeight / 2f;
-            if (player.y > bottom) targetY = player.y - deadZoneHeight / 2f;
-
-            cameraX += (targetX - cameraX) * CAMERA_LERP;
-            cameraY += (targetY - cameraY) * CAMERA_LERP;
+            float viewWidth = worldView.getSize().x;
+            float viewHeight = worldView.getSize().y;
 
             float halfW = viewWidth / 2f;
             float halfH = viewHeight / 2f;
 
-            float worldMinX = -TILE_SIZE;
-            float worldMinY = -TILE_SIZE;
-            float worldMaxX = state.getWorldWidth() + TILE_SIZE;
-            float worldMaxY = state.getWorldHeight() + TILE_SIZE;
+            float deadW = viewWidth * DEAD_ZONE_PERCENT;
+            float deadH = viewHeight * DEAD_ZONE_PERCENT;
+
+            float deadLeft = cameraX - deadW / 2f;
+            float deadRight = cameraX + deadW / 2f;
+            float deadTop = cameraY - deadH / 2f;
+            float deadBottom = cameraY + deadH / 2f;
+
+            float targetX = cameraX;
+            float targetY = cameraY;
+
+            if (player.x < deadLeft) {
+                targetX = player.x + deadW / 2f;
+            } else if (player.x > deadRight) {
+                targetX = player.x - deadW / 2f;
+            }
+
+            if (player.y < deadTop) {
+                targetY = player.y + deadH / 2f;
+            } else if (player.y > deadBottom) {
+                targetY = player.y - deadH / 2f;
+            }
+
+            float lerpFactor = 10f * dt;  // скорость камеры (регулируется)
+
+            cameraX += (targetX - cameraX) * lerpFactor;
+            cameraY += (targetY - cameraY) * lerpFactor;
+
+            float worldMinX = 0;
+            float worldMinY = 0;
+            float worldMaxX = state.getWorldWidth();
+            float worldMaxY = state.getWorldHeight();
 
             cameraX = clamp(cameraX, worldMinX + halfW, worldMaxX - halfW);
             cameraY = clamp(cameraY, worldMinY + halfH, worldMaxY - halfH);
-
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ignored) {}
         }
     }
 

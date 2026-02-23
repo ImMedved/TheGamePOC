@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CoreEngine implements WorldStateProvider{
     // world data, позже добавить чексумму при конекте
     // занижаем в нулину скорость цикла, потому что либо надо городить на сети сборщик данных из нескольких циклов в один пакет, а мне в падлу, либо пакеты будут пропадать.
-    public static final int TICK_RATE = 10; // эээ, оно типо не работает, я хз, если добавить слип, то норм, а так не верю, что это 60/с
+    public static final int TICK_RATE = 20; // эээ, оно типо не работает, я хз, если добавить слип, то норм, а так не верю, что это 60/с
     // теперь тикрейт синхронится сразу в NetworkManager, по идее, они должны работать с одной частотой.
 
     private static final float TICK_DT = 1f / TICK_RATE; // пиздеж
@@ -305,8 +305,16 @@ public class CoreEngine implements WorldStateProvider{
         float deltaX = input.moveX * PLAYER_SPEED * TICK_DT;
         float deltaY = input.moveY * PLAYER_SPEED * TICK_DT;
 
-        float newX = clamp(player.x + deltaX, 0, worldWidth);
-        float newY = clamp(player.y + deltaY, 0, worldHeight);
+        float wall = 100f;
+
+        float minX = wall + player.hitboxRadius;
+        float minY = wall + player.hitboxRadius;
+
+        float maxX = worldWidth - wall - player.hitboxRadius;
+        float maxY = worldHeight - wall - player.hitboxRadius;
+
+        float newX = clamp(player.x + deltaX, minX, maxX);
+        float newY = clamp(player.y + deltaY, minY, maxY);
 
         return new PlayerState(
                 player.playerId,
