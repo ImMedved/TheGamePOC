@@ -69,7 +69,7 @@ public class NetworkManager {
                 try {
                     byte[] data = transport.receive();
                     Packet packet = PacketDeserializer.deserialize(data);
-                    System.out.println("[NET] Received: " + packet.getType());
+                    // System.out.println("[NET] Received: " + packet.getType());
                     inboundQueue.push(packet);
                 } catch (SocketTimeoutException ignored) {}
 
@@ -85,7 +85,7 @@ public class NetworkManager {
 
         while ((packet = outboundQueue.poll()) != null) {
             byte[] data = PacketSerializer.serialize(packet);
-            System.out.println("[NET] Sending: " + packet.getType());
+            // System.out.println("[NET] Sending: " + packet.getType());
             transport.send(data);
         }
     }

@@ -21,8 +21,8 @@ public class CoreEngine implements WorldStateProvider{
     private static final float PLAYER_SPEED = 300f; // но надо фиксить, скорость же зависит от тикрейта, значит слипы не помогут
     private static final float PROJECTILE_SPEED = 500f;
 
-    private static final float ARENA_WIDTH = 800f; // подставить размеры окна из main???
-    private static final float ARENA_HEIGHT = 600f;
+    //private static final float ARENA_WIDTH = 800f; // подставить размеры окна из main??? -> подставил из WorldState
+    //private static final float ARENA_HEIGHT = 600f;
 
     // game
     private final int localPlayerId;
@@ -166,12 +166,64 @@ public class CoreEngine implements WorldStateProvider{
         inputModule.publishSnapshot(tick);
         InputSnapshot localInput = inputModule.getLatestSnapshot();
 
-        // дивжение локала
+        /** дивжение локала однопоточка
         PlayerState newLocal =
-                computeLocalMovement(active.localPlayer, localInput);
+                computeLocalMovement(
+                        active.localPlayer,
+                        localInput,
+                        active.getWorldWidth(),
+                        active.getWorldHeight()
+                );
 
         List<ProjectileState> updatedProjectiles =
-                updateProjectiles(active.projectiles, newLocal, localInput, tick);
+                updateProjectiles(
+                        active.projectiles,
+                        newLocal,
+                        localInput,
+                        tick,
+                        active.getWorldWidth(),
+                        active.getWorldHeight()
+                );
+
+         */
+
+        final WorldState snapshot = active;
+
+        final PlayerState[] localHolder = new PlayerState[1];
+        final List<ProjectileState>[] projectileHolder = new List[1];
+
+        Thread movementThread = new Thread(() -> {
+            localHolder[0] = computeLocalMovement(
+                    snapshot.localPlayer,
+                    localInput,
+                    snapshot.getWorldWidth(),
+                    snapshot.getWorldHeight()
+            );
+        });
+
+        Thread projectileThread = new Thread(() -> {
+            projectileHolder[0] = updateProjectiles(
+                    snapshot.projectiles,
+                    snapshot.localPlayer,
+                    localInput,
+                    tick,
+                    snapshot.getWorldWidth(),
+                    snapshot.getWorldHeight()
+            );
+        });
+
+        movementThread.start();
+        projectileThread.start();
+
+        try {
+            movementThread.join();
+            projectileThread.join();
+        } catch (InterruptedException ignored) {
+        }
+
+        PlayerState newLocal = localHolder[0];
+        List<ProjectileState> updatedProjectiles = projectileHolder[0];
+
         // Сначала сохранить проджектайлы в отдельный лист, потом замержить, чтобы не рушить порядок объявления
         // сохраняем имутабильную модель, если на умном
         updatedProjectiles.addAll(incomingProjectiles);
@@ -186,7 +238,9 @@ public class CoreEngine implements WorldStateProvider{
                 currentRemote,
                 collision.projectiles,
                 collision.gameOver,
-                collision.winnerId
+                collision.winnerId,
+                active.getWorldWidth(),
+                active.getWorldHeight()
         );
 
         // свап (который не свап, но похуй, смысл был изначально другой)
@@ -242,14 +296,17 @@ public class CoreEngine implements WorldStateProvider{
         }
     }
 
-    private PlayerState computeLocalMovement(PlayerState player, InputSnapshot input) {
+    private PlayerState computeLocalMovement(PlayerState player,
+                                             InputSnapshot input,
+                                             float worldWidth,
+                                             float worldHeight) {
 
         // System.out.println("Input snapshot: " + input.toString());
         float deltaX = input.moveX * PLAYER_SPEED * TICK_DT;
         float deltaY = input.moveY * PLAYER_SPEED * TICK_DT;
 
-        float newX = clamp(player.x + deltaX, 0, ARENA_WIDTH);
-        float newY = clamp(player.y + deltaY, 0, ARENA_HEIGHT);
+        float newX = clamp(player.x + deltaX, 0, worldWidth);
+        float newY = clamp(player.y + deltaY, 0, worldHeight);
 
         return new PlayerState(
                 player.playerId,
@@ -265,7 +322,9 @@ public class CoreEngine implements WorldStateProvider{
             List<ProjectileState> projectiles,
             PlayerState newLocal,
             InputSnapshot input,
-            int tick
+            int tick,
+            float worldWidth,
+            float worldHeight
     ) {
 
         List<ProjectileState> result = new ArrayList<>();
@@ -308,8 +367,8 @@ public class CoreEngine implements WorldStateProvider{
             float newX = p.x + p.dirX * p.speed * TICK_DT;
             float newY = p.y + p.dirY * p.speed * TICK_DT;
 
-            if (newX >= 0 && newX <= ARENA_WIDTH &&
-                    newY >= 0 && newY <= ARENA_HEIGHT) {
+            if (newX >= 0 && newX <= worldWidth &&
+                    newY >= 0 && newY <= worldHeight) {
 
                 result.add(new ProjectileState(
                         p.projectileId,

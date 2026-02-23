@@ -14,13 +14,20 @@ public final class WorldState {
     public final boolean gameOver;
     public final int winnerId;
 
+    private final float worldWidth;
+    private final float worldHeight;
+
+
+
     public WorldState(
             int tick,
             PlayerState localPlayer,
             PlayerState remotePlayer,
             List<ProjectileState> projectiles,
             boolean gameOver,
-            int winnerId
+            int winnerId,
+            float worldWidth,
+            float worldHeight
     ) {
         this.tick = tick;
         this.localPlayer = localPlayer;
@@ -28,6 +35,8 @@ public final class WorldState {
         this.projectiles = List.copyOf(projectiles);
         this.gameOver = gameOver;
         this.winnerId = winnerId;
+        this.worldWidth = worldWidth;
+        this.worldHeight = worldHeight;
     }
     public static WorldState initial() {
         return new WorldState(
@@ -36,7 +45,12 @@ public final class WorldState {
                 new PlayerState(2, 500, 300, 0, 0, 20),
                 List.of(),
                 false,
-                -1
+                -1,
+                4000,
+                4000
         );
     }
+
+    public float getWorldWidth() { return worldWidth; }
+    public float getWorldHeight() { return worldHeight; }
 }
