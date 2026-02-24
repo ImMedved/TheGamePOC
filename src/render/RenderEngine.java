@@ -24,7 +24,11 @@ public class RenderEngine {
     private Thread renderThread;
     private volatile boolean running = false;
 
-    private final CircleShape localPlayerShape;
+    private final CameraWorker cameraWorker;
+    private final LevelRenderer levelRenderer;
+    private final EntityRenderer entityRenderer;
+
+    /*private final CircleShape localPlayerShape;
     private final CircleShape remotePlayerShape;
     private final CircleShape projectileShape;
 
@@ -45,86 +49,35 @@ public class RenderEngine {
     private volatile float cameraY;
 
     private static final float CAMERA_LERP = 0.08f; // при фризах можно ставить 0,05f, в целом даже 0.04 работает еще ок, ниже нет смысла.
-    private static final float DEAD_ZONE_PERCENT = 0.2f;
+    private static final float DEAD_ZONE_PERCENT = 0.2f;*/
 
 
-    public RenderEngine(WorldStateProvider worldProvider, InputModule inputModule) {
+    public RenderEngine(WorldStateProvider worldProvider,
+                        InputModule inputModule) {
+
         this.worldProvider = worldProvider;
         this.inputModule = inputModule;
 
-        this.localPlayerShape = new CircleShape();
-        this.localPlayerShape.setFillColor(Color.GREEN);
-
-        this.remotePlayerShape = new CircleShape();
-        this.remotePlayerShape.setFillColor(Color.RED);
-
-        this.projectileShape = new CircleShape(4f);
-        this.projectileShape.setFillColor(Color.WHITE);
-
-        // рисуем сетку текстур, где tile.png это 200х200, всего 20х20 тайлов
-        tileTexture = new Texture();
-        try {
-            tileTexture.loadFromFile(Paths.get("assets/tile.png"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        wallTexture = new Texture();
-        try {
-            wallTexture.loadFromFile(Paths.get("assets/wallTile.png"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        tiles = new RectangleShape[TILES_X][TILES_Y];
-
-        for (int x = 0; x < TILES_X; x++) {
-            for (int y = 0; y < TILES_Y; y++) {
-
-                RectangleShape tile = new RectangleShape(
-                        new Vector2f(TILE_SIZE, TILE_SIZE)
-                );
-
-                boolean isWall =
-                        x == 0 || y == 0 ||
-                                x == TILES_X - 1 ||
-                                y == TILES_Y - 1;
-
-                tile.setTexture(isWall ? wallTexture : tileTexture);
-                tile.setPosition(x * TILE_SIZE, y * TILE_SIZE);
-
-                tiles[x][y] = tile;
-            }
-        }
+        this.levelRenderer = new LevelRenderer();
+        this.entityRenderer = new EntityRenderer();
+        this.cameraWorker = new CameraWorker(worldProvider);
     }
 
     public void start() {
         running = true;
 
-        renderThread = new Thread(() -> {
-            System.out.println("Render thread started");
-            renderLoop();
-        });
-
+        renderThread = new Thread(this::renderLoop);
         renderThread.setName("RenderThread");
         renderThread.start();
     }
 
     public void stop() {
         running = false;
-        if (renderThread != null) {
-            try {
-                renderThread.join();
-            } catch (InterruptedException ignored) {
-            }
-        }
-        cameraRunning = false;
-        if (cameraThread != null) {
-            try {
-                cameraThread.join();
-            } catch (InterruptedException ignored) {}
-        }
+        cameraWorker.stop();
 
+        try {
+            if (renderThread != null) renderThread.join();
+        } catch (InterruptedException ignored) {}
     }
 
     private void renderLoop() {
@@ -144,14 +97,17 @@ public class RenderEngine {
             return;
         }
 
-        worldView = new View(
+        cameraWorker.start(window);
+
+        /*worldView = new View(
                 new FloatRect(
                         0, 0,
                         window.getSize().x,
                         window.getSize().y
                 )
-        );
+        );*/
 
+        /*
         cameraX = window.getSize().x / 2f;
         cameraY = window.getSize().y / 2f;
 
@@ -171,6 +127,7 @@ public class RenderEngine {
 
         cameraX = window.getSize().x / 2f;
         cameraY = window.getSize().y / 2f;
+        */
 
         while (running && window.isOpen()) {
 
@@ -191,6 +148,7 @@ public class RenderEngine {
                 //System.out.println("EVENT: " + event.type);
 
                 // Доп. распечатать ключ/кнопку, если это KEY_*/MOUSE_*
+                /*
                 switch (event.type) {
                     case KEY_PRESSED:
                         //System.out.println("  KEY_PRESSED -> " + event.asKeyEvent().key);
@@ -217,7 +175,7 @@ public class RenderEngine {
                         break;
                     default:
                         break;
-                }
+                }*/
 
                 if (event.type == org.jsfml.window.event.Event.Type.CLOSED) {
                     window.close();
@@ -250,37 +208,44 @@ public class RenderEngine {
 
             window.clear(Color.BLACK);
 
-            worldView.setCenter(cameraX, cameraY);
+            View worldView = cameraWorker.getView();
             window.setView(worldView);
+
             // System.out.println("Player pos X: " + state.localPlayer.x + ". Player pos Y: " +
             //         state.localPlayer.y + ". Camera pos X: " + cameraX + ". Camera pos Y: " + cameraY);
-            drawLevel();
+            // drawLevel();
+
+            levelRenderer.draw(window);
+            entityRenderer.drawEntities(window, state);
 
             window.setView(window.getDefaultView());
 
-            drawPlayer(state.localPlayer, localPlayerShape);
+            /*drawPlayer(state.localPlayer, localPlayerShape);
             drawPlayer(state.remotePlayer, remotePlayerShape);
             drawProjectiles(state.projectiles);
 
             drawPlayer(state.localPlayer, localPlayerShape);
             drawPlayer(state.remotePlayer, remotePlayerShape);
 
-            drawProjectiles(state.projectiles);
+            drawProjectiles(state.projectiles);*/
 
             if (state.gameOver) {
-                drawGameOver(state.winnerId);
+                entityRenderer.drawGameOver(window);
             }
 
             window.display();
 
-            try {
-                Thread.sleep(10); // 4 тика в секунду, поправить TODO
-            } catch (InterruptedException ignored) {}
+            /*try {
+                Thread.sleep(10); // 4 тика в секунду, поправить
+            } catch (InterruptedException ignored) {}*/
         }
-        window.setView(window.getDefaultView()); // тот же вопрос, точно это тут?
+        // window.setView(window.getDefaultView()); // тот же вопрос, точно это тут?
+        window.display();
     }
 
-    private void cameraLoop() {
+
+
+    /*private void cameraLoop() {
 
         long lastTime = System.nanoTime();
 
@@ -335,31 +300,30 @@ public class RenderEngine {
             cameraX = clamp(cameraX, worldMinX + halfW, worldMaxX - halfW);
             cameraY = clamp(cameraY, worldMinY + halfH, worldMaxY - halfH);
         }
-    }
+    }*/
 
-    private float clamp(float value, float min, float max) {
+    /*private float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
-    }
+    }*/
 
-
-    private void drawPlayer(PlayerState player, CircleShape shape) {
+    /*private void drawPlayer(PlayerState player, CircleShape shape) {
 
         shape.setRadius(player.hitboxRadius);
         shape.setOrigin(player.hitboxRadius, player.hitboxRadius);
         shape.setPosition(player.x, player.y);
 
         window.draw(shape);
-    }
+    }*/
 
-    private void drawProjectiles(List<ProjectileState> projectiles) {
+    /*private void drawProjectiles(List<ProjectileState> projectiles) {
 
         for (ProjectileState p : projectiles) {
             projectileShape.setPosition(p.x, p.y);
             window.draw(projectileShape);
         }
-    }
+    }*/
 
-    private void drawGameOver(int winnerId) {
+    /*private void drawGameOver(int winnerId) {
 
         RectangleShape overlay = new RectangleShape(
                 new Vector2f(window.getSize().x, window.getSize().y)
@@ -367,16 +331,16 @@ public class RenderEngine {
         overlay.setFillColor(new Color(0, 0, 0, 150));
 
         window.draw(overlay);
-    }
+    }*/
 
-    private void drawLevel() {
+    /*private void drawLevel() {
 
         for (int x = 0; x < TILES_X; x++) {
             for (int y = 0; y < TILES_Y; y++) {
                 window.draw(tiles[x][y]);
             }
         }
-    }
+    }*/
 
 }
 

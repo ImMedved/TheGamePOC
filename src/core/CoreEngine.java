@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.BrokenBarrierException;
+
 public class CoreEngine implements WorldStateProvider{
     // world data, позже добавить чексумму при конекте
     // занижаем в нулину скорость цикла, потому что либо надо городить на сети сборщик данных из нескольких циклов в один пакет, а мне в падлу, либо пакеты будут пропадать.
@@ -42,6 +45,19 @@ public class CoreEngine implements WorldStateProvider{
     private volatile boolean connected = false; // handshake
     private boolean helloSent = false;
 
+    // Барьер и потоки воркеры
+    private Thread movementThread;
+    private Thread projectileThread;
+
+    private CyclicBarrier tickBarrier;
+
+    private volatile WorldState barrierSnapshot;
+    private volatile InputSnapshot barrierInput;
+    private volatile int barrierTick;
+
+    private volatile PlayerState barrierNewLocal;
+    private volatile List<ProjectileState> barrierUpdatedProjectiles;
+
     public CoreEngine(InputModule inputModule, NetworkBridge network, int localPlayerId) {
         this.inputModule = inputModule;
         this.network = network;
@@ -55,6 +71,17 @@ public class CoreEngine implements WorldStateProvider{
 
     public void start() {
         running = true;
+
+        tickBarrier = new CyclicBarrier(3);
+
+        movementThread = new Thread(this::movementLoop);
+        movementThread.setName("MovementThread");
+        movementThread.start();
+
+        projectileThread = new Thread(this::projectileLoop);
+        projectileThread.setName("ProjectileThread");
+        projectileThread.start();
+
         coreThread = new Thread(this::runLoop);
         coreThread.setName("CoreThread");
         coreThread.start();
@@ -62,11 +89,12 @@ public class CoreEngine implements WorldStateProvider{
 
     public void stop() {
         running = false;
-        if (coreThread != null) {
-            try {
-                coreThread.join();
-            } catch (InterruptedException ignored) {
-            }
+
+        try {
+            if (coreThread != null) coreThread.join();
+            if (movementThread != null) movementThread.join();
+            if (projectileThread != null) projectileThread.join();
+        } catch (InterruptedException ignored) {
         }
     }
 
@@ -83,10 +111,11 @@ public class CoreEngine implements WorldStateProvider{
             long elapsed = System.currentTimeMillis() - startTime;
             long sleepTime = (1000 / TICK_RATE) - elapsed;
 
-            // вот тут вопрос, потому что я не очень выкупаю, сколько оно на самом деле спит. Типо по идее должно быть 16 мс, но на деле
-            // типо я не верю. Надо балансить, с одной стороны, с другой, если делать сеть, то может быть ботлнек, из-за кол-ва пакетов.
-            // мб просто поставить сон на секунду
-            // Upd: понял
+            /* вот тут вопрос, потому что я не очень выкупаю, сколько оно на самом деле спит. Типо по идее должно быть 16 мс, но на деле
+              типо я не верю. Надо балансить, с одной стороны, с другой, если делать сеть, то может быть ботлнек, из-за кол-ва пакетов.
+              мб просто поставить сон на секунду
+              Upd: понял
+             */
             if (sleepTime > 0) {
                 try {
                     Thread.sleep(sleepTime);
@@ -166,7 +195,7 @@ public class CoreEngine implements WorldStateProvider{
         inputModule.publishSnapshot(tick);
         InputSnapshot localInput = inputModule.getLatestSnapshot();
 
-        /** дивжение локала однопоточка
+        /* дивжение локала однопоточка
         PlayerState newLocal =
                 computeLocalMovement(
                         active.localPlayer,
@@ -189,6 +218,7 @@ public class CoreEngine implements WorldStateProvider{
 
         final WorldState snapshot = active;
 
+        /* заменяем на потоки воркеры как отдельные константно работающие потоки, а не перезапускаем каждый тик
         final PlayerState[] localHolder = new PlayerState[1];
         final List<ProjectileState>[] projectileHolder = new List[1];
 
@@ -223,6 +253,22 @@ public class CoreEngine implements WorldStateProvider{
 
         PlayerState newLocal = localHolder[0];
         List<ProjectileState> updatedProjectiles = projectileHolder[0];
+        */
+
+        // барьерная синхронизация
+
+        barrierSnapshot = active;
+        barrierInput = localInput;
+        barrierTick = tick;
+
+        try {
+            tickBarrier.await(); // старт тик-фазы
+            tickBarrier.await(); // ожидание завершения воркеров
+        } catch (InterruptedException | BrokenBarrierException ignored) {
+        }
+
+        PlayerState newLocal = barrierNewLocal;
+        List<ProjectileState> updatedProjectiles = barrierUpdatedProjectiles;
 
         // Сначала сохранить проджектайлы в отдельный лист, потом замержить, чтобы не рушить порядок объявления
         // сохраняем имутабильную модель, если на умном
@@ -295,6 +341,57 @@ public class CoreEngine implements WorldStateProvider{
             System.out.println("Not connected, nothing sent");
         }
     }
+
+    private void movementLoop() {
+
+        while (running) {
+
+            try {
+                tickBarrier.await();
+
+                if (!running) break;
+
+                barrierNewLocal =
+                        computeLocalMovement(
+                                barrierSnapshot.localPlayer,
+                                barrierInput,
+                                barrierSnapshot.getWorldWidth(),
+                                barrierSnapshot.getWorldHeight()
+                        );
+
+                tickBarrier.await();
+
+            } catch (InterruptedException | BrokenBarrierException ignored) {
+            }
+        }
+    }
+
+    private void projectileLoop() {
+
+        while (running) {
+
+            try {
+                tickBarrier.await();
+
+                if (!running) break;
+
+                barrierUpdatedProjectiles =
+                        updateProjectiles(
+                                barrierSnapshot.projectiles,
+                                barrierSnapshot.localPlayer,
+                                barrierInput,
+                                barrierTick,
+                                barrierSnapshot.getWorldWidth(),
+                                barrierSnapshot.getWorldHeight()
+                        );
+
+                tickBarrier.await();
+
+            } catch (InterruptedException | BrokenBarrierException ignored) {
+            }
+        }
+    }
+
 
     private PlayerState computeLocalMovement(PlayerState player,
                                              InputSnapshot input,
