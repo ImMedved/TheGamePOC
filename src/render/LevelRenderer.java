@@ -12,46 +12,64 @@ public class LevelRenderer {
     private static final int TILES_X = 20;
     private static final int TILES_Y = 20;
 
-    private final RectangleShape[][] tiles;
+    private final VertexArray vertices;
+    private final Texture atlas;
 
     public LevelRenderer() {
 
-        Texture tileTexture = new Texture();
-        Texture wallTexture = new Texture();
+        atlas = new Texture();
 
         try {
-            tileTexture.loadFromFile(Paths.get("assets/tile.png"));
-            wallTexture.loadFromFile(Paths.get("assets/wallTile.png"));
+            atlas.loadFromFile(Paths.get("assets/tiles.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        tiles = new RectangleShape[TILES_X][TILES_Y];
+        vertices = new VertexArray(PrimitiveType.QUADS);
+
+        buildMesh();
+    }
+
+    private void buildMesh() {
 
         for (int x = 0; x < TILES_X; x++) {
             for (int y = 0; y < TILES_Y; y++) {
-
-                RectangleShape tile =
-                        new RectangleShape(
-                                new Vector2f(TILE_SIZE, TILE_SIZE)
-                        );
 
                 boolean isWall =
                         x == 0 || y == 0 ||
                                 x == TILES_X - 1 ||
                                 y == TILES_Y - 1;
 
-                tile.setTexture(isWall ? wallTexture : tileTexture);
-                tile.setPosition(x * TILE_SIZE, y * TILE_SIZE);
+                float worldX = x * TILE_SIZE;
+                float worldY = y * TILE_SIZE;
 
-                tiles[x][y] = tile;
+                float texOffsetX = isWall ? TILE_SIZE : 0f;
+
+                vertices.add(new Vertex(
+                        new Vector2f(worldX, worldY),
+                        new Vector2f(texOffsetX, 0)
+                ));
+
+                vertices.add(new Vertex(
+                        new Vector2f(worldX + TILE_SIZE, worldY),
+                        new Vector2f(texOffsetX + TILE_SIZE, 0)
+                ));
+
+                vertices.add(new Vertex(
+                        new Vector2f(worldX + TILE_SIZE, worldY + TILE_SIZE),
+                        new Vector2f(texOffsetX + TILE_SIZE, TILE_SIZE)
+                ));
+
+                vertices.add(new Vertex(
+                        new Vector2f(worldX, worldY + TILE_SIZE),
+                        new Vector2f(texOffsetX, TILE_SIZE)
+                ));
             }
         }
     }
 
     public void draw(RenderWindow window) {
-        for (int x = 0; x < TILES_X; x++)
-            for (int y = 0; y < TILES_Y; y++)
-                window.draw(tiles[x][y]);
+        RenderStates states = new RenderStates(atlas);
+        window.draw(vertices, states);
     }
 }

@@ -1,19 +1,12 @@
 package render;
 
-import core.PlayerState;
-import core.ProjectileState;
 import core.WorldState;
 import core.WorldStateProvider;
 import input.InputModule;
 import org.jsfml.graphics.*;
-import org.jsfml.system.Vector2f;
 import org.jsfml.window.ContextActivationException;
 import org.jsfml.window.VideoMode;
 import org.jsfml.window.WindowStyle;
-
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.List;
 
 public class RenderEngine {
 
@@ -50,7 +43,6 @@ public class RenderEngine {
 
     private static final float CAMERA_LERP = 0.08f; // при фризах можно ставить 0,05f, в целом даже 0.04 работает еще ок, ниже нет смысла.
     private static final float DEAD_ZONE_PERCENT = 0.2f;*/
-
 
     public RenderEngine(WorldStateProvider worldProvider,
                         InputModule inputModule) {
@@ -105,9 +97,8 @@ public class RenderEngine {
                         window.getSize().x,
                         window.getSize().y
                 )
-        );*/
+        );
 
-        /*
         cameraX = window.getSize().x / 2f;
         cameraY = window.getSize().y / 2f;
 
@@ -343,4 +334,3 @@ public class RenderEngine {
     }*/
 
 }
-

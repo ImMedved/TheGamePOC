@@ -6,28 +6,53 @@ import core.WorldState;
 import org.jsfml.graphics.*;
 import org.jsfml.system.Vector2f;
 
+import java.io.IOException;
+import java.nio.file.Paths;
+
 public class EntityRenderer {
 
-    private final CircleShape localPlayerShape;
-    private final CircleShape remotePlayerShape;
+    /*private final CircleShape localPlayerShape;
+    private final CircleShape remotePlayerShape;*/
     private final CircleShape projectileShape;
+
+    private final Texture characterAtlas;
+    private final AnimatedCharacter localCharacter;
+    private final AnimatedCharacter remoteCharacter;
+    private final CharacterBatchRenderer characterBatch;
 
     public EntityRenderer() {
 
-        localPlayerShape = new CircleShape();
+        /*localPlayerShape = new CircleShape();
         localPlayerShape.setFillColor(Color.GREEN);
 
         remotePlayerShape = new CircleShape();
-        remotePlayerShape.setFillColor(Color.RED);
+        remotePlayerShape.setFillColor(Color.RED);*/
 
         projectileShape = new CircleShape(4f);
         projectileShape.setFillColor(Color.WHITE);
+
+        characterAtlas = new Texture();
+        characterBatch = new CharacterBatchRenderer();
+
+        try {
+            characterAtlas.loadFromFile(Paths.get("assets/chars.png"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        int randomLocal = (int)(Math.random() * 6);
+        int randomRemote = (int)(Math.random() * 6);
+
+        localCharacter = new AnimatedCharacter(characterAtlas, randomLocal);
+        remoteCharacter = new AnimatedCharacter(characterAtlas, randomRemote);
     }
 
     public void drawEntities(RenderWindow window, WorldState state) {
 
-        drawPlayer(window, state.localPlayer, localPlayerShape);
-        drawPlayer(window, state.remotePlayer, remotePlayerShape);
+        float dt = 1f / 60f; // временно фикс, можно позже синхронизировать с render dt
+
+        characterBatch.draw(window, state, dt);
+
         drawProjectiles(window, state.projectiles);
     }
 
