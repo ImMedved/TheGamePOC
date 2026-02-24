@@ -14,6 +14,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.BrokenBarrierException;
 
+import core.workers.MovementWorker;
+import core.workers.ProjectileWorker;
+import core.workers.CollisionWorker;
+
 public class CoreEngine implements WorldStateProvider{
     // world data, позже добавить чексумму при конекте
     // занижаем в нулину скорость цикла, потому что либо надо городить на сети сборщик данных из нескольких циклов в один пакет, а мне в падлу, либо пакеты будут пропадать.
@@ -23,9 +27,6 @@ public class CoreEngine implements WorldStateProvider{
     private static final float TICK_DT = 1f / TICK_RATE; // пиздеж
     private static final float PLAYER_SPEED = 300f; // но надо фиксить, скорость же зависит от тикрейта, значит слипы не помогут
     private static final float PROJECTILE_SPEED = 500f;
-
-    //private static final float ARENA_WIDTH = 800f; // подставить размеры окна из main??? -> подставил из WorldState
-    //private static final float ARENA_HEIGHT = 600f;
 
     // game
     private final int localPlayerId;
@@ -38,7 +39,7 @@ public class CoreEngine implements WorldStateProvider{
     private Thread coreThread;
     private volatile boolean running = false;
 
-    private int projectileIdCounter = 0;
+    int projectileIdCounter = 0;
 
     // сеть
     private final NetworkBridge network;
@@ -48,15 +49,19 @@ public class CoreEngine implements WorldStateProvider{
     // Барьер и потоки воркеры
     private Thread movementThread;
     private Thread projectileThread;
+    private Thread collisionThread;
 
     private CyclicBarrier tickBarrier;
 
-    private volatile WorldState barrierSnapshot;
-    private volatile InputSnapshot barrierInput;
-    private volatile int barrierTick;
+    public volatile WorldState barrierSnapshot;
+    public volatile InputSnapshot barrierInput;
+    volatile int barrierTick;
 
-    private volatile PlayerState barrierNewLocal;
-    private volatile List<ProjectileState> barrierUpdatedProjectiles;
+    public volatile PlayerState barrierNewLocal;
+    volatile List<ProjectileState> barrierUpdatedProjectiles;
+    volatile CollisionResult barrierCollisionResult;
+
+    private final List<BulletHoleState> bulletHoles = new ArrayList<>();
 
     public CoreEngine(InputModule inputModule, NetworkBridge network, int localPlayerId) {
         this.inputModule = inputModule;
@@ -72,15 +77,28 @@ public class CoreEngine implements WorldStateProvider{
     public void start() {
         running = true;
 
-        tickBarrier = new CyclicBarrier(3);
+        tickBarrier = new CyclicBarrier(4);
 
-        movementThread = new Thread(this::movementLoop);
+        MovementWorker movementWorker =
+                new MovementWorker(this, tickBarrier);
+
+        ProjectileWorker projectileWorker =
+                new ProjectileWorker(this, tickBarrier);
+
+        CollisionWorker collisionWorker =
+                new CollisionWorker(this, tickBarrier);
+
+        movementThread = new Thread(movementWorker);
         movementThread.setName("MovementThread");
         movementThread.start();
 
-        projectileThread = new Thread(this::projectileLoop);
+        projectileThread = new Thread(projectileWorker);
         projectileThread.setName("ProjectileThread");
         projectileThread.start();
+
+        Thread collisionThread = new Thread(collisionWorker);
+        collisionThread.setName("CollisionThread");
+        collisionThread.start();
 
         coreThread = new Thread(this::runLoop);
         coreThread.setName("CoreThread");
@@ -111,11 +129,6 @@ public class CoreEngine implements WorldStateProvider{
             long elapsed = System.currentTimeMillis() - startTime;
             long sleepTime = (1000 / TICK_RATE) - elapsed;
 
-            /* вот тут вопрос, потому что я не очень выкупаю, сколько оно на самом деле спит. Типо по идее должно быть 16 мс, но на деле
-              типо я не верю. Надо балансить, с одной стороны, с другой, если делать сеть, то может быть ботлнек, из-за кол-ва пакетов.
-              мб просто поставить сон на секунду
-              Upd: понял
-             */
             if (sleepTime > 0) {
                 try {
                     Thread.sleep(sleepTime);
@@ -126,11 +139,6 @@ public class CoreEngine implements WorldStateProvider{
         }
     }
 
-    /**
-     * Эта залупа ежа берет данные из прошлого состояния мира, затем мутирует их через вводы и созраняет в stagging.
-     * После делается свап в active. Лол, я сюда впихнул слип, когда у меня родительском методе компенсация.
-     * @param tick
-     */
     private void runTick(int tick) {
 
         WorldState active = activeWorld.get();
@@ -177,7 +185,9 @@ public class CoreEngine implements WorldStateProvider{
                                         p.startY,
                                         p.dirX,
                                         p.dirY,
-                                        PROJECTILE_SPEED
+                                        PROJECTILE_SPEED,
+                                        p.startX,
+                                        p.startY
                                 )
                         );
                     }
@@ -195,65 +205,7 @@ public class CoreEngine implements WorldStateProvider{
         inputModule.publishSnapshot(tick);
         InputSnapshot localInput = inputModule.getLatestSnapshot();
 
-        /* дивжение локала однопоточка
-        PlayerState newLocal =
-                computeLocalMovement(
-                        active.localPlayer,
-                        localInput,
-                        active.getWorldWidth(),
-                        active.getWorldHeight()
-                );
-
-        List<ProjectileState> updatedProjectiles =
-                updateProjectiles(
-                        active.projectiles,
-                        newLocal,
-                        localInput,
-                        tick,
-                        active.getWorldWidth(),
-                        active.getWorldHeight()
-                );
-
-         */
-
         final WorldState snapshot = active;
-
-        /* заменяем на потоки воркеры как отдельные константно работающие потоки, а не перезапускаем каждый тик
-        final PlayerState[] localHolder = new PlayerState[1];
-        final List<ProjectileState>[] projectileHolder = new List[1];
-
-        Thread movementThread = new Thread(() -> {
-            localHolder[0] = computeLocalMovement(
-                    snapshot.localPlayer,
-                    localInput,
-                    snapshot.getWorldWidth(),
-                    snapshot.getWorldHeight()
-            );
-        });
-
-        Thread projectileThread = new Thread(() -> {
-            projectileHolder[0] = updateProjectiles(
-                    snapshot.projectiles,
-                    snapshot.localPlayer,
-                    localInput,
-                    tick,
-                    snapshot.getWorldWidth(),
-                    snapshot.getWorldHeight()
-            );
-        });
-
-        movementThread.start();
-        projectileThread.start();
-
-        try {
-            movementThread.join();
-            projectileThread.join();
-        } catch (InterruptedException ignored) {
-        }
-
-        PlayerState newLocal = localHolder[0];
-        List<ProjectileState> updatedProjectiles = projectileHolder[0];
-        */
 
         // барьерная синхронизация
 
@@ -270,12 +222,7 @@ public class CoreEngine implements WorldStateProvider{
         PlayerState newLocal = barrierNewLocal;
         List<ProjectileState> updatedProjectiles = barrierUpdatedProjectiles;
 
-        // Сначала сохранить проджектайлы в отдельный лист, потом замержить, чтобы не рушить порядок объявления
-        // сохраняем имутабильную модель, если на умном
-        updatedProjectiles.addAll(incomingProjectiles);
-
-        CollisionResult collision =
-                detectCollisions(updatedProjectiles, newLocal, currentRemote);
+        CollisionResult collision = barrierCollisionResult;
 
         // сборщик даты в объект staging world state
         WorldState newWorld = new WorldState(
@@ -289,27 +236,14 @@ public class CoreEngine implements WorldStateProvider{
                 active.getWorldHeight()
         );
 
-        // свап (который не свап, но похуй, смысл был изначально другой)
         activeWorld.set(newWorld);
 
-        // сеть
-        /**
-         * Кароч, смысл такой, что мы в начале обмениваемся пакетами состояния, которые поставят игроков на позиции и
-         * возщможно позже будут проверять состояние синхронизации. Но сейчас нужно переключить сеть на обмен данными,
-         * так как в начале helloSent стоит на обмене handshake. Если HELLO не был выбран как case получаемого пакета,
-         * то сеть не перейдет в connected == true. Upd: см фикс ниже
-         */
         if (!helloSent) {
             network.send(new HelloPacket(localPlayerId));
             System.out.println("[NET] Sending HELLO, local ID is: " + localPlayerId);
             helloSent = true;
         }
 
-        /** квик фикс, убрать зависимость от connected, пока не будет логики цикла проверки соединения,
-         * иначе на втором пк не приходит hello TODO
-         */
-
-        //if (tick % 4 == 0) {
         if (tick != -1){
             float velocityX = localInput.moveX * PLAYER_SPEED;
             float velocityY = localInput.moveY * PLAYER_SPEED;
@@ -326,199 +260,48 @@ public class CoreEngine implements WorldStateProvider{
 
             network.send(packet);
 
-            /**
-             * Проблема в том, что сеть не может работать с 30+30 пакетами в две стороны в секунду
-             * Так что нужно либо объединять их в пакеты пакетов, что типо бессмыстленно
-             * Либо нужно понижать тикрейт всей игры, чтобы мы отправляляи, например, 10+10 пакетов.
-             */
-            /* System.out.println("Tick " + tick +
-                " | snapshot data: " + localInput);
-            System.out.println("Tick " + tick +
-                " | Local(" + newLocal.x + "," + newLocal.y + ")" +
-                " | Projectiles: " + collision.projectiles.size());*/
-
         }else{
             System.out.println("Not connected, nothing sent");
         }
     }
 
-    private void movementLoop() {
+    // --- barrier getters ---
 
-        while (running) {
-
-            try {
-                tickBarrier.await();
-
-                if (!running) break;
-
-                barrierNewLocal =
-                        computeLocalMovement(
-                                barrierSnapshot.localPlayer,
-                                barrierInput,
-                                barrierSnapshot.getWorldWidth(),
-                                barrierSnapshot.getWorldHeight()
-                        );
-
-                tickBarrier.await();
-
-            } catch (InterruptedException | BrokenBarrierException ignored) {
-            }
-        }
+    public WorldState getBarrierSnapshot() {
+        return barrierSnapshot;
     }
 
-    private void projectileLoop() {
-
-        while (running) {
-
-            try {
-                tickBarrier.await();
-
-                if (!running) break;
-
-                barrierUpdatedProjectiles =
-                        updateProjectiles(
-                                barrierSnapshot.projectiles,
-                                barrierSnapshot.localPlayer,
-                                barrierInput,
-                                barrierTick,
-                                barrierSnapshot.getWorldWidth(),
-                                barrierSnapshot.getWorldHeight()
-                        );
-
-                tickBarrier.await();
-
-            } catch (InterruptedException | BrokenBarrierException ignored) {
-            }
-        }
+    public InputSnapshot getBarrierInput() {
+        return barrierInput;
     }
 
-
-    private PlayerState computeLocalMovement(PlayerState player,
-                                             InputSnapshot input,
-                                             float worldWidth,
-                                             float worldHeight) {
-
-        // System.out.println("Input snapshot: " + input.toString());
-        float deltaX = input.moveX * PLAYER_SPEED * TICK_DT;
-        float deltaY = input.moveY * PLAYER_SPEED * TICK_DT;
-
-        float wall = 100f;
-
-        float minX = wall + player.hitboxRadius;
-        float minY = wall + player.hitboxRadius;
-
-        float maxX = worldWidth - wall - player.hitboxRadius;
-        float maxY = worldHeight - wall - player.hitboxRadius;
-
-        float newX = clamp(player.x + deltaX, minX, maxX);
-        float newY = clamp(player.y + deltaY, minY, maxY);
-
-        return new PlayerState(
-                player.playerId,
-                newX,
-                newY,
-                deltaX / TICK_DT,
-                deltaY / TICK_DT,
-                player.hitboxRadius
-        );
+    public int getBarrierTick() {
+        return barrierTick;
     }
 
-    private List<ProjectileState> updateProjectiles(
-            List<ProjectileState> projectiles,
-            PlayerState newLocal,
-            InputSnapshot input,
-            int tick,
-            float worldWidth,
-            float worldHeight
-    ) {
+// --- barrier setters ---
 
-        List<ProjectileState> result = new ArrayList<>();
-
-        if (input.shoot) {
-
-            float dx = input.mouseX - newLocal.x;
-            float dy = input.mouseY - newLocal.y;
-
-            float length = (float) Math.sqrt(dx * dx + dy * dy);
-
-            if (length > 0) {
-
-                float dirX = dx / length;
-                float dirY = dy / length;
-
-                result.add(new ProjectileState(
-                        projectileIdCounter++,
-                        newLocal.playerId,
-                        newLocal.x,
-                        newLocal.y,
-                        dirX,
-                        dirY,
-                        PROJECTILE_SPEED
-                ));
-                network.send(new ProjectileSpawnPacket(
-                        tick,
-                        projectileIdCounter - 1 + 10000, // по идее тогда они не должны наслаиваться с равными идами.
-                        newLocal.playerId,
-                        newLocal.x,
-                        newLocal.y,
-                        dirX,
-                        dirY
-                ));
-            }
-        }
-
-        for (ProjectileState p : projectiles) {
-
-            float newX = p.x + p.dirX * p.speed * TICK_DT;
-            float newY = p.y + p.dirY * p.speed * TICK_DT;
-
-            if (newX >= 0 && newX <= worldWidth &&
-                    newY >= 0 && newY <= worldHeight) {
-
-                result.add(new ProjectileState(
-                        p.projectileId,
-                        p.ownerId,
-                        newX,
-                        newY,
-                        p.dirX,
-                        p.dirY,
-                        p.speed
-                ));
-            }
-        }
-
-        return result;
+    void setBarrierNewLocal(PlayerState state) {
+        this.barrierNewLocal = state;
     }
 
-    private CollisionResult detectCollisions(
-            List<ProjectileState> projectiles,
-            PlayerState local,
-            PlayerState remote
-    ) {
-
-        for (ProjectileState p : projectiles) {
-
-            PlayerState target = (p.ownerId == local.playerId) ? remote : local;
-
-            float dx = p.x - target.x;
-            float dy = p.y - target.y;
-
-            float dist = (float) Math.sqrt(dx * dx + dy * dy);
-
-            if (dist <= target.hitboxRadius) {
-
-                return new CollisionResult(
-                        List.of(),
-                        true,
-                        p.ownerId
-                );
-            }
-        }
-
-        return new CollisionResult(projectiles, false, -1);
+    public void setBarrierUpdatedProjectiles(List<ProjectileState> list) {
+        this.barrierUpdatedProjectiles = list;
     }
 
-    private float clamp(float value, float min, float max) {
-        return Math.max(min, Math.min(max, value));
+    public void setBarrierCollisionResult(CollisionResult result) {
+        this.barrierCollisionResult = result;
+    }
+
+    public int nextProjectileId() {
+        return projectileIdCounter++;
+    }
+
+    public PlayerState getBarrierNewLocal() {
+        return barrierNewLocal;
+    }
+
+    public List<ProjectileState> getBarrierUpdatedProjectiles() {
+        return barrierUpdatedProjectiles;
     }
 }

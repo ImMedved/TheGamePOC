@@ -16,7 +16,7 @@ public final class WorldState {
 
     private final float worldWidth;
     private final float worldHeight;
-
+    public List<BulletHoleState> bulletHoles;
 
 
     public WorldState(

@@ -14,6 +14,7 @@ public class EntityRenderer {
     /*private final CircleShape localPlayerShape;
     private final CircleShape remotePlayerShape;*/
     private final CircleShape projectileShape;
+    private final ProjectileBatchRenderer projectileBatch;
 
     private final Texture characterAtlas;
     private final AnimatedCharacter localCharacter;
@@ -34,6 +35,8 @@ public class EntityRenderer {
         characterAtlas = new Texture();
         characterBatch = new CharacterBatchRenderer();
 
+        projectileBatch = new ProjectileBatchRenderer();
+
         try {
             characterAtlas.loadFromFile(Paths.get("assets/chars.png"));
         } catch (IOException e) {
@@ -53,7 +56,10 @@ public class EntityRenderer {
 
         characterBatch.draw(window, state, dt);
 
-        drawProjectiles(window, state.projectiles);
+        projectileBatch.draw(window,
+                state.projectiles,
+                state.bulletHoles,
+                dt);
     }
 
     private void drawPlayer(RenderWindow window,
