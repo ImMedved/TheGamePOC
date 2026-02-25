@@ -1,6 +1,7 @@
-package network;
+package network.helpers;
 
-import core.NetworkBridge;
+import core.networkCore.NetworkBridge;
+import network.packets.Packet;
 import network.queues.InboundQueue;
 import network.queues.OutboundQueue;
 

@@ -1,10 +1,11 @@
-package render;
+package render.renderers;
 
-import core.PlayerState;
-import core.ProjectileState;
-import core.WorldState;
+import core.states.PlayerState;
+import core.states.ProjectileState;
+import core.states.WorldState;
 import org.jsfml.graphics.*;
 import org.jsfml.system.Vector2f;
+import render.AnimatedCharacter;
 
 import java.io.IOException;
 import java.nio.file.Paths;

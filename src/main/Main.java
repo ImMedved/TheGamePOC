@@ -6,9 +6,9 @@ package main;
 
 import core.CoreEngine;
 import input.InputModule;
-import network.CoreNetworkBridge;
+import network.helpers.CoreNetworkBridge;
 import network.NetworkManager;
-import network.UdpTransport;
+import network.helpers.UdpTransport;
 import network.queues.InboundQueue;
 import network.queues.OutboundQueue;
 import render.RenderEngine;

@@ -1,12 +1,14 @@
 package render;
 
-import core.WorldState;
-import core.WorldStateProvider;
+import core.states.WorldState;
+import core.states.helpers.WorldStateProvider;
 import input.InputModule;
 import org.jsfml.graphics.*;
 import org.jsfml.window.ContextActivationException;
 import org.jsfml.window.VideoMode;
 import org.jsfml.window.WindowStyle;
+import render.renderers.EntityRenderer;
+import render.renderers.LevelRenderer;
 
 public class RenderEngine {
 

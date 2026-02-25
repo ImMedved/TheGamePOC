@@ -1,4 +1,6 @@
-package core;
+package core.workers.helpers;
+
+import core.states.ProjectileState;
 
 import java.util.List;
 

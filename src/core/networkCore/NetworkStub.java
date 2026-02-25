@@ -1,4 +1,7 @@
-package core;
+package core.networkCore;
+
+import core.states.helpers.PlayerStateSnapshot;
+
 // редандант
 public class NetworkStub {
 

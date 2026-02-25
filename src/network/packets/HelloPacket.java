@@ -1,7 +1,5 @@
 package network.packets;
 
-import network.Packet;
-import network.PacketType;
 // отключено
 public final class HelloPacket implements Packet {
 

@@ -1,8 +1,8 @@
 package render;
 
-import core.PlayerState;
-import core.WorldState;
-import core.WorldStateProvider;
+import core.states.PlayerState;
+import core.states.WorldState;
+import core.states.helpers.WorldStateProvider;
 import org.jsfml.graphics.FloatRect;
 import org.jsfml.graphics.RenderWindow;
 import org.jsfml.graphics.View;

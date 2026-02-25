@@ -1,8 +1,12 @@
 package core;
 
+import core.networkCore.NetworkBridge;
+import core.states.*;
+import core.states.helpers.WorldStateProvider;
+import core.workers.helpers.CollisionResult;
 import input.InputModule;
 import input.InputSnapshot;
-import network.Packet;
+import network.packets.Packet;
 import network.packets.HelloPacket;
 import network.packets.PlayerStatePacket;
 import network.packets.ProjectileSpawnPacket;
@@ -18,7 +22,7 @@ import core.workers.MovementWorker;
 import core.workers.ProjectileWorker;
 import core.workers.CollisionWorker;
 
-public class CoreEngine implements WorldStateProvider{
+public class CoreEngine implements WorldStateProvider {
     // world data, позже добавить чексумму при конекте
     // занижаем в нулину скорость цикла, потому что либо надо городить на сети сборщик данных из нескольких циклов в один пакет, а мне в падлу, либо пакеты будут пропадать.
     public static final int TICK_RATE = 20; // эээ, оно типо не работает, я хз, если добавить слип, то норм, а так не верю, что это 60/с

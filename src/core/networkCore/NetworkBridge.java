@@ -1,6 +1,6 @@
-package core;
+package core.networkCore;
 
-import network.Packet;
+import network.packets.Packet;
 
 public interface NetworkBridge {
 

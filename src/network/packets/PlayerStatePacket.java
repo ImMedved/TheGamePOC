@@ -1,8 +1,5 @@
 package network.packets;
 
-import network.Packet;
-import network.PacketType;
-
 public final class PlayerStatePacket implements Packet {
 
     public final int tick;

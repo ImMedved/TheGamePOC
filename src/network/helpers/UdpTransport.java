@@ -1,4 +1,4 @@
-package network;
+package network.helpers;
 
 import java.net.*;
 import java.util.Arrays;

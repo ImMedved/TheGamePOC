@@ -1,6 +1,8 @@
 package core.workers;
 
 import core.*;
+import core.states.PlayerState;
+import core.states.ProjectileState;
 import input.InputSnapshot;
 
 import java.util.ArrayList;

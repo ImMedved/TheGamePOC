@@ -1,6 +1,7 @@
-package network;
+package network.helpers;
 
 import network.packets.HelloPacket;
+import network.packets.Packet;
 import network.packets.PlayerStatePacket;
 import network.packets.ProjectileSpawnPacket;
 

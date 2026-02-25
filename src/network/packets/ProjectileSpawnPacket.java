@@ -1,8 +1,5 @@
 package network.packets;
 
-import network.Packet;
-import network.PacketType;
-
 public final class ProjectileSpawnPacket implements Packet {
 
     public final int tick;

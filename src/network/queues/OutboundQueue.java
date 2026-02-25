@@ -1,6 +1,6 @@
 package network.queues;
 
-import network.Packet;
+import network.packets.Packet;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 

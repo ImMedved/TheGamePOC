@@ -1,6 +1,9 @@
 package core.workers;
 
 import core.*;
+import core.states.PlayerState;
+import core.states.ProjectileState;
+import core.workers.helpers.CollisionResult;
 
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;

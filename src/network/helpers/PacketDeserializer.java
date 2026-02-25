@@ -1,8 +1,6 @@
-package network;
+package network.helpers;
 
-import network.packets.HelloPacket;
-import network.packets.PlayerStatePacket;
-import network.packets.ProjectileSpawnPacket;
+import network.packets.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

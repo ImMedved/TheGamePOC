@@ -1,9 +1,10 @@
-package render;
+package render.renderers;
 
-import core.PlayerState;
-import core.WorldState;
+import core.states.PlayerState;
+import core.states.WorldState;
 import org.jsfml.graphics.*;
 import org.jsfml.system.Vector2f;
+import render.Direction;
 
 public class CharacterBatchRenderer {
 

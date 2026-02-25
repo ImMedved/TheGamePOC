@@ -1,4 +1,4 @@
-package core;
+package core.states;
 
 public final class ProjectileState {
 

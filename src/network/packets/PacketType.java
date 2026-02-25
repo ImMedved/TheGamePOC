@@ -1,4 +1,4 @@
-package network;
+package network.packets;
 
 public enum PacketType {
 
