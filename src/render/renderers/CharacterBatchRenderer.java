@@ -1,7 +1,7 @@
 package render.renderers;
 
 import core.states.PlayerState;
-import core.states.WorldState;
+import core.statesold.WorldState;
 import org.jsfml.graphics.*;
 import org.jsfml.system.Vector2f;
 import render.Direction;

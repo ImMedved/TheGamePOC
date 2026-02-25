@@ -1,6 +1,6 @@
 package render.renderers;
 
-import core.states.BulletHoleState;
+import core.statesold.BulletHoleState;
 import core.states.ProjectileState;
 import org.jsfml.graphics.*;
 import org.jsfml.system.Vector2f;
