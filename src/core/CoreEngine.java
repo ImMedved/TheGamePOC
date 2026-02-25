@@ -1,6 +1,8 @@
 package core;
 
 import core.commands.Command;
+import core.render.RenderSnapshot;
+import core.render.RenderSnapshotBuilder;
 import core.states.WorldState;
 import core.systems.*;
 import core.systems.System;
@@ -25,15 +27,29 @@ public final class CoreEngine {
     private final AtomicLong idGenerator = new AtomicLong(1);
 
     private volatile boolean running = false;
-    private WorldState world;
+
+    private WorldState previousWorld;
+    private WorldState currentWorld;
+
+    private final RenderSnapshotBuilder snapshotBuilder =
+            new RenderSnapshotBuilder();
+
+    private final java.util.concurrent.atomic.AtomicReference<RenderSnapshot>
+            renderSnapshotRef = new java.util.concurrent.atomic.AtomicReference<>();
 
     public CoreEngine(InputModule input,
                       WorldState initial,
                       List<System> systems) {
 
         this.input = input;
-        this.world = initial;
+        this.previousWorld = initial;
+        this.currentWorld = initial;
         this.systems = systems;
+
+        RenderSnapshot first =
+                snapshotBuilder.build(initial, initial);
+
+        renderSnapshotRef.set(first);
 
         this.executor =
                 Executors.newFixedThreadPool(
@@ -49,10 +65,6 @@ public final class CoreEngine {
     public void stop() {
         running = false;
         executor.shutdown();
-    }
-
-    public WorldState getLatestWorldState() {
-        return world;
     }
 
     private void runLoop() {
@@ -78,11 +90,11 @@ public final class CoreEngine {
 
     private void tick() {
 
-        input.publishSnapshot((int) world.tickIndex);
+        input.publishSnapshot((int) currentWorld.tickIndex);
         InputSnapshot inputSnapshot =
                 input.getLatestSnapshot();
 
-        WorldState snapshot = world;
+        WorldState snapshot = currentWorld;
 
         List<List<Command>> phaseALists = new ArrayList<>();
 
@@ -153,6 +165,21 @@ public final class CoreEngine {
                 new ArrayList<>(phaseACommands);
         all.addAll(phaseBCommands);
 
-        world = processor.apply(snapshot, all);
+        WorldState nextWorld =
+                processor.apply(snapshot, all);
+
+        // ---- snapshot integration ----
+
+        RenderSnapshot snapshotRender =
+                snapshotBuilder.build(previousWorld, nextWorld);
+
+        renderSnapshotRef.set(snapshotRender);
+
+        previousWorld = nextWorld;
+        currentWorld = nextWorld;
+    }
+
+    public RenderSnapshot getRenderSnapshot() {
+        return renderSnapshotRef.get();
     }
 }

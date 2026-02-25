@@ -81,8 +81,8 @@ public class Main {
 
         core.start();
 
-        // RenderEngine render = new RenderEngine(core, inputModule);
+        RenderEngine render = new RenderEngine(core);
 
-        // render.start();
+        render.start();
     }
 }
