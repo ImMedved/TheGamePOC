@@ -5,6 +5,7 @@ package main;
  */
 
 import core.CoreEngine;
+import core.states.WorldState;
 import input.InputModule;
 import network.helpers.CoreNetworkBridge;
 import network.NetworkManager;
@@ -56,16 +57,16 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-        NetworkManager networkManager =
-                new NetworkManager(transport, inbound, outbound);
+        // NetworkManager networkManager = new NetworkManager(transport, inbound, outbound);
 
-        CoreNetworkBridge bridge =
-                new CoreNetworkBridge(inbound, outbound);
+        // CoreNetworkBridge bridge = new CoreNetworkBridge(inbound, outbound);
+
+        WorldState initial = WorldState.initial();
 
         CoreEngine core =
-                new CoreEngine(inputModule, bridge, localPlayerId);
+                new CoreEngine(inputModule, initial);
 
-        networkManager.start();
+        // networkManager.start();
         core.start();
         RenderEngine render = new RenderEngine(core, inputModule);
 

@@ -1,36 +1,30 @@
 package core.states;
 
+import core.states.helpers.Vector2;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 public final class ProjectileState {
 
-    public final int projectileId;
+    public final int id;
     public final int ownerId;
-    public final float x;
-    public final float y;
-    public final float dirX;
-    public final float dirY;
-    public final float speed;
-    public final float startX;
-    public final float startY;
 
-    public ProjectileState(
-            int projectileId,
-            int ownerId,
-            float x,
-            float y,
-            float dirX,
-            float dirY,
-            float speed,
-            float startX,
-            float startY
-    ) {
-        this.projectileId = projectileId;
+    public final Vector2 position = new Vector2();
+    public final Vector2 previousPosition = new Vector2();
+    public final Vector2 velocity = new Vector2();
+
+    public float lifetime;
+    public float elapsed;
+    public float damage;
+
+    public final Map<String, Object> attributes = new HashMap<>();
+    public final Set<String> tags = new HashSet<>();
+
+    public ProjectileState(int id, int ownerId) {
+        this.id = id;
         this.ownerId = ownerId;
-        this.x = x;
-        this.y = y;
-        this.dirX = dirX;
-        this.dirY = dirY;
-        this.speed = speed;
-        this.startX = startX;
-        this.startY = startY;
     }
 }

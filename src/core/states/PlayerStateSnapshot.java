@@ -1,4 +1,4 @@
-package core.states.helpers;
+package core.states;
 
 public final class PlayerStateSnapshot {
 

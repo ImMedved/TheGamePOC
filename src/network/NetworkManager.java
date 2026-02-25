@@ -9,8 +9,6 @@ import network.queues.OutboundQueue;
 
 import java.net.SocketTimeoutException;
 
-import static core.CoreEngine.TICK_RATE;
-
 public class NetworkManager {
 
     private final UdpTransport transport;
@@ -22,7 +20,7 @@ public class NetworkManager {
 
     // вот эту залупу надо синхронить с тикрейтом.
     // private static final int SEND_RATE = 15;
-    private static final int SEND_RATE = TICK_RATE;
+    private static final int SEND_RATE = 10;
     private static final long SEND_INTERVAL_MS = 1000 / SEND_RATE;
 
     public NetworkManager(UdpTransport transport,

@@ -1,6 +1,4 @@
-package core.states.helpers;
-
-import core.states.WorldState;
+package core.states;
 
 public interface WorldStateProvider {
     WorldState getLatestWorldState();

@@ -1,59 +1,42 @@
 package core.states;
 
+import core.states.effects.EffectData;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public final class WorldState {
+public final class WorldState implements WorldStateProvider{
 
-    public final int tick;
+    private final PlayerState player;
+    private final List<ProjectileState> projectiles;
+    private final List<EffectData> effects;
+    private final LevelState level;
 
-    public final PlayerState localPlayer;
-    public final PlayerState remotePlayer;
-
-    public final List<ProjectileState> projectiles;
-
-    public final boolean gameOver;
-    public final int winnerId;
-
-    private final float worldWidth;
-    private final float worldHeight;
-    public List<BulletHoleState> bulletHoles;
-    public final List<EffectState> effects;
-
-    public WorldState(
-            int tick,
-            PlayerState localPlayer,
-            PlayerState remotePlayer,
-            List<ProjectileState> projectiles,
-            List<EffectState> effects,
-            boolean gameOver,
-            int winnerId,
-            float worldWidth,
-            float worldHeight
-    ) {
-        this.tick = tick;
-        this.localPlayer = localPlayer;
-        this.remotePlayer = remotePlayer;
-        this.projectiles = List.copyOf(projectiles);
-        this.effects = List.copyOf(effects);
-        this.gameOver = gameOver;
-        this.winnerId = winnerId;
-        this.worldWidth = worldWidth;
-        this.worldHeight = worldHeight;
-    }
-    public static WorldState initial() {
-        return new WorldState(
-                0,
-                new PlayerState(1, 100, 100, 0, 0, 20),
-                new PlayerState(2, 500, 300, 0, 0, 20),
-                List.of(),
-                List.of(),
-                false,
-                -1,
-                2000,
-                2000
-        );
+    public WorldState(PlayerState player, LevelState level) {
+        this.player = player;
+        this.level = level;
+        this.projectiles = new ArrayList<>();
+        this.effects = new ArrayList<>();
     }
 
-    public float getWorldWidth() { return worldWidth; }
-    public float getWorldHeight() { return worldHeight; }
+    public PlayerState player() {
+        return player;
+    }
+
+    public List<ProjectileState> projectiles() {
+        return projectiles;
+    }
+
+    public List<EffectData> effects() {
+        return effects;
+    }
+
+    public LevelState level() {
+        return level;
+    }
+
+    @Override
+    public WorldState getLatestWorldState() {
+        return world;
+    }
 }

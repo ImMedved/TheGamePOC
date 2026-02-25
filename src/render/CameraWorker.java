@@ -2,7 +2,7 @@ package render;
 
 import core.states.PlayerState;
 import core.states.WorldState;
-import core.states.helpers.WorldStateProvider;
+import core.states.WorldStateProvider;
 import org.jsfml.graphics.FloatRect;
 import org.jsfml.graphics.RenderWindow;
 import org.jsfml.graphics.View;

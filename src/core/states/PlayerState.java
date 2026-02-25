@@ -1,27 +1,27 @@
 package core.states;
 
+import core.states.helpers.Vector2;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 public final class PlayerState {
 
-    public final int playerId;
-    public final float x;
-    public final float y;
-    public final float velocityX;
-    public final float velocityY;
-    public final float hitboxRadius;
+    public final int id;
 
-    public PlayerState(
-            int playerId,
-            float x,
-            float y,
-            float velocityX,
-            float velocityY,
-            float hitboxRadius
-    ) {
-        this.playerId = playerId;
-        this.x = x;
-        this.y = y;
-        this.velocityX = velocityX;
-        this.velocityY = velocityY;
-        this.hitboxRadius = hitboxRadius;
+    public final Vector2 position = new Vector2();
+    public final Vector2 previousPosition = new Vector2();
+    public final Vector2 velocity = new Vector2();
+
+    public float rotation;
+    public float health;
+
+    public final Map<String, Object> attributes = new HashMap<>();
+    public final Set<String> tags = new HashSet<>();
+
+    public PlayerState(int id) {
+        this.id = id;
     }
 }

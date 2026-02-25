@@ -1,7 +1,7 @@
 package render;
 
 import core.states.WorldState;
-import core.states.helpers.WorldStateProvider;
+import core.states.WorldStateProvider;
 import input.InputModule;
 import org.jsfml.graphics.*;
 import org.jsfml.window.ContextActivationException;
