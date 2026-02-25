@@ -1,77 +1,88 @@
 package main;
 
-/*
-Запускать с --enable-native-access=ALL-UNNAMED
- */
-
 import core.CoreEngine;
-import core.states.WorldState;
+import core.registries.*;
+import core.states.*;
+import core.systems.*;
 import input.InputModule;
-import network.helpers.CoreNetworkBridge;
-import network.NetworkManager;
-import network.helpers.UdpTransport;
-import network.queues.InboundQueue;
-import network.queues.OutboundQueue;
 import render.RenderEngine;
 
-public class Main {
-    /**
-     * для запуска нужно:
-     * win 11
-     * отключить фаервол
-     * переключить сеть в домашний режим
-     * узнать адреса обоих компов
-     * в код вписать localId для каждого свой, ip противоположного компа в каждый клиент
-     * порт на одном будет 5000/5001, на другом 5001/5000, jsfml
-     */
+import java.util.List;
 
-    /**
-     * To run, you need:
-     * Windows 11
-     * Disable firewall
-     * Switch the network to home mode
-     * Addresses of both computers
-     * Enter the localId for each computer into the code, and the IP of the opposite computer into each client
-     * The port on one will be in/out 5000/5001, on the other 5001/5000
-     * !! Go to Project Structure -> Libraries -> New -> Add jsfml.jar from root project folder (src in the same place)
-     *      -> apply
-     */
+public class Main {
+
     public static void main(String[] args) {
-        // заглушки, временно
-        int localPort = 5000;
-        String remoteIp = "192.168.xxx.xxx"; // IP второго компа
-        int remotePort = 5001;
-        // позже нужно добавить ввод этого говна с ui, а локалку подсосать с системы
 
         InputModule inputModule = new InputModule();
-        int localPlayerId = 1;
 
-        InboundQueue inbound = new InboundQueue();
-        OutboundQueue outbound = new OutboundQueue();
+        // --- Registries ---
 
-        UdpTransport transport = null;
+        CharacterRegistry characterRegistry =
+                new CharacterRegistry(4);
 
-        try {
-            transport = new UdpTransport(localPort, remoteIp, remotePort);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        ProjectileRegistry projectileRegistry =
+                new ProjectileRegistry(4);
 
-        // NetworkManager networkManager = new NetworkManager(transport, inbound, outbound);
+        EffectRegistry effectRegistry =
+                new EffectRegistry(4);
 
-        // CoreNetworkBridge bridge = new CoreNetworkBridge(inbound, outbound);
+        // --- Register default character ---
 
-        WorldState initial = WorldState.initial();
+        CharacterDefinition defaultCharacter =
+                new CharacterDefinition(0);
+
+        defaultCharacter.baseSpeed = 300f;
+        defaultCharacter.baseHealth = 100f;
+        defaultCharacter.baseHitboxRadius = 20f;
+
+        characterRegistry.register(defaultCharacter);
+
+        // --- Register default projectile ---
+
+        ProjectileDefinition defaultProjectile =
+                new ProjectileDefinition(0);
+
+        defaultProjectile.speed = 500f;
+        defaultProjectile.baseDamage = 10f;
+        defaultProjectile.lifetime = 2f;
+        defaultProjectile.hitboxRadius = 5f;
+
+        projectileRegistry.register(defaultProjectile);
+
+        // --- Create initial world ---
+
+        WorldState world = WorldState.initial();
+
+        LevelState level = new LevelState(1000, 1000);
+        world.level = level;
+
+        PlayerState player = new PlayerState(1);
+        player.characterId = 0;
+        player.health = 100f;
+        player.maxHealth = 100f;
+        player.hitboxRadius = 20f;
+
+        world.players.put(player.id, player);
+
+        // --- Systems ---
+
+        List<core.systems.System> systems = List.of(
+                new MovementSystem(characterRegistry),
+                new ProjectileSpawnSystem(projectileRegistry),
+                new ProjectileMoveSystem(),
+                new EffectTickSystem(effectRegistry),
+                new CollisionSystem()
+        );
+
+        // --- Core Engine ---
 
         CoreEngine core =
-                new CoreEngine(inputModule, initial);
+                new CoreEngine(inputModule, world, systems);
 
-        // networkManager.start();
         core.start();
-        RenderEngine render = new RenderEngine(core, inputModule);
 
-        render.start();
-        core.start();
+        // RenderEngine render = new RenderEngine(core, inputModule);
+
+        // render.start();
     }
 }
-

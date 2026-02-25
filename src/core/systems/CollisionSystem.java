@@ -1,30 +1,52 @@
 package core.systems;
 
-import core.states.SimulationContext;
+import core.SimulationContext;
 import core.commands.DamagePlayerCommand;
 import core.commands.RemoveProjectileCommand;
+import core.states.PlayerState;
 import core.states.ProjectileState;
 
-public final class CollisionSystem {
+public final class CollisionSystem implements System {
 
+    @Override
+    public Phase phase() {
+        return Phase.SEQUENTIAL;
+    }
+
+    @Override
     public void update(SimulationContext context) {
 
-        for (ProjectileState p : context.snapshot().projectiles()) {
+        for (ProjectileState projectile : context.snapshot().projectiles) {
 
-            float dx = p.position.x - context.snapshot().player().position.x;
-            float dy = p.position.y - context.snapshot().player().position.y;
+            for (PlayerState player : context.snapshot().players.values()) {
 
-            float dist = (float)Math.sqrt(dx*dx + dy*dy);
+                if (!player.alive) continue;
+                if (projectile.ownerId == player.id) continue;
 
-            if (dist <= 20f) {
+                float dx =
+                        projectile.position.x - player.position.x;
 
-                context.commands().add(
-                        new DamagePlayerCommand(10f)
-                );
+                float dy =
+                        projectile.position.y - player.position.y;
 
-                context.commands().add(
-                        new RemoveProjectileCommand(p.id)
-                );
+                float dist =
+                        (float) Math.sqrt(dx * dx + dy * dy);
+
+                if (dist <= player.hitboxRadius) {
+
+                    context.addCommand(
+                            new DamagePlayerCommand(
+                                    player.id,
+                                    projectile.damage
+                            )
+                    );
+
+                    context.addCommand(
+                            new RemoveProjectileCommand(
+                                    projectile.id
+                            )
+                    );
+                }
             }
         }
     }

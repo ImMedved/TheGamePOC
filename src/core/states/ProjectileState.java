@@ -1,7 +1,5 @@
 package core.states;
 
-import core.states.helpers.Vector2;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -9,22 +7,51 @@ import java.util.Set;
 
 public final class ProjectileState {
 
-    public final int id;
-    public final int ownerId;
+    public long id;
+    public long ownerId;
+    public int projectileTypeId;
 
-    public final Vector2 position = new Vector2();
-    public final Vector2 previousPosition = new Vector2();
-    public final Vector2 velocity = new Vector2();
+    public Vector2 position;
+    public Vector2 previousPosition;
+    public Vector2 velocity;
 
     public float lifetime;
     public float elapsed;
+
+    public float hitboxRadius;
     public float damage;
 
-    public final Map<String, Object> attributes = new HashMap<>();
-    public final Set<String> tags = new HashSet<>();
+    public Map<String, Object> attributes;
+    public Set<String> tags;
 
-    public ProjectileState(int id, int ownerId) {
+    public ProjectileState(long id) {
         this.id = id;
-        this.ownerId = ownerId;
+        this.position = new Vector2();
+        this.previousPosition = new Vector2();
+        this.velocity = new Vector2();
+        this.attributes = new HashMap<>();
+        this.tags = new HashSet<>();
+    }
+
+    public ProjectileState copy() {
+        ProjectileState copy = new ProjectileState(this.id);
+
+        copy.ownerId = this.ownerId;
+        copy.projectileTypeId = this.projectileTypeId;
+
+        copy.position = this.position.copy();
+        copy.previousPosition = this.previousPosition.copy();
+        copy.velocity = this.velocity.copy();
+
+        copy.lifetime = this.lifetime;
+        copy.elapsed = this.elapsed;
+
+        copy.hitboxRadius = this.hitboxRadius;
+        copy.damage = this.damage;
+
+        copy.attributes = new HashMap<>(this.attributes);
+        copy.tags = new HashSet<>(this.tags);
+
+        return copy;
     }
 }

@@ -1,4 +1,4 @@
-package core.states.helpers;
+package core.states;
 
 public final class Vector2 {
 
@@ -14,10 +14,9 @@ public final class Vector2 {
         this.y = y;
     }
 
-    public Vector2 set(float x, float y) {
+    public void set(float x, float y) {
         this.x = x;
         this.y = y;
-        return this;
     }
 
     public Vector2 copy() {

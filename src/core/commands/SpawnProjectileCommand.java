@@ -1,9 +1,12 @@
 package core.commands;
 
 public record SpawnProjectileCommand(
-        long id,
+        long projectileId,
+        long ownerId,
+        int projectileTypeId,
         float x,
         float y,
-        float velX,
-        float velY
-) implements Command { }
+        float velocityX,
+        float velocityY
+) implements Command {
+}

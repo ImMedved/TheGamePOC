@@ -1,42 +1,49 @@
 package core.states;
 
-import core.states.effects.EffectData;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
+public final class WorldState {
 
-public final class WorldState implements WorldStateProvider{
+    public long tickIndex;
 
-    private final PlayerState player;
-    private final List<ProjectileState> projectiles;
-    private final List<EffectData> effects;
-    private final LevelState level;
+    public Map<Long, PlayerState> players;
+    public List<ProjectileState> projectiles;
+    public List<EffectData> effects;
 
-    public WorldState(PlayerState player, LevelState level) {
-        this.player = player;
-        this.level = level;
+    public LevelState level;
+
+    public WorldState() {
+        this.players = new HashMap<>();
         this.projectiles = new ArrayList<>();
         this.effects = new ArrayList<>();
     }
 
-    public PlayerState player() {
-        return player;
-    }
-
-    public List<ProjectileState> projectiles() {
-        return projectiles;
-    }
-
-    public List<EffectData> effects() {
-        return effects;
-    }
-
-    public LevelState level() {
-        return level;
-    }
-
-    @Override
-    public WorldState getLatestWorldState() {
+    public static WorldState initial() {
+        WorldState world = new WorldState();
+        world.tickIndex = 0;
         return world;
+    }
+
+    public WorldState copy() {
+        WorldState copy = new WorldState();
+        copy.tickIndex = this.tickIndex;
+
+        for (Map.Entry<Long, PlayerState> entry : this.players.entrySet()) {
+            copy.players.put(entry.getKey(), entry.getValue().copy());
+        }
+
+        for (ProjectileState p : this.projectiles) {
+            copy.projectiles.add(p.copy());
+        }
+
+        for (EffectData e : this.effects) {
+            copy.effects.add(e.copy());
+        }
+
+        if (this.level != null) {
+            copy.level = this.level.copy();
+        }
+
+        return copy;
     }
 }

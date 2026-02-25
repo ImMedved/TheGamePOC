@@ -1,7 +1,7 @@
 package core.commands;
 
-public record DamagePlayerCommand(
+public record ChangeCharacterCommand(
         long playerId,
-        float damage
+        int newCharacterId
 ) implements Command {
 }

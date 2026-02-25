@@ -1,7 +1,7 @@
 package core.commands;
 
-public record MovePlayerCommand(
-        long playerId,
+public record MoveProjectileCommand(
+        long projectileId,
         float newX,
         float newY,
         float velocityX,

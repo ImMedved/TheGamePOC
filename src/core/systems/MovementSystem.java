@@ -1,30 +1,52 @@
 package core.systems;
 
-import core.states.SimulationContext;
+import core.SimulationContext;
 import core.commands.MovePlayerCommand;
+import core.registries.CharacterDefinition;
+import core.registries.CharacterRegistry;
 import core.states.PlayerState;
 
-public final class MovementSystem {
+public final class MovementSystem implements System {
 
-    private static final float PLAYER_SPEED = 300f;
+    private final CharacterRegistry characterRegistry;
 
+    public MovementSystem(CharacterRegistry registry) {
+        this.characterRegistry = registry;
+    }
+
+    @Override
+    public Phase phase() {
+        return Phase.PARALLEL;
+    }
+
+    @Override
     public void update(SimulationContext context) {
 
-        PlayerState player = context.snapshot().player();
+        for (PlayerState player : context.snapshot().players.values()) {
 
-        float dx = context.input().moveX * PLAYER_SPEED * context.dt();
-        float dy = context.input().moveY * PLAYER_SPEED * context.dt();
+            if (!player.alive) continue;
 
-        float newX = player.position.x + dx;
-        float newY = player.position.y + dy;
+            CharacterDefinition def =
+                    characterRegistry.get(player.characterId);
 
-        context.commands().add(
-                new MovePlayerCommand(
-                        newX,
-                        newY,
-                        dx / context.dt(),
-                        dy / context.dt()
-                )
-        );
+            float dx =
+                    context.input().moveX * def.baseSpeed * context.dt();
+
+            float dy =
+                    context.input().moveY * def.baseSpeed * context.dt();
+
+            float newX = player.position.x + dx;
+            float newY = player.position.y + dy;
+
+            context.addCommand(
+                    new MovePlayerCommand(
+                            player.id,
+                            newX,
+                            newY,
+                            dx / context.dt(),
+                            dy / context.dt()
+                    )
+            );
+        }
     }
 }
