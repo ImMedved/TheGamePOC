@@ -2,6 +2,8 @@ package render;
 
 import core.CoreEngine;
 import core.render.RenderSnapshot;
+import input.InputModule;
+import render.resources.ResourceManager;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -11,6 +13,8 @@ public final class RenderEngine {
     private static final double FRAME_TIME = 1.0 / TARGET_FPS;
 
     private final CoreEngine core;
+    private final ResourceManager resourceManager;
+    private final InputModule inputModule;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private Thread renderThread;
@@ -20,13 +24,16 @@ public final class RenderEngine {
     private long previousTime;
     private double accumulator = 0.0;
 
-    public RenderEngine(CoreEngine core) {
+    public RenderEngine(CoreEngine core,
+                        ResourceManager resourceManager,
+                        InputModule inputModule) {
         this.core = core;
+        this.resourceManager = resourceManager;
+        this.inputModule = inputModule;
     }
 
     public void start() {
         if (running.get()) return;
-
         running.set(true);
         renderThread = new Thread(this::runLoop, "RenderThread");
         renderThread.start();
@@ -55,16 +62,16 @@ public final class RenderEngine {
                 accumulator -= FRAME_TIME;
             }
 
-            double alpha = accumulator / FRAME_TIME;
-
-            renderFrame((float) alpha);
+            float alpha = (float) (accumulator / FRAME_TIME);
+            renderFrame(alpha);
         }
 
         shutdown();
     }
 
     private void init() {
-        sceneRenderer = new SceneRenderer();
+        sceneRenderer =
+                new SceneRenderer(resourceManager, inputModule);
         sceneRenderer.init();
     }
 

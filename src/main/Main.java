@@ -6,7 +6,9 @@ import core.states.*;
 import core.systems.*;
 import input.InputModule;
 import render.RenderEngine;
+import render.resources.ResourceManager;
 
+import java.nio.file.Path;
 import java.util.List;
 
 public class Main {
@@ -44,7 +46,7 @@ public class Main {
 
         defaultProjectile.speed = 500f;
         defaultProjectile.baseDamage = 10f;
-        defaultProjectile.lifetime = 2f;
+        defaultProjectile.lifetime = 200f;
         defaultProjectile.hitboxRadius = 5f;
 
         projectileRegistry.register(defaultProjectile);
@@ -53,7 +55,7 @@ public class Main {
 
         WorldState world = WorldState.initial();
 
-        LevelState level = new LevelState(1000, 1000);
+        LevelState level = new LevelState(20, 20);
         world.level = level;
 
         PlayerState player = new PlayerState(1);
@@ -61,6 +63,15 @@ public class Main {
         player.health = 100f;
         player.maxHealth = 100f;
         player.hitboxRadius = 20f;
+
+        float levelPixelWidth = level.width * 100f;
+        float levelPixelHeight = level.height * 100f;
+
+        float startX = levelPixelWidth * 0.5f;
+        float startY = levelPixelHeight * 0.5f;
+
+        player.position.set(startX, startY);
+        player.previousPosition.set(startX, startY);
 
         world.players.put(player.id, player);
 
@@ -81,8 +92,11 @@ public class Main {
 
         core.start();
 
-        RenderEngine render = new RenderEngine(core);
+        Path assetsRoot = Path.of("assets");
+        ResourceManager resourceManager = new ResourceManager(assetsRoot);
 
+        RenderEngine render =
+                new RenderEngine(core, resourceManager, inputModule);
         render.start();
     }
 }

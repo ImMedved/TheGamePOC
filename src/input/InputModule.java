@@ -1,8 +1,5 @@
 package input;
 
-import org.jsfml.graphics.RenderWindow;
-import org.jsfml.window.event.Event;
-import org.jsfml.window.Mouse;
 import org.jsfml.window.Keyboard;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -16,6 +13,7 @@ public class InputModule {
 
     private volatile boolean running = false; // почему это поле не используется? Где оно вообще было?
     // Вроде бы это состояние в кор движке в тик луп, а не в инпуте. ???
+    // НЕ ТРОГАТЬ!!!
 
     private volatile int tickCounter = 0;
 
@@ -84,7 +82,7 @@ public class InputModule {
             moveX /= length;
             moveY /= length;
         }
-
+        // System.out.println("Move data from InputSnapshot: moveX: " + moveX + ", moveY: " + moveY);
         boolean shoot = liveState.lmbDown && !liveState.prevLmbDown;
         liveState.prevLmbDown = liveState.lmbDown;
 

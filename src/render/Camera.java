@@ -7,8 +7,8 @@ public final class Camera {
     private float x;
     private float y;
 
-    private float viewportWidth = 1280f;
-    private float viewportHeight = 720f;
+    private float viewportWidth = 1920f;
+    private float viewportHeight = 1080f;
 
     private float deadZonePercent = 0.2f;
 
@@ -55,6 +55,8 @@ public final class Camera {
         x += Math.signum(offsetX) * speedX;
         y += Math.signum(offsetY) * speedY;
 
+        // System.out.println("new frame camera: " + x + "<- x" + y + "<- y");
+
         clampToLevel(level);
     }
 
@@ -81,10 +83,18 @@ public final class Camera {
         float halfH = viewportHeight * 0.5f;
 
         x = Math.max(halfW,
-                Math.min(level.width - halfW, x));
+                Math.min((level.width * 100) - halfW, x));
 
         y = Math.max(halfH,
-                Math.min(level.height - halfH, y));
+                Math.min((level.height * 100) - halfH, y));
+    }
+
+    public float worldToScreenX(float worldX) {
+        return worldX - x + viewportWidth * 0.5f;
+    }
+
+    public float worldToScreenY(float worldY) {
+        return worldY - y + viewportHeight * 0.5f;
     }
 
     public float getX() {
