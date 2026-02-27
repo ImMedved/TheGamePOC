@@ -32,8 +32,7 @@ public final class CommandProcessor {
                 }
 
                 case SpawnProjectileCommand s -> {
-                    ProjectileState projectile =
-                            new ProjectileState(s.projectileId());
+                    ProjectileState projectile = new ProjectileState(s.projectileId());
 
                     projectile.ownerId = s.ownerId();
                     projectile.projectileTypeId = s.projectileTypeId();

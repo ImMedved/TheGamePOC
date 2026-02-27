@@ -52,8 +52,7 @@ public final class RenderEngine {
         while (running.get()) {
 
             long now = java.lang.System.nanoTime();
-            double elapsed =
-                    (now - previousTime) / 1_000_000_000.0;
+            double elapsed = (now - previousTime) / 1_000_000_000.0;
 
             previousTime = now;
             accumulator += elapsed;
@@ -70,15 +69,13 @@ public final class RenderEngine {
     }
 
     private void init() {
-        sceneRenderer =
-                new SceneRenderer(resourceManager, inputModule);
+        sceneRenderer = new SceneRenderer(resourceManager, inputModule);
         sceneRenderer.init();
     }
 
     private void renderFrame(float alpha) {
 
-        RenderSnapshot snapshot =
-                core.getRenderSnapshot();
+        RenderSnapshot snapshot = core.getRenderSnapshot();
 
         if (snapshot == null)
             return;

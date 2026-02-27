@@ -19,12 +19,10 @@ public final class PlayerRenderer {
     private final Texture texture;
     private final RenderStates states;
 
-    private final CharacterAnimationResolver animation =
-            new CharacterAnimationResolver();
+    private final CharacterAnimationResolver animation = new CharacterAnimationResolver();
 
     public PlayerRenderer(ResourceManager resources) {
-        this.texture =
-                resources.getTexture(AssetKeys.CHARS);
+        this.texture = resources.getTexture(AssetKeys.CHARS);
         this.states = new RenderStates(texture);
     }
 

@@ -22,9 +22,7 @@ public final class CharacterAnimationResolver {
 
         int direction = resolveDirection(vx, vy);
 
-        boolean moving =
-                Math.abs(vx) > 0.01f ||
-                        Math.abs(vy) > 0.01f;
+        boolean moving = Math.abs(vx) > 0.01f || Math.abs(vy) > 0.01f;
 
         int animColumn = 1;
 

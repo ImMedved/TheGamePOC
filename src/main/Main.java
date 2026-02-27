@@ -19,19 +19,13 @@ public class Main {
 
         // --- Registries ---
 
-        CharacterRegistry characterRegistry =
-                new CharacterRegistry(4);
-
-        ProjectileRegistry projectileRegistry =
-                new ProjectileRegistry(4);
-
-        EffectRegistry effectRegistry =
-                new EffectRegistry(4);
+        CharacterRegistry characterRegistry = new CharacterRegistry(4);
+        ProjectileRegistry projectileRegistry = new ProjectileRegistry(4);
+        EffectRegistry effectRegistry = new EffectRegistry(4);
 
         // --- Register default character ---
 
-        CharacterDefinition defaultCharacter =
-                new CharacterDefinition(0);
+        CharacterDefinition defaultCharacter = new CharacterDefinition(0);
 
         defaultCharacter.baseSpeed = 300f;
         defaultCharacter.baseHealth = 100f;
@@ -41,13 +35,13 @@ public class Main {
 
         // --- Register default projectile ---
 
-        ProjectileDefinition defaultProjectile =
-                new ProjectileDefinition(0);
+        ProjectileDefinition defaultProjectile = new ProjectileDefinition(0);
 
         defaultProjectile.speed = 500f;
         defaultProjectile.baseDamage = 10f;
-        defaultProjectile.lifetime = 200f;
+        defaultProjectile.lifetime = 2f;
         defaultProjectile.hitboxRadius = 5f;
+        defaultProjectile.maxDistance = 800f;
 
         projectileRegistry.register(defaultProjectile);
 
@@ -77,7 +71,7 @@ public class Main {
 
         // --- Systems ---
 
-        List<core.systems.System> systems = List.of(
+        List<GameSystem> gameSystems = List.of(
                 new MovementSystem(characterRegistry),
                 new ProjectileSpawnSystem(projectileRegistry),
                 new ProjectileMoveSystem(),
@@ -87,16 +81,14 @@ public class Main {
 
         // --- Core Engine ---
 
-        CoreEngine core =
-                new CoreEngine(inputModule, world, systems);
+        CoreEngine core = new CoreEngine(inputModule, world, gameSystems);
 
         core.start();
 
         Path assetsRoot = Path.of("assets");
         ResourceManager resourceManager = new ResourceManager(assetsRoot);
 
-        RenderEngine render =
-                new RenderEngine(core, resourceManager, inputModule);
+        RenderEngine render = new RenderEngine(core, resourceManager, inputModule);
         render.start();
     }
 }

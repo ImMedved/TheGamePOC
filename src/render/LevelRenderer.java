@@ -35,6 +35,7 @@ public final class LevelRenderer {
 
         float camX = camera.getX();
         float camY = camera.getY();
+        // System.out.println("Camera x: " + camX + " Camera y: " + camY);
 
         int width = level.width;
         int height = level.height;
@@ -48,13 +49,18 @@ public final class LevelRenderer {
                 float worldX = x * TILE_SIZE;
                 float worldY = y * TILE_SIZE;
 
-                float screenX = worldX - camX;
-                float screenY = worldY - camY;
+                float screenX = worldX - camX + 960f;
+                float screenY = worldY - camY + 540f;
 
                 float u0 = tile * TILE_SIZE;
                 float v0 = 0f;
                 float u1 = u0 + TILE_SIZE;
                 float v1 = TILE_SIZE;
+
+                /*if (x == 0 && y == 0) {
+                    System.out.println("Tile(0,0) worldX: " + worldX +
+                            " screenX: " + screenX);
+                }*/
 
                 batch.addQuad(
                         screenX,

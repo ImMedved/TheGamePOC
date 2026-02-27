@@ -4,17 +4,10 @@ import org.jsfml.graphics.PrimitiveType;
 
 public final class BatchManager {
 
-    private final VertexBatch levelBatch =
-            new VertexBatch(PrimitiveType.QUADS);
-
-    private final VertexBatch playerBatch =
-            new VertexBatch(PrimitiveType.QUADS);
-
-    private final VertexBatch projectileBatch =
-            new VertexBatch(PrimitiveType.QUADS);
-
-    private final VertexBatch effectBatch =
-            new VertexBatch(PrimitiveType.QUADS);
+    private final VertexBatch levelBatch = new VertexBatch(PrimitiveType.QUADS);
+    private final VertexBatch playerBatch = new VertexBatch(PrimitiveType.QUADS);
+    private final VertexBatch projectileBatch = new VertexBatch(PrimitiveType.QUADS);
+    private final VertexBatch effectBatch = new VertexBatch(PrimitiveType.QUADS);
 
     public void beginFrame() {
         levelBatch.clear();

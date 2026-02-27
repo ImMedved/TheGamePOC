@@ -82,14 +82,10 @@ public final class SceneRenderer {
         projectileRenderer.render(snapshot.projectiles, camera, alpha, batchManager.projectiles());
         effectRenderer.render(snapshot.effects, camera, batchManager.effects());
 
-        window.draw(batchManager.level().getVertexArray(),
-                levelRenderer.getStates());
-        window.draw(batchManager.players().getVertexArray(),
-                playerRenderer.getStates());
-        window.draw(batchManager.projectiles().getVertexArray(),
-                projectileRenderer.getStates());
-        window.draw(batchManager.effects().getVertexArray(),
-                effectRenderer.getStates());
+        window.draw(batchManager.level().getVertexArray(), levelRenderer.getStates());
+        window.draw(batchManager.players().getVertexArray(), playerRenderer.getStates());
+        window.draw(batchManager.projectiles().getVertexArray(), projectileRenderer.getStates());
+        window.draw(batchManager.effects().getVertexArray(), effectRenderer.getStates());
 
         window.display();
     }

@@ -11,6 +11,7 @@ public final class ProjectileDefinition {
     public float baseDamage;
     public float lifetime;
     public float hitboxRadius;
+    public float maxDistance;
 
     public final Map<String, Object> attributes;
 

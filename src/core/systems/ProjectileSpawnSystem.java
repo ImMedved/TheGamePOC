@@ -6,7 +6,7 @@ import core.registries.ProjectileDefinition;
 import core.registries.ProjectileRegistry;
 import core.states.PlayerState;
 
-public final class ProjectileSpawnSystem implements System {
+public final class ProjectileSpawnSystem implements GameSystem {
 
     private final ProjectileRegistry projectileRegistry;
 
@@ -31,8 +31,7 @@ public final class ProjectileSpawnSystem implements System {
 
             int projectileType = 0;
 
-            ProjectileDefinition def =
-                    projectileRegistry.get(projectileType);
+            ProjectileDefinition def = projectileRegistry.get(projectileType);
 
             float dx = context.input().mouseX - player.position.x;
             float dy = context.input().mouseY - player.position.y;
@@ -43,8 +42,7 @@ public final class ProjectileSpawnSystem implements System {
             float vx = (dx / len) * def.speed;
             float vy = (dy / len) * def.speed;
 
-            context.addCommand(
-                    new SpawnProjectileCommand(
+            context.addCommand(new SpawnProjectileCommand(
                             context.nextId(),
                             player.id,
                             projectileType,

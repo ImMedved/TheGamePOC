@@ -514,7 +514,7 @@ Event: 0.521 Loaded shared library C:\Users\Akku\.jdks\openjdk-25.0.2\bin\manage
 Event: 0.533 Loaded shared library C:\Users\Akku\.jdks\openjdk-25.0.2\bin\management_ext.dll
 Event: 0.948 Loaded shared library C:\Users\Akku\.jsfml\windows_x64\libsndfile-1.dll
 Event: 1.026 Loaded shared library C:\Users\Akku\.jsfml\windows_x64\openal32.dll
-Event: 1.093 Loaded shared library C:\Users\Akku\.jsfml\windows_x64\sfml-system-2.dll
+Event: 1.093 Loaded shared library C:\Users\Akku\.jsfml\windows_x64\sfml-gameSystem-2.dll
 Event: 1.149 Loaded shared library C:\Users\Akku\.jsfml\windows_x64\sfml-window-2.dll
 Event: 1.193 Loaded shared library C:\Users\Akku\.jsfml\windows_x64\sfml-audio-2.dll
 Event: 1.242 Loaded shared library C:\Users\Akku\.jsfml\windows_x64\sfml-graphics-2.dll
@@ -723,7 +723,7 @@ Dynamic libraries:
 0x00007ff9f0f70000 - 0x00007ff9f0f86000 	C:\WINDOWS\system32\wshbth.dll
 0x0000000070440000 - 0x0000000070682000 	C:\Users\Akku\.jsfml\windows_x64\libsndfile-1.dll
 0x00007ff9c7f50000 - 0x00007ff9c7fbc000 	C:\Users\Akku\.jsfml\windows_x64\openal32.dll
-0x00007ff9e7420000 - 0x00007ff9e742e000 	C:\Users\Akku\.jsfml\windows_x64\sfml-system-2.dll
+0x00007ff9e7420000 - 0x00007ff9e742e000 	C:\Users\Akku\.jsfml\windows_x64\sfml-gameSystem-2.dll
 0x00000000542c0000 - 0x0000000054358000 	C:\WINDOWS\SYSTEM32\MSVCP100.dll
 0x0000000054360000 - 0x0000000054432000 	C:\WINDOWS\SYSTEM32\MSVCR100.dll
 0x00007ff9ded40000 - 0x00007ff9ded96000 	C:\WINDOWS\SYSTEM32\pdh.dll
@@ -828,7 +828,7 @@ CPU: total 8 (initial active 8) (4 cores per cpu, 2 threads per core) family 6 m
 Processor Information for the first 8 processors :
   Max Mhz: 2419, Current Mhz: 907, Mhz Limit: 895
 
-Memory: 4k page, system-wide physical 16039M (5096M free)
+Memory: 4k page, gameSystem-wide physical 16039M (5096M free)
 TotalPageFile size 17063M (AvailPageFile size 5721M)
 current process WorkingSet (physical memory assigned to process): 137M, peak: 139M
 current process commit charge ("private bytes"): 403M, peak: 406M

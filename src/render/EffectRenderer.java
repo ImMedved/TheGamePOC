@@ -19,8 +19,7 @@ public final class EffectRenderer {
     private final RenderStates states;
 
     public EffectRenderer(ResourceManager resources) {
-        this.texture =
-                resources.getTexture(AssetKeys.BULLET_HOLE);
+        this.texture = resources.getTexture(AssetKeys.BULLET_HOLE);
         this.states = new RenderStates(texture);
     }
 

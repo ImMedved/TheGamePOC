@@ -20,8 +20,7 @@ public final class ProjectileRenderer {
     private final RenderStates states;
 
     public ProjectileRenderer(ResourceManager resources) {
-        this.texture =
-                resources.getTexture(AssetKeys.BULLET);
+        this.texture = resources.getTexture(AssetKeys.BULLET);
         this.states = new RenderStates(texture);
     }
 
@@ -54,8 +53,8 @@ public final class ProjectileRenderer {
                 angle = (float) Math.toDegrees(Math.atan2(vy, vx)) + 90f;
             }
 
-            float screenX = x - camX;
-            float screenY = y - camY;
+            float screenX = x - camX + 960f;
+            float screenY = y - camY + 540f;
 
             addRotatedQuad(
                     batch,

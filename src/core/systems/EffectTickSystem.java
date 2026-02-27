@@ -7,7 +7,7 @@ import core.registries.EffectDefinition;
 import core.registries.EffectRegistry;
 import core.states.EffectData;
 
-public final class EffectTickSystem implements System {
+public final class EffectTickSystem implements GameSystem {
 
     private final EffectRegistry registry;
 
@@ -28,22 +28,18 @@ public final class EffectTickSystem implements System {
             effect.elapsed += context.dt();
             effect.tickAccumulator += context.dt();
 
-            EffectDefinition def =
-                    registry.get(effect.effectTypeId);
+            EffectDefinition def = registry.get(effect.effectTypeId);
 
-            if (effect.tickInterval > 0f &&
-                    effect.tickAccumulator >= effect.tickInterval) {
+            if (effect.tickInterval > 0f && effect.tickAccumulator >= effect.tickInterval) {
 
                 effect.tickAccumulator = 0f;
 
-                context.addCommand(
-                        new ApplyEffectCommand(effect.copy())
+                context.addCommand(new ApplyEffectCommand(effect.copy())
                 );
             }
 
             if (effect.elapsed >= effect.duration) {
-                context.addCommand(
-                        new RemoveEffectCommand(effect.id)
+                context.addCommand(new RemoveEffectCommand(effect.id)
                 );
             }
         }

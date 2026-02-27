@@ -2,7 +2,7 @@ package core.systems;
 
 import core.SimulationContext;
 
-public interface System {
+public interface GameSystem {
 
     Phase phase();
 

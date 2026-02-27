@@ -5,7 +5,7 @@ import core.render.RenderSnapshot;
 import core.render.RenderSnapshotBuilder;
 import core.states.WorldState;
 import core.systems.*;
-import core.systems.System;
+import core.systems.GameSystem;
 import input.InputModule;
 import input.InputSnapshot;
 
@@ -21,7 +21,7 @@ public final class CoreEngine {
     private final ExecutorService executor;
     private final InputModule input;
 
-    private final List<System> systems;
+    private final List<GameSystem> gameSystems;
 
     private final CommandProcessor processor = new CommandProcessor();
     private final AtomicLong idGenerator = new AtomicLong(1);
@@ -31,30 +31,25 @@ public final class CoreEngine {
     private WorldState previousWorld;
     private WorldState currentWorld;
 
-    private final RenderSnapshotBuilder snapshotBuilder =
-            new RenderSnapshotBuilder();
+    private final RenderSnapshotBuilder snapshotBuilder = new RenderSnapshotBuilder();
 
     private final java.util.concurrent.atomic.AtomicReference<RenderSnapshot>
             renderSnapshotRef = new java.util.concurrent.atomic.AtomicReference<>();
 
     public CoreEngine(InputModule input,
                       WorldState initial,
-                      List<System> systems) {
+                      List<GameSystem> gameSystems) {
 
         this.input = input;
         this.previousWorld = initial;
         this.currentWorld = initial;
-        this.systems = systems;
+        this.gameSystems = gameSystems;
 
-        RenderSnapshot first =
-                snapshotBuilder.build(initial, initial);
+        RenderSnapshot first = snapshotBuilder.build(initial, initial);
 
         renderSnapshotRef.set(first);
 
-        this.executor =
-                Executors.newFixedThreadPool(
-                        Runtime.getRuntime().availableProcessors()
-                );
+        this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
     public void start() {
@@ -75,8 +70,7 @@ public final class CoreEngine {
         while (running) {
 
             long now = java.lang.System.nanoTime();
-            double elapsed =
-                    (now - previous) / 1_000_000_000.0;
+            double elapsed = (now - previous) / 1_000_000_000.0;
 
             previous = now;
             lag += elapsed;
@@ -91,24 +85,23 @@ public final class CoreEngine {
     private void tick() {
 
         input.publishSnapshot((int) currentWorld.tickIndex);
-        InputSnapshot inputSnapshot =
-                input.getLatestSnapshot();
+        InputSnapshot inputSnapshot = input.getLatestSnapshot();
 
         WorldState snapshot = currentWorld;
 
         List<List<Command>> phaseALists = new ArrayList<>();
 
-        List<System> parallelSystems = systems.stream()
+        List<GameSystem> parallelGameSystems = gameSystems.stream()
                 .filter(s -> s.phase() == Phase.PARALLEL)
                 .toList();
 
-        List<System> sequentialSystems = systems.stream()
+        List<GameSystem> sequentialGameSystems = gameSystems.stream()
                 .filter(s -> s.phase() == Phase.SEQUENTIAL)
                 .toList();
 
         List<Callable<Void>> tasks = new ArrayList<>();
 
-        for (System system : parallelSystems) {
+        for (GameSystem gameSystem : parallelGameSystems) {
 
             List<Command> localList = new ArrayList<>();
             phaseALists.add(localList);
@@ -123,7 +116,7 @@ public final class CoreEngine {
                     );
 
             tasks.add(() -> {
-                system.update(ctx);
+                gameSystem.update(ctx);
                 return null;
             });
         }
@@ -133,15 +126,13 @@ public final class CoreEngine {
         } catch (InterruptedException ignored) {
         }
 
-        List<Command> phaseACommands =
-                CommandCollector.merge(phaseALists);
+        List<Command> phaseACommands = CommandCollector.merge(phaseALists);
 
-        WorldState provisional =
-                processor.apply(snapshot, phaseACommands);
+        WorldState provisional = processor.apply(snapshot, phaseACommands);
 
         List<List<Command>> phaseBLists = new ArrayList<>();
 
-        for (System system : sequentialSystems) {
+        for (GameSystem gameSystem : sequentialGameSystems) {
 
             List<Command> localList = new ArrayList<>();
             phaseBLists.add(localList);
@@ -155,24 +146,19 @@ public final class CoreEngine {
                             localList
                     );
 
-            system.update(ctx);
+            gameSystem.update(ctx);
         }
 
-        List<Command> phaseBCommands =
-                CommandCollector.merge(phaseBLists);
+        List<Command> phaseBCommands = CommandCollector.merge(phaseBLists);
 
-        List<Command> all =
-                new ArrayList<>(phaseACommands);
+        List<Command> all = new ArrayList<>(phaseACommands);
         all.addAll(phaseBCommands);
 
-        WorldState nextWorld =
-                processor.apply(snapshot, all);
+        WorldState nextWorld = processor.apply(snapshot, all);
 
         // ---- snapshot integration ----
 
-        RenderSnapshot snapshotRender =
-                snapshotBuilder.build(previousWorld, nextWorld);
-
+        RenderSnapshot snapshotRender = snapshotBuilder.build(previousWorld, nextWorld);
         renderSnapshotRef.set(snapshotRender);
 
         previousWorld = nextWorld;
