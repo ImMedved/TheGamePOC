@@ -1,11 +1,19 @@
 package core;
 
 import core.commands.*;
+import core.registries.ProjectileDefinition;
+import core.registries.ProjectileRegistry;
 import core.states.*;
 
 import java.util.*;
 
 public final class CommandProcessor {
+
+    private final ProjectileRegistry projectileRegistry;
+
+    public CommandProcessor(ProjectileRegistry projectileRegistry) {
+        this.projectileRegistry = projectileRegistry;
+    }
 
     public WorldState apply(WorldState snapshot, List<Command> commands) {
 
@@ -32,6 +40,7 @@ public final class CommandProcessor {
                 }
 
                 case SpawnProjectileCommand s -> {
+                    ProjectileDefinition def = projectileRegistry.get(s.projectileTypeId());
                     ProjectileState projectile = new ProjectileState(s.projectileId());
 
                     projectile.ownerId = s.ownerId();
@@ -39,6 +48,13 @@ public final class CommandProcessor {
                     projectile.position.set(s.x(), s.y());
                     projectile.previousPosition.set(s.x(), s.y());
                     projectile.velocity.set(s.velocityX(), s.velocityY());
+
+                    projectile.hitboxRadius = def.hitboxRadius;
+                    projectile.damage = def.baseDamage;
+                    projectile.lifetime = def.lifetime;   // <- ВОТ ЭТО КЛЮЧЕВОЕ
+                    projectile.elapsed = 0f;
+                    projectile.maxDistance = def.maxDistance;
+                    projectile.traveledDistance = 0f;
 
                     next.projectiles.add(projectile);
                 }
@@ -49,6 +65,8 @@ public final class CommandProcessor {
                             p.previousPosition = p.position.copy();
                             p.position.set(m.newX(), m.newY());
                             p.velocity.set(m.velocityX(), m.velocityY());
+                            p.elapsed = m.elapsed();
+                            p.traveledDistance = m.traveledDistance();
                             break;
                         }
                     }

@@ -1,6 +1,7 @@
 package core;
 
 import core.commands.Command;
+import core.registries.ProjectileRegistry;
 import core.render.RenderSnapshot;
 import core.render.RenderSnapshotBuilder;
 import core.states.WorldState;
@@ -23,7 +24,7 @@ public final class CoreEngine {
 
     private final List<GameSystem> gameSystems;
 
-    private final CommandProcessor processor = new CommandProcessor();
+    private final CommandProcessor processor;
     private final AtomicLong idGenerator = new AtomicLong(1);
 
     private volatile boolean running = false;
@@ -38,12 +39,14 @@ public final class CoreEngine {
 
     public CoreEngine(InputModule input,
                       WorldState initial,
-                      List<GameSystem> gameSystems) {
+                      List<GameSystem> gameSystems,
+                      ProjectileRegistry projectileRegistry) {
 
         this.input = input;
         this.previousWorld = initial;
         this.currentWorld = initial;
         this.gameSystems = gameSystems;
+        this.processor = new CommandProcessor(projectileRegistry);
 
         RenderSnapshot first = snapshotBuilder.build(initial, initial);
 

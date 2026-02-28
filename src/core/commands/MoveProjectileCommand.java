@@ -5,6 +5,7 @@ public record MoveProjectileCommand(
         float newX,
         float newY,
         float velocityX,
-        float velocityY
-) implements Command {
-}
+        float velocityY,
+        float elapsed,
+        float traveledDistance
+) implements Command {}

@@ -15,23 +15,37 @@ public final class ProjectileMoveSystem implements GameSystem {
     @Override
     public void update(SimulationContext context) {
 
+        float dt = context.dt();
+
         for (ProjectileState p : context.snapshot().projectiles) {
 
-            float newX = p.position.x + p.velocity.x * context.dt();
-            float newY = p.position.y + p.velocity.y * context.dt();
+            float newX = p.position.x + p.velocity.x * dt;
+            float newY = p.position.y + p.velocity.y * dt;
+            float newElapsed = p.elapsed + dt;
 
-            context.addCommand(new MoveProjectileCommand(
+            float dx = p.velocity.x * dt;
+            float dy = p.velocity.y * dt;
+
+            float frameDistance = (float)Math.sqrt(dx * dx + dy * dy);
+            float newDistance = p.traveledDistance + frameDistance;
+
+            context.addCommand(
+                    new MoveProjectileCommand(
                             p.id,
                             newX,
                             newY,
                             p.velocity.x,
-                            p.velocity.y
+                            p.velocity.y,
+                            newElapsed,
+                            newDistance
                     )
             );
 
-            if (p.elapsed + context.dt() >= p.lifetime) {
+            System.out.println("p.maxDistance is: " + p.maxDistance + " newDistance is: " + newDistance);
+            if (p.maxDistance > 0f && newDistance >= p.maxDistance) {
                 context.addCommand(new RemoveProjectileCommand(p.id));
             }
+            //System.out.println("Elapsed: " + p.elapsed);
         }
     }
 }

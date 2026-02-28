@@ -1,6 +1,7 @@
 package main;
 
 import core.CoreEngine;
+import core.config.ProjectileConfigs;
 import core.registries.*;
 import core.states.*;
 import core.systems.*;
@@ -35,15 +36,7 @@ public class Main {
 
         // --- Register default projectile ---
 
-        ProjectileDefinition defaultProjectile = new ProjectileDefinition(0);
-
-        defaultProjectile.speed = 500f;
-        defaultProjectile.baseDamage = 10f;
-        defaultProjectile.lifetime = 2f;
-        defaultProjectile.hitboxRadius = 5f;
-        defaultProjectile.maxDistance = 800f;
-
-        projectileRegistry.register(defaultProjectile);
+        ProjectileConfigs.registerAll(projectileRegistry);
 
         // --- Create initial world ---
 
@@ -81,7 +74,12 @@ public class Main {
 
         // --- Core Engine ---
 
-        CoreEngine core = new CoreEngine(inputModule, world, gameSystems);
+        CoreEngine core = new CoreEngine(
+                inputModule,
+                world,
+                gameSystems,
+                projectileRegistry
+        );
 
         core.start();
 

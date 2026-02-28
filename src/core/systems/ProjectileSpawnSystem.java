@@ -42,6 +42,8 @@ public final class ProjectileSpawnSystem implements GameSystem {
             float vx = (dx / len) * def.speed;
             float vy = (dy / len) * def.speed;
 
+            System.out.println("Spawn lifetime: " + def.lifetime);
+
             context.addCommand(new SpawnProjectileCommand(
                             context.nextId(),
                             player.id,

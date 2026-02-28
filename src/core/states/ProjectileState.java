@@ -24,6 +24,9 @@ public final class ProjectileState {
     public Map<String, Object> attributes;
     public Set<String> tags;
 
+    public float maxDistance;
+    public float traveledDistance;
+
     public ProjectileState(long id) {
         this.id = id;
         this.position = new Vector2();
@@ -45,6 +48,8 @@ public final class ProjectileState {
 
         copy.lifetime = this.lifetime;
         copy.elapsed = this.elapsed;
+        copy.maxDistance = this.maxDistance;
+        copy.traveledDistance = this.traveledDistance;
 
         copy.hitboxRadius = this.hitboxRadius;
         copy.damage = this.damage;
