@@ -39,17 +39,18 @@ public final class EffectRenderer {
 
         for (RenderEffect e : effects) {
 
-            float screenX = e.x - camX;
-            float screenY = e.y - camY;
+            float screenX = e.x - camX + 960f;
+            float screenY = e.y - camY + 540f;
 
-            float scale = 0.4f;
+            float size = 99f;
+            float half = size * 0.5f;
 
             batch.addQuad(
-                    screenX - SIZE * 0.5f * scale,
-                    screenY - SIZE * 0.5f * scale,
-                    SIZE * scale,
-                    SIZE * scale,
-                    0f, 0f, SIZE, SIZE,
+                    screenX - half,
+                    screenY - half,
+                    size,
+                    size,
+                    0f, 0f, 99f, 99f,
                     Color.WHITE
             );
         }

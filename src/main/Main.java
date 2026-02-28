@@ -1,6 +1,7 @@
 package main;
 
 import core.CoreEngine;
+import core.config.EffectConfigs;
 import core.config.ProjectileConfigs;
 import core.registries.*;
 import core.states.*;
@@ -23,6 +24,7 @@ public class Main {
         CharacterRegistry characterRegistry = new CharacterRegistry(4);
         ProjectileRegistry projectileRegistry = new ProjectileRegistry(4);
         EffectRegistry effectRegistry = new EffectRegistry(4);
+        EffectConfigs.registerAll(effectRegistry);
 
         // --- Register default character ---
 

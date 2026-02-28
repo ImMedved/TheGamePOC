@@ -1,8 +1,12 @@
 package core.systems;
 
 import core.SimulationContext;
+import core.commands.ApplyEffectCommand;
 import core.commands.MoveProjectileCommand;
 import core.commands.RemoveProjectileCommand;
+import core.config.EffectConfigs;
+import core.config.ProjectileEffectConfigs;
+import core.factories.EffectFactory;
 import core.states.ProjectileState;
 
 public final class ProjectileMoveSystem implements GameSystem {
@@ -41,8 +45,20 @@ public final class ProjectileMoveSystem implements GameSystem {
                     )
             );
 
-            System.out.println("p.maxDistance is: " + p.maxDistance + " newDistance is: " + newDistance);
+            // System.out.println("p.maxDistance is: " + p.maxDistance + " newDistance is: " + newDistance);
             if (p.maxDistance > 0f && newDistance >= p.maxDistance) {
+
+                context.addCommand(
+                        new ApplyEffectCommand(
+                                EffectFactory.createBulletHole(
+                                        context.nextId(),
+                                        EffectConfigs.BULLET_HOLE,
+                                        newX,
+                                        newY
+                                )
+                        )
+                );
+
                 context.addCommand(new RemoveProjectileCommand(p.id));
             }
             //System.out.println("Elapsed: " + p.elapsed);

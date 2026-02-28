@@ -21,6 +21,9 @@ public final class EffectData {
     public float tickInterval;
     public float tickAccumulator;
 
+    public Vector2 position;
+    public Vector2 previousPosition;
+
     public int stackCount;
 
     public Map<String, Object> payload;
@@ -30,6 +33,8 @@ public final class EffectData {
         this.id = id;
         this.payload = new HashMap<>();
         this.tags = new HashSet<>();
+        this.position = new Vector2();
+        this.previousPosition = new Vector2();
     }
 
     public EffectData copy() {
@@ -46,6 +51,9 @@ public final class EffectData {
 
         copy.tickInterval = this.tickInterval;
         copy.tickAccumulator = this.tickAccumulator;
+
+        copy.position = this.position.copy();
+        copy.previousPosition = this.previousPosition.copy();
 
         copy.stackCount = this.stackCount;
 

@@ -9,29 +9,20 @@ public final class RenderSnapshotBuilder {
 
     private LevelRenderData cachedLevelData;
 
-    public RenderSnapshot build(
-            WorldState previous,
-            WorldState current
-    ) {
+    public RenderSnapshot build(WorldState previous, WorldState current) {
 
         if (cachedLevelData == null && current.level != null) {
 
-            cachedLevelData =
-                    new LevelRenderData(
-                            current.level.width,
-                            current.level.height,
-                            current.level.textureMap
-                    );
+            cachedLevelData = new LevelRenderData(
+                    current.level.width,
+                    current.level.height,
+                    current.level.textureMap
+            );
         }
 
-        List<RenderPlayer> players =
-                buildPlayers(previous, current);
-
-        List<RenderProjectile> projectiles =
-                buildProjectiles(previous, current);
-
-        List<RenderEffect> effects =
-                buildEffects(current);
+        List<RenderPlayer> players = buildPlayers(previous, current);
+        List<RenderProjectile> projectiles = buildProjectiles(previous, current);
+        List<RenderEffect> effects = buildEffects(current);
 
         return new RenderSnapshot(
                 current.tickIndex,
@@ -42,53 +33,36 @@ public final class RenderSnapshotBuilder {
         );
     }
 
-    private List<RenderPlayer> buildPlayers(
-            WorldState prev,
-            WorldState curr
-    ) {
+    private List<RenderPlayer> buildPlayers(WorldState prev, WorldState curr) {
 
         List<RenderPlayer> list = new ArrayList<>();
 
         for (PlayerState currPlayer : curr.players.values()) {
 
-            PlayerState prevPlayer =
-                    prev.players.get(currPlayer.id);
+            PlayerState prevPlayer = prev.players.get(currPlayer.id);
+            float prevX = prevPlayer != null ? prevPlayer.position.x : currPlayer.position.x;
+            float prevY = prevPlayer != null ? prevPlayer.position.y : currPlayer.position.y;
 
-            float prevX = prevPlayer != null
-                    ? prevPlayer.position.x
-                    : currPlayer.position.x;
-
-            float prevY = prevPlayer != null
-                    ? prevPlayer.position.y
-                    : currPlayer.position.y;
-
-            list.add(
-                    new RenderPlayer(
-                            currPlayer.id,
-                            currPlayer.characterId,
-                            prevX,
-                            prevY,
-                            currPlayer.position.x,
-                            currPlayer.position.y,
-                            currPlayer.rotation
+            list.add(new RenderPlayer(
+                    currPlayer.id,
+                    currPlayer.characterId,
+                    prevX,
+                    prevY,
+                    currPlayer.position.x,
+                    currPlayer.position.y,
+                    currPlayer.rotation
                     )
             );
         }
-
         return list;
     }
 
-    private List<RenderProjectile> buildProjectiles(
-            WorldState prev,
-            WorldState curr
-    ) {
+    private List<RenderProjectile> buildProjectiles(WorldState prev, WorldState curr) {
 
         List<RenderProjectile> list = new ArrayList<>();
-
         for (ProjectileState currProj : curr.projectiles) {
 
             ProjectileState prevProj = null;
-
             for (ProjectileState p : prev.projectiles) {
                 if (p.id == currProj.id) {
                     prevProj = p;
@@ -96,22 +70,16 @@ public final class RenderSnapshotBuilder {
                 }
             }
 
-            float prevX = prevProj != null
-                    ? prevProj.position.x
-                    : currProj.position.x;
+            float prevX = prevProj != null ? prevProj.position.x : currProj.position.x;
+            float prevY = prevProj != null ? prevProj.position.y : currProj.position.y;
 
-            float prevY = prevProj != null
-                    ? prevProj.position.y
-                    : currProj.position.y;
-
-            list.add(
-                    new RenderProjectile(
-                            currProj.id,
-                            currProj.projectileTypeId,
-                            prevX,
-                            prevY,
-                            currProj.position.x,
-                            currProj.position.y
+            list.add(new RenderProjectile(
+                    currProj.id,
+                    currProj.projectileTypeId,
+                    prevX,
+                    prevY,
+                    currProj.position.x,
+                    currProj.position.y
                     )
             );
         }
@@ -127,13 +95,8 @@ public final class RenderSnapshotBuilder {
 
         for (EffectData effect : curr.effects) {
 
-            float progress =
-                    effect.duration > 0f
-                            ? effect.elapsed / effect.duration
-                            : 1f;
-
-            PlayerState target =
-                    curr.players.get(effect.targetId);
+            float progress = effect.duration > 0f ? effect.elapsed / effect.duration : 1f;
+            PlayerState target = curr.players.get(effect.targetId);
 
             float x = 0f;
             float y = 0f;
@@ -143,13 +106,12 @@ public final class RenderSnapshotBuilder {
                 y = target.position.y;
             }
 
-            list.add(
-                    new RenderEffect(
-                            effect.id,
-                            effect.effectTypeId,
-                            x,
-                            y,
-                            progress
+            list.add(new RenderEffect(
+                    effect.id,
+                    effect.effectTypeId,
+                    effect.position.x,
+                    effect.position.y,
+                    effect.elapsed / effect.duration
                     )
             );
         }
