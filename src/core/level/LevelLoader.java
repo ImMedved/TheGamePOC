@@ -2,64 +2,74 @@ package core.level;
 
 import core.states.LevelState;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
 public final class LevelLoader {
 
     private LevelLoader() {}
 
-    public static LevelState createManualLevel() {
+    public static LevelState loadFromAscii(Path path) {
 
-        int width = 20;
-        int height = 20;
+        List<String> lines;
+
+        try {
+            lines = Files.readAllLines(path);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load level file: " + path, e);
+        }
+
+        int height = lines.size();
+        if (height == 0) {
+            throw new IllegalArgumentException("Level file is empty");
+        }
+
+        int width = lines.get(0).length();
 
         LevelState level = new LevelState(width, height);
 
-        // ---- manual tile map ----
+        for (int y = 0; y < height; y++) {
 
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                level.textureMap[x][y] = 0; // floor1 by default
+            String line = lines.get(y);
+
+            if (line.length() != width) {
+                throw new IllegalArgumentException("Inconsistent row width at line " + y);
+            }
+
+            for (int x = 0; x < width; x++) {
+
+                char c = line.charAt(x);
+
+                if (!Character.isDigit(c)) {
+                    throw new IllegalArgumentException("Invalid tile character: " + c);
+                }
+
+                int textureId = c - '0';
+
+                level.textureMap[x][y] = textureId;
+                level.collisionMask[x][y] = resolveMask(textureId);
             }
         }
-
-        // Example: create a wall rectangle
-
-        for (int x = 5; x < 15; x++) {
-            level.textureMap[x][8] = 4; // terminal1
-        }
-
-        for (int y = 3; y < 10; y++) {
-            level.textureMap[10][y] = 6; // ventilation
-        }
-
-        buildCollisionFromTextures(level);
 
         return level;
     }
 
-    private static void buildCollisionFromTextures(LevelState level) {
+    private static int resolveMask(int textureId) {
 
-        for (int x = 0; x < level.width; x++) {
-            for (int y = 0; y < level.height; y++) {
+        return switch (textureId) {
 
-                int textureId = level.textureMap[x][y];
+            case 0, 1, 2, 3 -> 0;
 
-                level.collisionMask[x][y] = switch (textureId) {
+            case 4, 5, 7 ->
+                    TileCollisionFlags.BLOCK_PLAYER |
+                            TileCollisionFlags.BLOCK_PROJECTILE;
 
-                    // floors and ladder
-                    case 0, 1, 2, 3 -> 0;
+            case 6 ->
+                    TileCollisionFlags.BLOCK_PLAYER;
 
-                    // terminal1, terminal2
-                    case 4, 5 ->
-                            TileCollisionFlags.BLOCK_PLAYER |
-                                    TileCollisionFlags.BLOCK_PROJECTILE;
-
-                    // ventilation
-                    case 6 ->
-                            TileCollisionFlags.BLOCK_PLAYER;
-
-                    default -> 0;
-                };
-            }
-        }
+            default -> 0;
+        };
     }
 }

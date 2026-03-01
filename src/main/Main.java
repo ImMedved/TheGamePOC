@@ -45,7 +45,7 @@ public class Main {
 
         WorldState world = WorldState.initial();
 
-        LevelState level = LevelLoader.createManualLevel();
+        LevelState level = LevelLoader.loadFromAscii(Path.of("assets/levels/test.txt"));
         world.level = level;
 
         PlayerState player = new PlayerState(1);
