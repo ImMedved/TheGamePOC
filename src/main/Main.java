@@ -3,6 +3,7 @@ package main;
 import core.CoreEngine;
 import core.config.EffectConfigs;
 import core.config.ProjectileConfigs;
+import core.level.LevelLoader;
 import core.registries.*;
 import core.states.*;
 import core.systems.*;
@@ -44,7 +45,7 @@ public class Main {
 
         WorldState world = WorldState.initial();
 
-        LevelState level = new LevelState(20, 20);
+        LevelState level = LevelLoader.createManualLevel();
         world.level = level;
 
         PlayerState player = new PlayerState(1);
@@ -56,8 +57,8 @@ public class Main {
         float levelPixelWidth = level.width * 100f;
         float levelPixelHeight = level.height * 100f;
 
-        float startX = levelPixelWidth * 0.5f;
-        float startY = levelPixelHeight * 0.5f;
+        float startX = levelPixelWidth * 0.5f - 500 ;
+        float startY = levelPixelHeight * 0.5f - 500;
 
         player.position.set(startX, startY);
         player.previousPosition.set(startX, startY);

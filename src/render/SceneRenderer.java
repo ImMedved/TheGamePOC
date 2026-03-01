@@ -2,14 +2,13 @@ package render;
 
 import core.render.RenderSnapshot;
 import input.InputModule;
+import org.jsfml.graphics.Color;
+import org.jsfml.graphics.RenderWindow;
 import org.jsfml.window.VideoMode;
+import org.jsfml.window.WindowStyle;
 import org.jsfml.window.event.Event;
 import render.batch.BatchManager;
 import render.resources.ResourceManager;
-
-import org.jsfml.graphics.RenderWindow;
-import org.jsfml.window.WindowStyle;
-import org.jsfml.graphics.Color;
 
 public final class SceneRenderer {
 
@@ -26,6 +25,8 @@ public final class SceneRenderer {
     private ProjectileRenderer projectileRenderer;
     private EffectRenderer effectRenderer;
 
+    private boolean levelInitialized = false;
+
     public SceneRenderer(ResourceManager resources,
                          InputModule inputModule) {
         this.resources = resources;
@@ -41,6 +42,7 @@ public final class SceneRenderer {
         );
 
         window.setFramerateLimit(0);
+
         camera.setViewport(1920f, 1080f);
 
         levelRenderer = new LevelRenderer(resources);
@@ -48,7 +50,6 @@ public final class SceneRenderer {
         projectileRenderer = new ProjectileRenderer(resources);
         effectRenderer = new EffectRenderer(resources);
 
-        levelRenderer.init();
         playerRenderer.init();
         projectileRenderer.init();
         effectRenderer.init();
@@ -66,7 +67,16 @@ public final class SceneRenderer {
         }
 
         window.clear(Color.BLACK);
-        batchManager.beginFrame();
+
+        if (snapshot == null) {
+            window.display();
+            return;
+        }
+
+        if (!levelInitialized && snapshot.level != null) {
+            levelRenderer.init(snapshot.level);
+            levelInitialized = true;
+        }
 
         if (!snapshot.players.isEmpty()) {
             var focus = snapshot.players.get(0);
@@ -77,12 +87,14 @@ public final class SceneRenderer {
             camera.update(x, y, snapshot.level);
         }
 
-        levelRenderer.render(snapshot.level, camera, batchManager.level());
+        batchManager.beginFrame();
+
+        levelRenderer.render(camera, window);
+
         playerRenderer.render(snapshot.players, camera, alpha, batchManager.players());
         projectileRenderer.render(snapshot.projectiles, camera, alpha, batchManager.projectiles());
         effectRenderer.render(snapshot.effects, camera, batchManager.effects());
 
-        window.draw(batchManager.level().getVertexArray(), levelRenderer.getStates());
         window.draw(batchManager.players().getVertexArray(), playerRenderer.getStates());
         window.draw(batchManager.projectiles().getVertexArray(), projectileRenderer.getStates());
         window.draw(batchManager.effects().getVertexArray(), effectRenderer.getStates());

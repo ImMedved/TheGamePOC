@@ -1,77 +1,93 @@
 package render;
 
 import core.render.LevelRenderData;
-import render.batch.VertexBatch;
+import org.jsfml.graphics.*;
+import org.jsfml.system.Vector2f;
 import render.resources.AssetKeys;
 import render.resources.ResourceManager;
-
-import org.jsfml.graphics.Texture;
-import org.jsfml.graphics.RenderStates;
-import org.jsfml.graphics.Color;
 
 public final class LevelRenderer {
 
     private static final float TILE_SIZE = 100f;
 
     private final Texture tilesTexture;
-    private final RenderStates states;
+
+    private VertexArray geometry;
 
     public LevelRenderer(ResourceManager resources) {
-        this.tilesTexture =
-                resources.getTexture(AssetKeys.TILES);
-        this.states = new RenderStates(tilesTexture);
+        this.tilesTexture = resources.getTexture(AssetKeys.TILES);
     }
 
-    public void init() {
-    }
+    public void init(LevelRenderData level) {
 
-    public RenderStates getStates() {
-        return states;
-    }
-
-    public void render(LevelRenderData level,
-                       Camera camera,
-                       VertexBatch batch) {
-
-        float camX = camera.getX();
-        float camY = camera.getY();
-        // System.out.println("Camera x: " + camX + " Camera y: " + camY);
+        geometry = new VertexArray(PrimitiveType.QUADS);
 
         int width = level.width;
         int height = level.height;
+        int[][] textureMap = level.textureMap;
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
 
-                int tile = level.textureMap[x][y];
+                int tile = textureMap[x][y];
                 if (tile < 0) continue;
 
                 float worldX = x * TILE_SIZE;
                 float worldY = y * TILE_SIZE;
-
-                float screenX = worldX - camX + 960f;
-                float screenY = worldY - camY + 540f;
 
                 float u0 = tile * TILE_SIZE;
                 float v0 = 0f;
                 float u1 = u0 + TILE_SIZE;
                 float v1 = TILE_SIZE;
 
-                /*if (x == 0 && y == 0) {
-                    System.out.println("Tile(0,0) worldX: " + worldX +
-                            " screenX: " + screenX);
-                }*/
+                geometry.add(new Vertex(
+                        new Vector2f(worldX, worldY),
+                        Color.WHITE,
+                        new Vector2f(u0, v0)
+                ));
 
-                batch.addQuad(
-                        screenX,
-                        screenY,
-                        TILE_SIZE,
-                        TILE_SIZE,
-                        u0, v0, u1, v1,
-                        Color.WHITE
-                );
+                geometry.add(new Vertex(
+                        new Vector2f(worldX + TILE_SIZE, worldY),
+                        Color.WHITE,
+                        new Vector2f(u1, v0)
+                ));
+
+                geometry.add(new Vertex(
+                        new Vector2f(worldX + TILE_SIZE, worldY + TILE_SIZE),
+                        Color.WHITE,
+                        new Vector2f(u1, v1)
+                ));
+
+                geometry.add(new Vertex(
+                        new Vector2f(worldX, worldY + TILE_SIZE),
+                        Color.WHITE,
+                        new Vector2f(u0, v1)
+                ));
             }
         }
+    }
+
+    public void render(Camera camera, RenderWindow window) {
+
+        if (geometry == null) return;
+
+        float offsetX = -camera.getX() + 960f;
+        float offsetY = -camera.getY() + 540f;
+
+        Transform transform = new Transform(
+                1, 0, offsetX,
+                0, 1, offsetY,
+                0, 0, 1
+        );
+
+        RenderStates states = new RenderStates(
+                BlendMode.ALPHA,
+                transform,
+                tilesTexture,
+                null
+        );
+
+        window.draw(geometry, states);
     }
 
     public void shutdown() {
