@@ -59,14 +59,14 @@ public final class SceneRenderer {
 
     public void render(RenderSnapshot snapshot, float alpha) {
 
-        for (Event event : window.pollEvents()) {
+        /*for (Event event : window.pollEvents()) {
 
             inputModule.handleEvent(event);
 
             if (event.type == Event.Type.CLOSED) {
                 window.close();
             }
-        }
+        }*/
 
         window.clear(Color.BLACK);
 
@@ -105,6 +105,10 @@ public final class SceneRenderer {
         window.draw(batchManager.effects().getVertexArray(), effectRenderer.getStates());
 
         window.display();
+    }
+
+    public RenderWindow getWindow() {
+        return window;
     }
 
     public void shutdown() {

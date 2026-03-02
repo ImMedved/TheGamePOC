@@ -3,6 +3,7 @@ package render;
 import core.CoreEngine;
 import core.render.RenderSnapshot;
 import input.InputModule;
+import org.jsfml.window.event.Event;
 import render.resources.ResourceManager;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -20,6 +21,9 @@ public final class RenderEngine {
     private Thread renderThread;
 
     private SceneRenderer sceneRenderer;
+    private MenuRenderer menuRenderer;
+
+    private AppMode mode = AppMode.MENU;
 
     private long previousTime;
     private double accumulator = 0.0;
@@ -47,11 +51,11 @@ public final class RenderEngine {
 
         init();
 
-        previousTime = java.lang.System.nanoTime();
+        previousTime = System.nanoTime();
 
         while (running.get()) {
 
-            long now = java.lang.System.nanoTime();
+            long now = System.nanoTime();
             double elapsed = (now - previousTime) / 1_000_000_000.0;
 
             previousTime = now;
@@ -61,7 +65,7 @@ public final class RenderEngine {
                 accumulator -= FRAME_TIME;
             }
 
-            float alpha = (float) (accumulator / FRAME_TIME);
+            float alpha = (float)(accumulator / FRAME_TIME);
             renderFrame(alpha);
         }
 
@@ -69,21 +73,49 @@ public final class RenderEngine {
     }
 
     private void init() {
+
         sceneRenderer = new SceneRenderer(resourceManager, inputModule);
         sceneRenderer.init();
+
+        menuRenderer = new MenuRenderer(resourceManager, this::startGame);
+        menuRenderer.init(sceneRenderer.getWindow());
+    }
+
+    private void startGame() {
+        core.start();
+        mode = AppMode.GAME;
     }
 
     private void renderFrame(float alpha) {
 
-        RenderSnapshot snapshot = core.getRenderSnapshot();
+        var window = sceneRenderer.getWindow();
 
-        if (snapshot == null)
+        for (Event event : window.pollEvents()) {
+
+            inputModule.handleEvent(event);
+
+            if (event.type == Event.Type.CLOSED) {
+                window.close();
+            }
+
+            if (mode == AppMode.MENU) {
+                menuRenderer.handleEvent(event);
+            }
+        }
+
+        if (mode == AppMode.MENU) {
+            menuRenderer.render(window);
             return;
+        }
+
+        RenderSnapshot snapshot = core.getRenderSnapshot();
+        if (snapshot == null) return;
 
         sceneRenderer.render(snapshot, alpha);
     }
 
     private void shutdown() {
+        core.stop();
         sceneRenderer.shutdown();
     }
 }

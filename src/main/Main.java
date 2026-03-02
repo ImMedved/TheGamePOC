@@ -85,7 +85,7 @@ public class Main {
                 projectileRegistry
         );
 
-        core.start();
+        // core.start();
 
         Path assetsRoot = Path.of("assets");
         ResourceManager resourceManager = new ResourceManager(assetsRoot);
