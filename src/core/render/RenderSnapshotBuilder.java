@@ -115,9 +115,10 @@ public final class RenderSnapshotBuilder {
                     effect.effectTypeId,
                     effect.position.x,
                     effect.position.y,
-                    effect.elapsed / effect.duration
-                    )
-            );
+                    progress,
+                    effect.rotation,
+                    effect.length
+            ));
         }
 
         return list;

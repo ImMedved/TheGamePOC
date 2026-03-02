@@ -22,6 +22,9 @@ public final class PlayerState {
     public float hitboxRadius;
     public boolean alive;
 
+    public float speedMultiplier = 1f;
+    public float speedBuffRemaining = 0f;
+
     public Map<String, Object> attributes;
     public Set<String> tags;
 
@@ -42,6 +45,9 @@ public final class PlayerState {
         copy.position = this.position.copy();
         copy.previousPosition = this.previousPosition.copy();
         copy.velocity = this.velocity.copy();
+
+        copy.speedMultiplier = this.speedMultiplier;
+        copy.speedBuffRemaining = this.speedBuffRemaining;
 
         copy.rotation = this.rotation;
         copy.health = this.health;

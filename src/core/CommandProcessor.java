@@ -99,6 +99,37 @@ public final class CommandProcessor {
                     next.camera.y = c.y();
                 }
 
+                case ApplySpeedBoostCommand c -> {
+                    PlayerState p = next.players.get(c.playerId());
+                    if (p != null) {
+                        p.speedMultiplier = c.multiplier();
+                        p.speedBuffRemaining = c.duration();
+                    }
+                    //System.out.println("Triggered ApplySpeedBoostCommand");
+                }
+
+                case TeleportPlayerCommand c -> {
+                    PlayerState p = next.players.get(c.playerId());
+                    if (p != null) {
+                        p.previousPosition = p.position.copy();
+                        p.position.set(c.x(), c.y());
+                    }
+                    //System.out.println("Triggered TeleportPlayerCommand");
+
+                }
+
+                case UpdateSpeedBuffCommand c -> {
+                    PlayerState p = next.players.get(c.playerId());
+                    if (p != null) {
+                        p.speedBuffRemaining = Math.max(0f, c.remaining());
+                        if (p.speedBuffRemaining == 0f) {
+                            p.speedMultiplier = 1f;
+                        }
+                    }
+                    //System.out.println("Triggered UpdateSpeedBuffCommand");
+
+                }
+
                 case CustomCommand ignored -> {
                 }
             }

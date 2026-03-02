@@ -71,6 +71,7 @@ public class Main {
                 new MovementSystem(characterRegistry),
                 new ProjectileSpawnSystem(projectileRegistry),
                 new ProjectileMoveSystem(),
+                new AbilitySystem(),
                 new EffectTickSystem(effectRegistry),
                 new CollisionSystem(),
                 new CameraSystem()

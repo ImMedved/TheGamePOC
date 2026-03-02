@@ -28,4 +28,27 @@ public final class EffectFactory {
 
         return effect;
     }
+
+    public static EffectData createDashEffect(
+            long id,
+            float x,
+            float y,
+            float rotation,
+            float length
+    ) {
+        EffectData e = new EffectData(id);
+
+        e.effectTypeId = EffectType.DASH;
+        e.position.set(x, y);
+
+        e.duration = 1f;
+        e.elapsed = 0f;
+
+        e.rotation = rotation;
+        e.length = length;
+
+        e.category = EffectCategory.HYBRID;
+
+        return e;
+    }
 }

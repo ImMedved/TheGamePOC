@@ -9,7 +9,19 @@ public class InputModule {
     private final LiveInputState liveState = new LiveInputState();
 
     private final AtomicReference<InputSnapshot> latestSnapshot =
-            new AtomicReference<>(new InputSnapshot(0, 0f, 0f, false, 0f, 0f));
+            new AtomicReference<>(
+                    new InputSnapshot(
+                            0,
+                            0f,
+                            0f,
+                            false,
+                            0f,
+                            0f,
+                            false,
+                            false,
+                            false
+                    )
+            );
 
     private volatile boolean running = false; // почему это поле не используется? Где оно вообще было?
     // Вроде бы это состояние в кор движке в тик луп, а не в инпуте. ???
@@ -54,17 +66,31 @@ public class InputModule {
     }
 
     private void handleKeyPressed(Keyboard.Key key) {
+
         if (key == Keyboard.Key.W) liveState.wDown = true;
         if (key == Keyboard.Key.A) liveState.aDown = true;
         if (key == Keyboard.Key.S) liveState.sDown = true;
         if (key == Keyboard.Key.D) liveState.dDown = true;
+
+        if (key == Keyboard.Key.NUM1) {
+            liveState.key1Down = true;
+            System.out.println("NUM1 pressed");
+
+        }
+        if (key == Keyboard.Key.NUM2) liveState.key2Down = true;
+        if (key == Keyboard.Key.NUM3) liveState.key3Down = true;
     }
 
     private void handleKeyReleased(Keyboard.Key key) {
+
         if (key == Keyboard.Key.W) liveState.wDown = false;
         if (key == Keyboard.Key.A) liveState.aDown = false;
         if (key == Keyboard.Key.S) liveState.sDown = false;
         if (key == Keyboard.Key.D) liveState.dDown = false;
+
+        if (key == Keyboard.Key.NUM1) liveState.key1Down = false;
+        if (key == Keyboard.Key.NUM2) liveState.key2Down = false;
+        if (key == Keyboard.Key.NUM3) liveState.key3Down = false;
     }
 
     public void publishSnapshot(int tick) {
@@ -82,9 +108,17 @@ public class InputModule {
             moveX /= length;
             moveY /= length;
         }
-        // System.out.println("Move data from InputSnapshot: moveX: " + moveX + ", moveY: " + moveY);
+
         boolean shoot = liveState.lmbDown && !liveState.prevLmbDown;
         liveState.prevLmbDown = liveState.lmbDown;
+
+        boolean key1Pressed = liveState.key1Down && !liveState.prevKey1Down;
+        boolean key2Pressed = liveState.key2Down && !liveState.prevKey2Down;
+        boolean key3Pressed = liveState.key3Down && !liveState.prevKey3Down;
+
+        liveState.prevKey1Down = liveState.key1Down;
+        liveState.prevKey2Down = liveState.key2Down;
+        liveState.prevKey3Down = liveState.key3Down;
 
         InputSnapshot snapshot = new InputSnapshot(
                 tick,
@@ -92,7 +126,10 @@ public class InputModule {
                 moveY,
                 shoot,
                 liveState.mouseX,
-                liveState.mouseY
+                liveState.mouseY,
+                key1Pressed,
+                key2Pressed,
+                key3Pressed
         );
 
         latestSnapshot.set(snapshot);

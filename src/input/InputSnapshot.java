@@ -11,6 +11,9 @@ public final class InputSnapshot {
 
     public final float mouseX;
     public final float mouseY;
+    public final boolean key1Pressed;
+    public final boolean key2Pressed;
+    public final boolean key3Pressed;
 
     public InputSnapshot(
             int tick,
@@ -18,7 +21,11 @@ public final class InputSnapshot {
             float moveY,
             boolean shoot,
             float mouseX,
-            float mouseY
+            float mouseY,
+            boolean key1Pressed,
+            boolean key2Pressed,
+            boolean key3Pressed
+
     ) {
         this.tick = tick;
         this.moveX = moveX;
@@ -26,6 +33,9 @@ public final class InputSnapshot {
         this.shoot = shoot;
         this.mouseX = mouseX;
         this.mouseY = mouseY;
+        this.key1Pressed = key1Pressed;
+        this.key2Pressed = key2Pressed;
+        this.key3Pressed = key3Pressed;
     }
     @Override
     public String toString() {
