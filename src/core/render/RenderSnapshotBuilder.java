@@ -23,12 +23,16 @@ public final class RenderSnapshotBuilder {
         List<RenderPlayer> players = buildPlayers(previous, current);
         List<RenderProjectile> projectiles = buildProjectiles(previous, current);
         List<RenderEffect> effects = buildEffects(current);
+        float camX = current.camera != null ? current.camera.x : 0f;
+        float camY = current.camera != null ? current.camera.y : 0f;
 
         return new RenderSnapshot(
                 current.tickIndex,
                 players,
                 projectiles,
                 effects,
+                camX,
+                camY,
                 cachedLevelData
         );
     }

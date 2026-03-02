@@ -20,6 +20,7 @@ public final class SceneRenderer {
     private final Camera camera = new Camera();
     private final BatchManager batchManager = new BatchManager();
 
+    private BackgroundRenderer backgroundRenderer;
     private LevelRenderer levelRenderer;
     private PlayerRenderer playerRenderer;
     private ProjectileRenderer projectileRenderer;
@@ -45,6 +46,7 @@ public final class SceneRenderer {
 
         camera.setViewport(1920f, 1080f);
 
+        backgroundRenderer = new BackgroundRenderer(resources);
         levelRenderer = new LevelRenderer(resources);
         playerRenderer = new PlayerRenderer(resources);
         projectileRenderer = new ProjectileRenderer(resources);
@@ -73,6 +75,9 @@ public final class SceneRenderer {
             return;
         }
 
+        backgroundRenderer.render(camera, window);
+        levelRenderer.render(camera, window);
+
         if (!levelInitialized && snapshot.level != null) {
             levelRenderer.init(snapshot.level);
             levelInitialized = true;
@@ -84,7 +89,7 @@ public final class SceneRenderer {
             float x = focus.prevX + (focus.currX - focus.prevX) * alpha;
             float y = focus.prevY + (focus.currY - focus.prevY) * alpha;
 
-            camera.update(x, y, snapshot.level);
+            camera.setPosition(snapshot.camX, snapshot.camY);
         }
 
         batchManager.beginFrame();

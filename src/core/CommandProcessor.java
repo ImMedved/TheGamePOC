@@ -94,6 +94,11 @@ public final class CommandProcessor {
                     next.effects.removeIf(effect -> effect.id == r.effectId());
                 }
 
+                case ChangeCameraCommand c -> {
+                    next.camera.x = c.x();
+                    next.camera.y = c.y();
+                }
+
                 case CustomCommand ignored -> {
                 }
             }

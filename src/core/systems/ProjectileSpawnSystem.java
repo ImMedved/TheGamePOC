@@ -4,6 +4,7 @@ import core.SimulationContext;
 import core.commands.SpawnProjectileCommand;
 import core.registries.ProjectileDefinition;
 import core.registries.ProjectileRegistry;
+import core.states.CameraState;
 import core.states.PlayerState;
 
 public final class ProjectileSpawnSystem implements GameSystem {
@@ -33,9 +34,22 @@ public final class ProjectileSpawnSystem implements GameSystem {
 
             ProjectileDefinition def = projectileRegistry.get(projectileType);
 
-            float dx = context.input().mouseX - player.position.x;
-            float dy = context.input().mouseY - player.position.y;
+            CameraState cam = context.snapshot().camera;
 
+            float worldMouseX =
+                    context.input().mouseX
+                            - cam.viewportWidth * 0.5f
+                            + cam.x;
+
+            float worldMouseY =
+                    context.input().mouseY
+                            - cam.viewportHeight * 0.5f
+                            + cam.y;
+
+            float dx = worldMouseX - player.position.x;
+            float dy = worldMouseY - player.position.y;
+
+            // System.out.println("Mouse raw posX: " + context.input().mouseX + " Mouse dx: " + dx);
             float len = (float) Math.sqrt(dx * dx + dy * dy);
             if (len == 0f) return;
 

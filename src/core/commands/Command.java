@@ -1,13 +1,4 @@
 package core.commands;
 
-public sealed interface Command permits
-        MovePlayerCommand,
-        ChangeCharacterCommand,
-        SpawnProjectileCommand,
-        MoveProjectileCommand,
-        RemoveProjectileCommand,
-        DamagePlayerCommand,
-        ApplyEffectCommand,
-        RemoveEffectCommand,
-        CustomCommand {
+public sealed interface Command permits ApplyEffectCommand, ChangeCameraCommand, ChangeCharacterCommand, CustomCommand, DamagePlayerCommand, MovePlayerCommand, MoveProjectileCommand, RemoveEffectCommand, RemoveProjectileCommand, SpawnProjectileCommand {
 }

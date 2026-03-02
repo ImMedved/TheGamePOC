@@ -1,77 +1,39 @@
 package render;
 
-import core.render.LevelRenderData;
+import org.jsfml.graphics.Transform;
 
 public final class Camera {
 
     private float x;
     private float y;
 
-    private float viewportWidth = 1920f;
-    private float viewportHeight = 1080f;
-
-    private float deadZonePercent = 0.2f;
-
-    private float minSpeed = 200f;
-    private float maxSpeed = 2000f;
+    private float viewportWidth;
+    private float viewportHeight;
 
     public void setViewport(float width, float height) {
         this.viewportWidth = width;
         this.viewportHeight = height;
     }
 
-    public void update(float targetX,
-                       float targetY,
-                       LevelRenderData level) {
-
-        float deadZoneWidth = viewportWidth * deadZonePercent;
-        float deadZoneHeight = viewportHeight * deadZonePercent;
-
-        float leftBound = x - deadZoneWidth * 0.5f;
-        float rightBound = x + deadZoneWidth * 0.5f;
-
-        float topBound = y - deadZoneHeight * 0.5f;
-        float bottomBound = y + deadZoneHeight * 0.5f;
-
-        float offsetX = 0f;
-        float offsetY = 0f;
-
-        if (targetX < leftBound) offsetX = targetX - leftBound;
-        else if (targetX > rightBound) offsetX = targetX - rightBound;
-
-        if (targetY < topBound) offsetY = targetY - topBound;
-        else if (targetY > bottomBound) offsetY = targetY - bottomBound;
-
-        float distanceX = Math.abs(offsetX);
-        float distanceY = Math.abs(offsetY);
-
-        float speedX = computeSpeed(distanceX);
-        float speedY = computeSpeed(distanceY);
-
-        x += Math.signum(offsetX) * speedX;
-        y += Math.signum(offsetY) * speedY;
-
-        // System.out.println("new frame camera: " + x + "<- x" + y + "<- y");
-
-        clampToLevel(level);
+    public void setPosition(float x, float y) {
+        this.x = x;
+        this.y = y;
     }
 
-    private float computeSpeed(float distance) {
-
-        if (distance <= 0f) return 0f;
-        float normalized = distance / (viewportWidth * 0.5f);
-        float exp = (float) (1f - Math.exp(-4f * normalized));
-        float speed = minSpeed + (maxSpeed - minSpeed) * exp;
-        return speed * (1f / 120f);
+    public float getX() {
+        return x;
     }
 
-    private void clampToLevel(LevelRenderData level) {
+    public float getY() {
+        return y;
+    }
 
-        float halfW = viewportWidth * 0.5f;
-        float halfH = viewportHeight * 0.5f;
+    public float getViewportWidth() {
+        return viewportWidth;
+    }
 
-        x = Math.max(halfW, Math.min((level.width * 100) - halfW, x));
-        y = Math.max(halfH, Math.min((level.height * 100) - halfH, y));
+    public float getViewportHeight() {
+        return viewportHeight;
     }
 
     public float worldToScreenX(float worldX) {
@@ -82,11 +44,15 @@ public final class Camera {
         return worldY - y + viewportHeight * 0.5f;
     }
 
-    public float getX() {
-        return x;
-    }
+    public Transform buildTransform() {
+        float offsetX = -x + viewportWidth * 0.5f;
+        float offsetY = -y + viewportHeight * 0.5f;
 
-    public float getY() {
-        return y;
+        Transform transform = new Transform(
+                1, 0, offsetX,
+                0, 1, offsetY,
+                0, 0, 1
+        );
+        return transform;
     }
 }

@@ -62,7 +62,7 @@ public final class LevelLoader {
 
             case 0, 1, 2, 3 -> 0;
 
-            case 4, 5, 7 ->
+            case 4, 5, 7, 8 ->
                     TileCollisionFlags.BLOCK_PLAYER |
                             TileCollisionFlags.BLOCK_PROJECTILE;
 

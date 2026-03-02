@@ -9,6 +9,7 @@ public final class WorldState {
     public Map<Long, PlayerState> players;
     public List<ProjectileState> projectiles;
     public List<EffectData> effects;
+    public CameraState camera;
 
     public LevelState level;
 
@@ -21,12 +22,16 @@ public final class WorldState {
     public static WorldState initial() {
         WorldState world = new WorldState();
         world.tickIndex = 0;
+        world.camera = new CameraState();
+        world.camera.viewportWidth = 1920f;
+        world.camera.viewportHeight = 1080f;
         return world;
     }
 
     public WorldState copy() {
         WorldState copy = new WorldState();
         copy.tickIndex = this.tickIndex;
+        copy.camera = this.camera != null ? this.camera.copy() : null;
 
         for (Map.Entry<Long, PlayerState> entry : this.players.entrySet()) {
             copy.players.put(entry.getKey(), entry.getValue().copy());

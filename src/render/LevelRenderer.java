@@ -71,14 +71,7 @@ public final class LevelRenderer {
 
         if (geometry == null) return;
 
-        float offsetX = -camera.getX() + 960f;
-        float offsetY = -camera.getY() + 540f;
-
-        Transform transform = new Transform(
-                1, 0, offsetX,
-                0, 1, offsetY,
-                0, 0, 1
-        );
+        Transform transform = camera.buildTransform();
 
         RenderStates states = new RenderStates(
                 BlendMode.ALPHA,

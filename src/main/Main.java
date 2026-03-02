@@ -72,7 +72,8 @@ public class Main {
                 new ProjectileSpawnSystem(projectileRegistry),
                 new ProjectileMoveSystem(),
                 new EffectTickSystem(effectRegistry),
-                new CollisionSystem()
+                new CollisionSystem(),
+                new CameraSystem()
         );
 
         // --- Core Engine ---
