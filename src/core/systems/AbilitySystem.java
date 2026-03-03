@@ -17,34 +17,17 @@ public final class AbilitySystem implements GameSystem {
     public void update(SimulationContext context) {
 
         if (context.snapshot().players.isEmpty()) return;
-
-        PlayerState player =
-                context.snapshot().players.values().iterator().next();
+        PlayerState player = context.snapshot().players.values().iterator().next();
 
         if (!player.alive) return;
-
-        if (context.input().key1Pressed) {
-            castTripleShot(context, player);
-        }
-
-        if (context.input().key2Pressed) {
-            castSpeedBoost(context, player);
-        }
-
-        if (context.input().key3Pressed) {
-            castTeleport(context, player);
-        }
+        if (context.input().key1Pressed) castTripleShot(context, player);
+        if (context.input().key2Pressed) castSpeedBoost(context, player);
+        if (context.input().key3Pressed) castTeleport(context, player);
 
         for (PlayerState p : context.snapshot().players.values()) {
-
             if (p.speedBuffRemaining > 0f) {
-
                 float newRemaining = p.speedBuffRemaining - context.dt();
-
-                context.addCommand(new UpdateSpeedBuffCommand(
-                        p.id,
-                        newRemaining
-                ));
+                context.addCommand(new UpdateSpeedBuffCommand(p.id, newRemaining));
             }
         }
     }
@@ -53,15 +36,8 @@ public final class AbilitySystem implements GameSystem {
 
         CameraState cam = context.snapshot().camera;
 
-        float worldMouseX =
-                context.input().mouseX
-                        - cam.viewportWidth * 0.5f
-                        + cam.x;
-
-        float worldMouseY =
-                context.input().mouseY
-                        - cam.viewportHeight * 0.5f
-                        + cam.y;
+        float worldMouseX = context.input().mouseX - cam.viewportWidth * 0.5f + cam.x;
+        float worldMouseY = context.input().mouseY - cam.viewportHeight * 0.5f + cam.y;
 
         float dx = worldMouseX - player.position.x;
         float dy = worldMouseY - player.position.y;
@@ -108,13 +84,13 @@ public final class AbilitySystem implements GameSystem {
     }
 
     private void castSpeedBoost(SimulationContext context, PlayerState player) {
-        System.out.println("Current multiplier: " + player.speedMultiplier);
+        //System.out.println("Current multiplier: " + player.speedMultiplier);
         context.addCommand(new ApplySpeedBoostCommand(
                 player.id,
                 2f,
                 2f
         ));
-        System.out.println("Updated multiplier: " + player.speedMultiplier);
+        //System.out.println("Updated multiplier: " + player.speedMultiplier);
 
     }
 
@@ -154,19 +130,19 @@ public final class AbilitySystem implements GameSystem {
             targetY = player.position.y + ny * maxRange;
         }
 
-        float dx = targetX - player.position.x;
-        float dy = targetY - player.position.y;
+        float finalDx = targetX - player.position.x;
+        float finalDy = targetY - player.position.y;
 
-        float length = (float)Math.sqrt(dx * dx + dy * dy);
-        float rotation = (float)Math.atan2(dy, dx);
+        //float length = (float)Math.sqrt(finalDx * finalDx + finalDy * finalDy);
+        //float rotation = (float)Math.atan2(finalDy, finalDx);
 
         context.addCommand(new ApplyEffectCommand(
                 EffectFactory.createDashEffect(
                         context.nextId(),
                         player.position.x,
                         player.position.y,
-                        rotation,
-                        length
+                        finalDx,
+                        finalDy
                 )
         ));
 

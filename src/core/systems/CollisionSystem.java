@@ -23,7 +23,7 @@ public final class CollisionSystem implements GameSystem {
 
         if (level == null) return;
 
-        // ---- Player ↔ Level ----
+        // ---- Player - Level ----
 
         for (PlayerState player : context.snapshot().players.values()) {
 
@@ -60,7 +60,7 @@ public final class CollisionSystem implements GameSystem {
 
         for (ProjectileState projectile : context.snapshot().projectiles) {
 
-            // Projectile ↔ Level
+            // Projectile - Level
 
             int mask = level.getMaskAtWorld(projectile.position.x, projectile.position.y);
 
@@ -69,7 +69,7 @@ public final class CollisionSystem implements GameSystem {
                 continue;
             }
 
-            // Projectile ↔ Player
+            // Projectile - Player
 
             for (PlayerState player : context.snapshot().players.values()) {
 

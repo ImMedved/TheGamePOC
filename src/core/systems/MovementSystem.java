@@ -29,7 +29,7 @@ public final class MovementSystem implements GameSystem {
             CharacterDefinition def = characterRegistry.get(player.characterId);
 
             float speed = def.baseSpeed * player.speedMultiplier;
-            System.out.println("speedMultiplier in MovementSystem: " + player.speedMultiplier);
+            // System.out.println("speedMultiplier in MovementSystem: " + player.speedMultiplier);
 
             float dx = context.input().moveX * speed * context.dt();
             float dy = context.input().moveY * speed * context.dt();

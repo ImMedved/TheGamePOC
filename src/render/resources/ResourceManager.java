@@ -17,9 +17,7 @@ public class ResourceManager {
 
     public Texture getTexture(String key) {
         Texture texture = textures.get(key);
-        if (texture != null) {
-            return texture;
-        }
+        if (texture != null) return texture;
 
         Texture loaded = loadTexture(key);
         textures.put(key, loaded);

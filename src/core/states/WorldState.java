@@ -37,17 +37,9 @@ public final class WorldState {
             copy.players.put(entry.getKey(), entry.getValue().copy());
         }
 
-        for (ProjectileState p : this.projectiles) {
-            copy.projectiles.add(p.copy());
-        }
-
-        for (EffectData e : this.effects) {
-            copy.effects.add(e.copy());
-        }
-
-        if (this.level != null) {
-            copy.level = this.level.copy();
-        }
+        for (ProjectileState p : this.projectiles) copy.projectiles.add(p.copy());
+        for (EffectData e : this.effects) copy.effects.add(e.copy());
+        if (this.level != null) copy.level = this.level.copy();
 
         return copy;
     }

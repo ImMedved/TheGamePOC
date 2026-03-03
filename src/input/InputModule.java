@@ -72,11 +72,7 @@ public class InputModule {
         if (key == Keyboard.Key.S) liveState.sDown = true;
         if (key == Keyboard.Key.D) liveState.dDown = true;
 
-        if (key == Keyboard.Key.NUM1) {
-            liveState.key1Down = true;
-            System.out.println("NUM1 pressed");
-
-        }
+        if (key == Keyboard.Key.NUM1) liveState.key1Down = true;
         if (key == Keyboard.Key.NUM2) liveState.key2Down = true;
         if (key == Keyboard.Key.NUM3) liveState.key3Down = true;
     }

@@ -1,33 +1,42 @@
 package core.render;
 
+import core.states.EffectType;
+
 public final class RenderEffect {
 
     public final long id;
-    public final int effectTypeId;
+    public final EffectType type;
 
     public final float x;
     public final float y;
 
     public final float progress;
 
-    public final float rotation;
-    public final float length;
+    public final float dx;
+    public final float dy;
+
+    public final float scaleX;
+    public final float scaleY;
 
     public RenderEffect(
             long id,
-            int effectTypeId,
+            EffectType type,
             float x,
             float y,
             float progress,
-            float rotation,
-            float length
+            float dx,
+            float dy,
+            float scaleX,
+            float scaleY
     ) {
         this.id = id;
-        this.effectTypeId = effectTypeId;
+        this.type = type;
         this.x = x;
         this.y = y;
         this.progress = progress;
-        this.rotation = rotation;
-        this.length = length;
+        this.dx = dx;
+        this.dy = dy;
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
     }
 }

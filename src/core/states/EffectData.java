@@ -29,6 +29,15 @@ public final class EffectData {
     public Map<String, Object> payload;
     public Set<String> tags;
 
+    public EffectType type;
+
+    public float rotation;   // radians
+    public float scaleX = 1f;
+    public float scaleY = 1f;
+
+    public float dx;
+    public float dy;
+
     public EffectData(long id) {
         this.id = id;
         this.payload = new HashMap<>();
@@ -60,6 +69,13 @@ public final class EffectData {
         copy.payload = new HashMap<>(this.payload);
         copy.tags = new HashSet<>(this.tags);
 
+        copy.rotation = this.rotation;
+        copy.scaleX = this.scaleX;
+        copy.scaleY = this.scaleY;
+        copy.type = this.type;
+
+        copy.dx = this.dx;
+        copy.dy = this.dy;
         return copy;
     }
 }

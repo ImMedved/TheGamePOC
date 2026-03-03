@@ -1,6 +1,9 @@
-package render;
+package render.renderers;
 
 import core.render.RenderPlayer;
+import render.Camera;
+import render.batch.BatchManager;
+import render.batch.RenderMaterial;
 import render.batch.VertexBatch;
 import render.resources.AssetKeys;
 import render.resources.ResourceManager;
@@ -20,10 +23,11 @@ public final class PlayerRenderer {
     private final RenderStates states;
 
     private final CharacterAnimationResolver animation = new CharacterAnimationResolver();
-
+    private final RenderMaterial playerMaterial;
     public PlayerRenderer(ResourceManager resources) {
         this.texture = resources.getTexture(AssetKeys.CHARS);
         this.states = new RenderStates(texture);
+        this.playerMaterial = new RenderMaterial(resources.getTexture(AssetKeys.CHARS));
     }
 
     public void init() {
@@ -36,11 +40,9 @@ public final class PlayerRenderer {
     public void render(List<RenderPlayer> players,
                        Camera camera,
                        float alpha,
-                       VertexBatch batch) {
+                       BatchManager batchManager) {
 
-        float camX = camera.getX();
-        float camY = camera.getY();
-
+        VertexBatch batch = batchManager.getBatch(playerMaterial);
         animation.update(1f / 120f);
 
         for (RenderPlayer p : players) {

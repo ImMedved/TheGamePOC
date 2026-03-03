@@ -57,8 +57,8 @@ public class Main {
         float levelPixelWidth = level.width * 100f;
         float levelPixelHeight = level.height * 100f;
 
-        float startX = levelPixelWidth * 0.5f - 500 ;
-        float startY = levelPixelHeight * 0.5f - 500;
+        float startX = levelPixelWidth * 0.5f;
+        float startY = levelPixelHeight * 0.5f;
 
         player.position.set(startX, startY);
         player.previousPosition.set(startX, startY);

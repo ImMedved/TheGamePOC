@@ -1,13 +1,15 @@
-package render;
+package render.renderers;
 
 import core.render.RenderProjectile;
+import render.Camera;
+import render.batch.BatchManager;
+import render.batch.RenderMaterial;
 import render.batch.VertexBatch;
 import render.resources.AssetKeys;
 import render.resources.ResourceManager;
 
 import org.jsfml.graphics.Texture;
 import org.jsfml.graphics.RenderStates;
-import org.jsfml.graphics.Color;
 
 import java.util.List;
 
@@ -18,10 +20,12 @@ public final class ProjectileRenderer {
 
     private final Texture texture;
     private final RenderStates states;
-
+    private final RenderMaterial projectileMaterial;
     public ProjectileRenderer(ResourceManager resources) {
         this.texture = resources.getTexture(AssetKeys.BULLET);
         this.states = new RenderStates(texture);
+        this.projectileMaterial =
+                new RenderMaterial(resources.getTexture(AssetKeys.BULLET));
     }
 
     public void init() {
@@ -34,11 +38,11 @@ public final class ProjectileRenderer {
     public void render(List<RenderProjectile> projectiles,
                        Camera camera,
                        float alpha,
-                       VertexBatch batch) {
+                       BatchManager batchManager) {
 
         float camX = camera.getX();
         float camY = camera.getY();
-
+        VertexBatch batch = batchManager.getBatch(projectileMaterial);
         for (RenderProjectile p : projectiles) {
 
             float x = p.prevX + (p.currX - p.prevX) * alpha;

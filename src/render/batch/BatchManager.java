@@ -2,33 +2,27 @@ package render.batch;
 
 import org.jsfml.graphics.PrimitiveType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public final class BatchManager {
 
-    private final VertexBatch levelBatch = new VertexBatch(PrimitiveType.QUADS);
-    private final VertexBatch playerBatch = new VertexBatch(PrimitiveType.QUADS);
-    private final VertexBatch projectileBatch = new VertexBatch(PrimitiveType.QUADS);
-    private final VertexBatch effectBatch = new VertexBatch(PrimitiveType.QUADS);
+    private final Map<RenderMaterial, VertexBatch> batches = new HashMap<>();
 
     public void beginFrame() {
-        levelBatch.clear();
-        playerBatch.clear();
-        projectileBatch.clear();
-        effectBatch.clear();
+        for (VertexBatch batch : batches.values()) {
+            batch.clear();
+        }
     }
 
-    public VertexBatch level() {
-        return levelBatch;
+    public VertexBatch getBatch(RenderMaterial material) {
+        return batches.computeIfAbsent(
+                material,
+                m -> new VertexBatch(PrimitiveType.QUADS)
+        );
     }
 
-    public VertexBatch players() {
-        return playerBatch;
-    }
-
-    public VertexBatch projectiles() {
-        return projectileBatch;
-    }
-
-    public VertexBatch effects() {
-        return effectBatch;
+    public Map<RenderMaterial, VertexBatch> getAll() {
+        return batches;
     }
 }

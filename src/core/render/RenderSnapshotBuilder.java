@@ -94,33 +94,22 @@ public final class RenderSnapshotBuilder {
     private List<RenderEffect> buildEffects(
             WorldState curr
     ) {
-
         List<RenderEffect> list = new ArrayList<>();
-
         for (EffectData effect : curr.effects) {
-
             float progress = effect.duration > 0f ? effect.elapsed / effect.duration : 1f;
-            PlayerState target = curr.players.get(effect.targetId);
-
-            float x = 0f;
-            float y = 0f;
-
-            if (target != null) {
-                x = target.position.x;
-                y = target.position.y;
-            }
 
             list.add(new RenderEffect(
                     effect.id,
-                    effect.effectTypeId,
+                    effect.type,
                     effect.position.x,
                     effect.position.y,
                     progress,
-                    effect.rotation,
-                    effect.length
+                    effect.dx,
+                    effect.dy,
+                    effect.scaleX,
+                    effect.scaleY
             ));
         }
-
         return list;
     }
 }

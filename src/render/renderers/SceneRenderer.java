@@ -1,4 +1,4 @@
-package render;
+package render.renderers;
 
 import core.render.RenderSnapshot;
 import input.InputModule;
@@ -6,7 +6,7 @@ import org.jsfml.graphics.Color;
 import org.jsfml.graphics.RenderWindow;
 import org.jsfml.window.VideoMode;
 import org.jsfml.window.WindowStyle;
-import org.jsfml.window.event.Event;
+import render.Camera;
 import render.batch.BatchManager;
 import render.resources.ResourceManager;
 
@@ -28,8 +28,7 @@ public final class SceneRenderer {
 
     private boolean levelInitialized = false;
 
-    public SceneRenderer(ResourceManager resources,
-                         InputModule inputModule) {
+    public SceneRenderer(ResourceManager resources, InputModule inputModule) {
         this.resources = resources;
         this.inputModule = inputModule;
     }
@@ -59,15 +58,6 @@ public final class SceneRenderer {
 
     public void render(RenderSnapshot snapshot, float alpha) {
 
-        /*for (Event event : window.pollEvents()) {
-
-            inputModule.handleEvent(event);
-
-            if (event.type == Event.Type.CLOSED) {
-                window.close();
-            }
-        }*/
-
         window.clear(Color.BLACK);
 
         if (snapshot == null) {
@@ -75,15 +65,13 @@ public final class SceneRenderer {
             return;
         }
 
-        backgroundRenderer.render(camera, window);
-        levelRenderer.render(camera, window);
-
         if (!levelInitialized && snapshot.level != null) {
             levelRenderer.init(snapshot.level);
             levelInitialized = true;
         }
 
         if (!snapshot.players.isEmpty()) {
+            //System.out.println("!snapshot.players.isEmpty() trigger");
             var focus = snapshot.players.get(0);
 
             float x = focus.prevX + (focus.currX - focus.prevX) * alpha;
@@ -94,16 +82,17 @@ public final class SceneRenderer {
 
         batchManager.beginFrame();
 
+        backgroundRenderer.render(camera, window);
         levelRenderer.render(camera, window);
 
-        playerRenderer.render(snapshot.players, camera, alpha, batchManager.players());
-        projectileRenderer.render(snapshot.projectiles, camera, alpha, batchManager.projectiles());
-        effectRenderer.render(snapshot.effects, camera, batchManager.effects());
+        playerRenderer.render(snapshot.players, camera, alpha, batchManager);
+        projectileRenderer.render(snapshot.projectiles, camera, alpha, batchManager);
+        effectRenderer.render(snapshot.effects, camera, batchManager);
 
-        window.draw(batchManager.players().getVertexArray(), playerRenderer.getStates());
-        window.draw(batchManager.projectiles().getVertexArray(), projectileRenderer.getStates());
-        window.draw(batchManager.effects().getVertexArray(), effectRenderer.getStates());
-
+        for (var entry : batchManager.getAll().entrySet()) {
+            window.draw(entry.getValue().getVertexArray(), entry.getKey().getStates());
+        }
+        //System.out.println("batchManager size: " + batchManager.getAll().size());
         window.display();
     }
 

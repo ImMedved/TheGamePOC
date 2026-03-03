@@ -1,7 +1,6 @@
-package render;
+package render.renderers;
 
 import org.jsfml.graphics.*;
-import org.jsfml.system.Vector2f;
 import org.jsfml.window.event.Event;
 import render.resources.AssetKeys;
 import render.resources.ResourceManager;
@@ -20,12 +19,8 @@ public final class MenuRenderer {
 
     public MenuRenderer(ResourceManager resources, Runnable onStart) {
         this.onStart = onStart;
-
-        this.backgroundTexture =
-                resources.getTexture(AssetKeys.BACKGROUND);
-
-        this.buttonTexture =
-                resources.getTexture(AssetKeys.START_BUTTON);
+        this.backgroundTexture = resources.getTexture(AssetKeys.BACKGROUND);
+        this.buttonTexture = resources.getTexture(AssetKeys.START_BUTTON);
     }
 
     public void init(RenderWindow window) {
@@ -40,10 +35,7 @@ public final class MenuRenderer {
 
         FloatRect bounds = buttonSprite.getGlobalBounds();
 
-        buttonSprite.setPosition(
-                960f - bounds.width * 0.5f,
-                540f - bounds.height * 0.5f
-        );
+        buttonSprite.setPosition(960f - bounds.width * 0.5f, 540f - bounds.height * 0.5f);
     }
 
     public void handleEvent(Event event) {

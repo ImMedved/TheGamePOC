@@ -4,6 +4,8 @@ import core.CoreEngine;
 import core.render.RenderSnapshot;
 import input.InputModule;
 import org.jsfml.window.event.Event;
+import render.renderers.MenuRenderer;
+import render.renderers.SceneRenderer;
 import render.resources.ResourceManager;
 
 import java.util.concurrent.atomic.AtomicBoolean;

@@ -1,8 +1,9 @@
-package render;
+package render.renderers;
 
 import core.render.LevelRenderData;
 import org.jsfml.graphics.*;
 import org.jsfml.system.Vector2f;
+import render.Camera;
 import render.resources.AssetKeys;
 import render.resources.ResourceManager;
 

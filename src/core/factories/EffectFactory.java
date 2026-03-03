@@ -2,6 +2,7 @@ package core.factories;
 
 import core.states.EffectData;
 import core.states.EffectCategory;
+import core.states.EffectType;
 import core.states.Vector2;
 
 public final class EffectFactory {
@@ -16,6 +17,7 @@ public final class EffectFactory {
 
         effect.effectTypeId = effectTypeId;
         effect.category = EffectCategory.VISUAL;
+        effect.type = EffectType.BULLET_HOLE;
 
         effect.position.set(x, y);
         effect.previousPosition.set(x, y);
@@ -31,23 +33,24 @@ public final class EffectFactory {
 
     public static EffectData createDashEffect(
             long id,
-            float x,
-            float y,
-            float rotation,
-            float length
+            float startX,
+            float startY,
+            float dx,
+            float dy
     ) {
         EffectData e = new EffectData(id);
 
-        e.effectTypeId = EffectType.DASH;
-        e.position.set(x, y);
-
-        e.duration = 1f;
-        e.elapsed = 0f;
-
-        e.rotation = rotation;
-        e.length = length;
-
+        e.type = EffectType.DASH_TRACE;
         e.category = EffectCategory.HYBRID;
+
+        e.position.set(startX, startY);
+        e.previousPosition.set(startX, startY);
+
+        e.dx = dx;
+        e.dy = dy;
+
+        e.duration = 0.25f;   // короткий трейл
+        e.elapsed = 0f;
 
         return e;
     }
