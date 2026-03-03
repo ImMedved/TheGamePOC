@@ -93,6 +93,7 @@ public final class AbilitySystem implements GameSystem {
         context.addCommand(new ApplyEffectCommand(
                 EffectFactory.createSpeedEffect(
                         context.nextId(),
+                        player.id,
                         player.id
                 )
         ));
@@ -145,6 +146,7 @@ public final class AbilitySystem implements GameSystem {
         context.addCommand(new ApplyEffectCommand(
                 EffectFactory.createDashEffect(
                         context.nextId(),
+                        player.id,
                         player.position.x,
                         player.position.y,
                         finalDx,

@@ -77,13 +77,17 @@ public final class RenderSnapshotBuilder {
             float prevX = prevProj != null ? prevProj.position.x : currProj.position.x;
             float prevY = prevProj != null ? prevProj.position.y : currProj.position.y;
 
+            PlayerState owner = curr.players.get(currProj.ownerId);
+            int characterId = owner != null ? owner.characterId : 0;
+
             list.add(new RenderProjectile(
                     currProj.id,
                     currProj.projectileTypeId,
                     prevX,
                     prevY,
                     currProj.position.x,
-                    currProj.position.y
+                    currProj.position.y,
+                    characterId
                     )
             );
         }
@@ -113,6 +117,16 @@ public final class RenderSnapshotBuilder {
                 }
             }
 
+            int characterId = 0;
+
+            if (effect.sourceId != 0) {
+                PlayerState source = curr.players.get(effect.sourceId);
+                if (source != null) {
+                    characterId = source.characterId;
+                    //System.out.println(source.characterId);
+                }
+            }
+
             list.add(new RenderEffect(
                     effect.id,
                     effect.type,
@@ -122,7 +136,8 @@ public final class RenderSnapshotBuilder {
                     effect.dx,
                     effect.dy,
                     effect.scaleX,
-                    effect.scaleY
+                    effect.scaleY,
+                    characterId
             ));
         }
 

@@ -66,7 +66,8 @@ public final class ProjectileRenderer {
                     screenY,
                     WIDTH,
                     HEIGHT,
-                    angle
+                    angle,
+                    p.ownerCharacterId
             );
         }
     }
@@ -76,7 +77,8 @@ public final class ProjectileRenderer {
                                 float cy,
                                 float w,
                                 float h,
-                                float angleDeg) {
+                                float angleDeg,
+                                int characterId) {
 
         float rad = (float) Math.toRadians(angleDeg);
         float cos = (float) Math.cos(rad);
@@ -91,6 +93,8 @@ public final class ProjectileRenderer {
                 { hw,  hh},
                 {-hw,  hh}
         };
+
+        float uOffset = characterId * w;
 
         var va = batch.getVertexArray();
 
@@ -108,7 +112,7 @@ public final class ProjectileRenderer {
             va.add(new org.jsfml.graphics.Vertex(
                     new org.jsfml.system.Vector2f(finalX, finalY),
                     org.jsfml.graphics.Color.WHITE,
-                    new org.jsfml.system.Vector2f(u, v)
+                    new org.jsfml.system.Vector2f(u + uOffset, v)
             ));
         }
     }

@@ -9,6 +9,7 @@ public final class EffectFactory {
 
     public static EffectData createBulletHole(
             long id,
+            long sourceId,
             int effectTypeId,
             float x,
             float y
@@ -18,6 +19,7 @@ public final class EffectFactory {
         effect.effectTypeId = effectTypeId;
         effect.category = EffectCategory.VISUAL;
         effect.type = EffectType.BULLET_HOLE;
+        effect.sourceId = sourceId;
 
         effect.position.set(x, y);
         effect.previousPosition.set(x, y);
@@ -33,6 +35,7 @@ public final class EffectFactory {
 
     public static EffectData createSpeedEffect(
             long id,
+            long sourceId,
             long targetId
     ) {
         EffectData e = new EffectData(id);
@@ -40,6 +43,7 @@ public final class EffectFactory {
         e.type = EffectType.SPEED_AURA;
         e.category = EffectCategory.VISUAL;
 
+        e.sourceId = sourceId;
         e.targetId = targetId;
 
         e.duration = 2f;
@@ -50,13 +54,14 @@ public final class EffectFactory {
 
     public static EffectData createDashEffect(
             long id,
+            long sourceId,
             float startX,
             float startY,
             float dx,
             float dy
     ) {
         EffectData e = new EffectData(id);
-
+        e.sourceId = sourceId;
         e.type = EffectType.DASH_TRACE;
         e.category = EffectCategory.HYBRID;
 

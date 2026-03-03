@@ -83,7 +83,7 @@ public final class EffectRenderer {
 
                 case BULLET_HOLE -> {
                     VertexBatch batch = batchManager.getBatch(holeMaterial);
-                    renderBulletHole(screenX, screenY, batch);
+                    renderBulletHole(screenX, screenY, batch, e.characterId);
                 }
             }
         }
@@ -103,7 +103,7 @@ public final class EffectRenderer {
         float dy = endY - startY;
 
         float length = (float)Math.sqrt(dx * dx + dy * dy);
-        System.out.println("dx: " + e.dx + " dy: " + e.dy);
+        //System.out.println("dx: " + e.dx + " dy: " + e.dy);
         if (length <= 0.001f) return;
 
         float nx = dx / length;
@@ -149,10 +149,15 @@ public final class EffectRenderer {
 
         var color = new Color(255, 255, 255, alpha);
 
-        batch.getVertexArray().add(new Vertex(new Vector2f(sx0, sy0), color, new Vector2f(0, texH)));
-        batch.getVertexArray().add(new Vertex(new Vector2f(sx1, sy1), color, new Vector2f(0, 0)));
-        batch.getVertexArray().add(new Vertex(new Vector2f(sx2, sy2), color, new Vector2f(texW, 0)));
-        batch.getVertexArray().add(new Vertex(new Vector2f(sx3, sy3), color, new Vector2f(texW, texH)));
+        float tileWidth = 56f;
+        float tileHeight = 175f;
+
+        float uOffset = e.characterId * tileWidth;
+
+        batch.getVertexArray().add(new Vertex(new Vector2f(sx0, sy0), color, new Vector2f(uOffset, tileHeight)));
+        batch.getVertexArray().add(new Vertex(new Vector2f(sx1, sy1), color, new Vector2f(uOffset, 0)));
+        batch.getVertexArray().add(new Vertex(new Vector2f(sx2, sy2), color, new Vector2f(uOffset + tileWidth, 0)));
+        batch.getVertexArray().add(new Vertex(new Vector2f(sx3, sy3), color, new Vector2f(uOffset + tileWidth, tileHeight)));
     }
 
     private void renderSpeed(RenderEffect e,
@@ -186,44 +191,38 @@ public final class EffectRenderer {
 
         int alpha = 255;
 
-        batch.getVertexArray().add(new Vertex(
-                new Vector2f(x0, y0),
-                new Color(255,255,255,alpha),
-                new Vector2f(0, 0)
-        ));
+        float tileSize = 53f;
+        float uOffset = e.characterId * tileSize;
+        System.out.println(e.characterId);
 
-        batch.getVertexArray().add(new Vertex(
-                new Vector2f(x0 + scaled, y0),
-                new Color(255,255,255,alpha),
-                new Vector2f(texW, 0)
-        ));
-
-        batch.getVertexArray().add(new Vertex(
-                new Vector2f(x0 + scaled, y0 + scaled),
-                new Color(255,255,255,alpha),
-                new Vector2f(texW, texH)
-        ));
-
-        batch.getVertexArray().add(new Vertex(
-                new Vector2f(x0, y0 + scaled),
-                new Color(255,255,255,alpha),
-                new Vector2f(0, texH)
-        ));
+        batch.getVertexArray().add(new Vertex(new Vector2f(x0, y0),
+                new Color(255,255,255,alpha), new Vector2f(uOffset, 0)));
+        batch.getVertexArray().add(new Vertex(new Vector2f(x0 + scaled, y0),
+                new Color(255,255,255,alpha), new Vector2f(uOffset + tileSize, 0)));
+        batch.getVertexArray().add(new Vertex(new Vector2f(x0 + scaled, y0 + scaled),
+                new Color(255,255,255,alpha), new Vector2f(uOffset + tileSize, tileSize)));
+        batch.getVertexArray().add(new Vertex(new Vector2f(x0, y0 + scaled),
+                new Color(255,255,255,alpha), new Vector2f(uOffset, tileSize)));
     }
 
-    private void renderBulletHole(float x, float y, VertexBatch batch) {
+    private void renderBulletHole(float x,
+                                  float y,
+                                  VertexBatch batch,
+                                  int characterId) {
 
         float size = 99f;
+
+        float uOffset = characterId * size;
 
         batch.addQuad(
                 x - size * 0.5f,
                 y - size * 0.5f,
                 size,
                 size,
+                uOffset,
                 0f,
-                0f,
-                99f,
-                99f,
+                uOffset + size,
+                size,
                 Color.WHITE
         );
     }

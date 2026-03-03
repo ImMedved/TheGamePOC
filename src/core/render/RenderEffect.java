@@ -18,6 +18,8 @@ public final class RenderEffect {
     public final float scaleX;
     public final float scaleY;
 
+    public final int characterId;
+
     public RenderEffect(
             long id,
             EffectType type,
@@ -27,7 +29,8 @@ public final class RenderEffect {
             float dx,
             float dy,
             float scaleX,
-            float scaleY
+            float scaleY,
+            int characterId
     ) {
         this.id = id;
         this.type = type;
@@ -38,5 +41,6 @@ public final class RenderEffect {
         this.dy = dy;
         this.scaleX = scaleX;
         this.scaleY = scaleY;
+        this.characterId = characterId;
     }
 }

@@ -52,6 +52,7 @@ public final class ProjectileMoveSystem implements GameSystem {
                         new ApplyEffectCommand(
                                 EffectFactory.createBulletHole(
                                         context.nextId(),
+                                        p.id,
                                         EffectConfigs.BULLET_HOLE,
                                         newX,
                                         newY

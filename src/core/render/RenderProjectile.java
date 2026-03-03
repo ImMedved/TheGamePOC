@@ -11,13 +11,16 @@ public final class RenderProjectile {
     public final float currX;
     public final float currY;
 
+    public final int ownerCharacterId;
+
     public RenderProjectile(
             long id,
             int projectileTypeId,
             float prevX,
             float prevY,
             float currX,
-            float currY
+            float currY,
+            int ownerCharacterId
     ) {
         this.id = id;
         this.projectileTypeId = projectileTypeId;
@@ -25,5 +28,6 @@ public final class RenderProjectile {
         this.prevY = prevY;
         this.currX = currX;
         this.currY = currY;
+        this.ownerCharacterId = ownerCharacterId;
     }
 }
