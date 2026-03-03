@@ -31,6 +31,23 @@ public final class EffectFactory {
         return effect;
     }
 
+    public static EffectData createSpeedEffect(
+            long id,
+            long targetId
+    ) {
+        EffectData e = new EffectData(id);
+
+        e.type = EffectType.SPEED_AURA;
+        e.category = EffectCategory.VISUAL;
+
+        e.targetId = targetId;
+
+        e.duration = 2f;
+        e.elapsed = 0f;
+
+        return e;
+    }
+
     public static EffectData createDashEffect(
             long id,
             float startX,

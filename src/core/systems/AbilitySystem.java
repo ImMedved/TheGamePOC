@@ -90,6 +90,12 @@ public final class AbilitySystem implements GameSystem {
                 2f,
                 2f
         ));
+        context.addCommand(new ApplyEffectCommand(
+                EffectFactory.createSpeedEffect(
+                        context.nextId(),
+                        player.id
+                )
+        ));
         //System.out.println("Updated multiplier: " + player.speedMultiplier);
 
     }

@@ -78,7 +78,7 @@ public final class EffectRenderer {
 
                 case SPEED_AURA -> {
                     VertexBatch batch = batchManager.getBatch(speedMaterial);
-                    renderSpeed(e, screenX, screenY, batch);
+                    renderSpeed(e, camera, batch);
                 }
 
                 case BULLET_HOLE -> {
@@ -156,24 +156,59 @@ public final class EffectRenderer {
     }
 
     private void renderSpeed(RenderEffect e,
-                             float centerX,
-                             float centerY,
+                             Camera camera,
                              VertexBatch batch) {
 
-        float size = 64f;
-        float offsetY = -100f;
+        float worldX = e.x;
+        float worldY = e.y;
 
-        batch.addQuad(
-                centerX - size * 0.5f,
-                centerY + offsetY,
-                size,
-                size,
-                0f,
-                0f,
-                speedTexture.getSize().x,
-                speedTexture.getSize().y,
-                Color.WHITE
-        );
+        float offsetY = -70f;
+
+        float screenX = camera.worldToScreenX(worldX);
+        float screenY = camera.worldToScreenY(worldY + offsetY);
+
+        float size = 48f;
+
+        float half = size * 0.5f;
+
+        float time = e.progress;
+
+        float pulse = 1f + 0.1f * (float)Math.sin(time * 10f);
+
+        float scaled = size * pulse;
+        float h = scaled * 0.5f;
+
+        float x0 = screenX - h;
+        float y0 = screenY - h;
+
+        float texW = speedTexture.getSize().x;
+        float texH = speedTexture.getSize().y;
+
+        int alpha = 255;
+
+        batch.getVertexArray().add(new Vertex(
+                new Vector2f(x0, y0),
+                new Color(255,255,255,alpha),
+                new Vector2f(0, 0)
+        ));
+
+        batch.getVertexArray().add(new Vertex(
+                new Vector2f(x0 + scaled, y0),
+                new Color(255,255,255,alpha),
+                new Vector2f(texW, 0)
+        ));
+
+        batch.getVertexArray().add(new Vertex(
+                new Vector2f(x0 + scaled, y0 + scaled),
+                new Color(255,255,255,alpha),
+                new Vector2f(texW, texH)
+        ));
+
+        batch.getVertexArray().add(new Vertex(
+                new Vector2f(x0, y0 + scaled),
+                new Color(255,255,255,alpha),
+                new Vector2f(0, texH)
+        ));
     }
 
     private void renderBulletHole(float x, float y, VertexBatch batch) {

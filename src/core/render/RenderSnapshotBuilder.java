@@ -91,18 +91,33 @@ public final class RenderSnapshotBuilder {
         return list;
     }
 
-    private List<RenderEffect> buildEffects(
-            WorldState curr
-    ) {
+    private List<RenderEffect> buildEffects(WorldState curr) {
+
         List<RenderEffect> list = new ArrayList<>();
+
         for (EffectData effect : curr.effects) {
-            float progress = effect.duration > 0f ? effect.elapsed / effect.duration : 1f;
+
+            float progress =
+                    effect.duration > 0f
+                            ? effect.elapsed / effect.duration
+                            : 1f;
+
+            float x = effect.position.x;
+            float y = effect.position.y;
+
+            if (effect.targetId != 0) {
+                PlayerState target = curr.players.get(effect.targetId);
+                if (target != null) {
+                    x = target.position.x;
+                    y = target.position.y;
+                }
+            }
 
             list.add(new RenderEffect(
                     effect.id,
                     effect.type,
-                    effect.position.x,
-                    effect.position.y,
+                    x,
+                    y,
                     progress,
                     effect.dx,
                     effect.dy,
@@ -110,6 +125,7 @@ public final class RenderSnapshotBuilder {
                     effect.scaleY
             ));
         }
+
         return list;
     }
 }
