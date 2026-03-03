@@ -84,6 +84,9 @@ public final class RenderEngine {
     }
 
     private void startGame() {
+        int selected = menuRenderer.getSelectedCharacterId();
+        core.setSelectedCharacter(selected);
+
         core.start();
         mode = AppMode.GAME;
     }

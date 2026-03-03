@@ -48,6 +48,18 @@ public class Main {
         LevelState level = LevelLoader.loadFromAscii(Path.of("assets/levels/test.txt"));
         world.level = level;
 
+        CharacterDefinition c1 = new CharacterDefinition(1);
+        c1.baseSpeed = 250f;
+        c1.baseHealth = 100f;
+        c1.baseHitboxRadius = 20f;
+        characterRegistry.register(c1);
+
+        CharacterDefinition c2 = new CharacterDefinition(2);
+        c2.baseSpeed = 250f;
+        c2.baseHealth = 100f;
+        c2.baseHitboxRadius = 20f;
+        characterRegistry.register(c2);
+
         PlayerState player = new PlayerState(1);
         player.characterId = 0;
         player.health = 100f;

@@ -37,6 +37,12 @@ public final class CoreEngine {
     private final java.util.concurrent.atomic.AtomicReference<RenderSnapshot>
             renderSnapshotRef = new java.util.concurrent.atomic.AtomicReference<>();
 
+    private volatile Integer pendingCharacterId = null;
+
+    public void setSelectedCharacter(int characterId) {
+        this.pendingCharacterId = characterId;
+    }
+
     public CoreEngine(InputModule input,
                       WorldState initial,
                       List<GameSystem> gameSystems,
@@ -86,6 +92,15 @@ public final class CoreEngine {
     }
 
     private void tick() {
+
+        if (pendingCharacterId != null) {
+
+            for (var player : currentWorld.players.values()) {
+                player.characterId = pendingCharacterId;
+            }
+
+            pendingCharacterId = null;
+        }
 
         input.publishSnapshot((int) currentWorld.tickIndex);
         InputSnapshot inputSnapshot = input.getLatestSnapshot();
