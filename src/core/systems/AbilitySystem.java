@@ -33,7 +33,8 @@ public final class AbilitySystem implements GameSystem {
     }
 
     private void castTripleShot(SimulationContext context, PlayerState player) {
-
+        if (player.tripleShotCooldownRemaining > 0f)
+            return;
         CameraState cam = context.snapshot().camera;
 
         float worldMouseX = context.input().mouseX - cam.viewportWidth * 0.5f + cam.x;
@@ -63,6 +64,8 @@ public final class AbilitySystem implements GameSystem {
 
         spawnProjectile(context, player, dx1, dy1);
         spawnProjectile(context, player, dx2, dy2);
+        player.tripleShotCooldownRemaining =
+                PlayerState.TRIPLE_SHOT_COOLDOWN;
     }
 
     private void spawnProjectile(SimulationContext context,
@@ -85,6 +88,8 @@ public final class AbilitySystem implements GameSystem {
 
     private void castSpeedBoost(SimulationContext context, PlayerState player) {
         //System.out.println("Current multiplier: " + player.speedMultiplier);
+        if (player.speedCooldownRemaining > 0f)
+            return;
         context.addCommand(new ApplySpeedBoostCommand(
                 player.id,
                 2f,
@@ -97,12 +102,15 @@ public final class AbilitySystem implements GameSystem {
                         player.id
                 )
         ));
+        player.speedCooldownRemaining =
+                PlayerState.SPEED_COOLDOWN;
         //System.out.println("Updated multiplier: " + player.speedMultiplier);
 
     }
 
     private void castTeleport(SimulationContext context, PlayerState player) {
-
+        if (player.blinkCooldownRemaining > 0f)
+            return;
         CameraState cam = context.snapshot().camera;
 
         float worldMouseX =
@@ -159,5 +167,7 @@ public final class AbilitySystem implements GameSystem {
                 targetX,
                 targetY
         ));
+        player.blinkCooldownRemaining =
+                PlayerState.BLINK_COOLDOWN;
     }
 }

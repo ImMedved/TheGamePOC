@@ -28,6 +28,17 @@ public final class PlayerState {
     public Map<String, Object> attributes;
     public Set<String> tags;
 
+    public float shootCooldownRemaining;
+
+    public float tripleShotCooldownRemaining;
+    public float speedCooldownRemaining;
+    public float blinkCooldownRemaining;
+
+    public static final float SHOOT_COOLDOWN = 1f;
+    public static final float TRIPLE_SHOT_COOLDOWN = 3f;
+    public static final float SPEED_COOLDOWN = 5f;
+    public static final float BLINK_COOLDOWN = 7f;
+
     public PlayerState(long id) {
         this.id = id;
         this.position = new Vector2();
@@ -57,6 +68,12 @@ public final class PlayerState {
 
         copy.attributes = new HashMap<>(this.attributes);
         copy.tags = new HashSet<>(this.tags);
+
+        copy.shootCooldownRemaining = this.shootCooldownRemaining;
+
+        copy.tripleShotCooldownRemaining = this.tripleShotCooldownRemaining;
+        copy.speedCooldownRemaining = this.speedCooldownRemaining;
+        copy.blinkCooldownRemaining = this.blinkCooldownRemaining;
 
         return copy;
     }

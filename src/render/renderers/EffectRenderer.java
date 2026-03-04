@@ -193,7 +193,7 @@ public final class EffectRenderer {
 
         float tileSize = 53f;
         float uOffset = e.characterId * tileSize;
-        System.out.println(e.characterId);
+        //System.out.println(e.characterId);
 
         batch.getVertexArray().add(new Vertex(new Vector2f(x0, y0),
                 new Color(255,255,255,alpha), new Vector2f(uOffset, 0)));

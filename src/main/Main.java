@@ -86,7 +86,8 @@ public class Main {
                 new AbilitySystem(),
                 new EffectTickSystem(effectRegistry),
                 new CollisionSystem(),
-                new CameraSystem()
+                new CameraSystem(),
+                new CooldownSystem()
         );
 
         // --- Core Engine ---

@@ -27,7 +27,8 @@ public final class ProjectileSpawnSystem implements GameSystem {
             return;
 
         for (PlayerState player : context.snapshot().players.values()) {
-
+            if (player.shootCooldownRemaining > 0f)
+                return;
             if (!player.alive) continue;
 
             int projectileType = 0;
@@ -68,6 +69,7 @@ public final class ProjectileSpawnSystem implements GameSystem {
                             vy
                     )
             );
+            player.shootCooldownRemaining = PlayerState.SHOOT_COOLDOWN;
         }
     }
 }

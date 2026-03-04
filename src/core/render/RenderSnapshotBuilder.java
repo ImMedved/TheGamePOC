@@ -54,7 +54,11 @@ public final class RenderSnapshotBuilder {
                     prevY,
                     currPlayer.position.x,
                     currPlayer.position.y,
-                    currPlayer.rotation
+                    currPlayer.rotation,
+                    currPlayer.shootCooldownRemaining,
+                    currPlayer.tripleShotCooldownRemaining,
+                    currPlayer.speedCooldownRemaining,
+                    currPlayer.blinkCooldownRemaining
                     )
             );
         }

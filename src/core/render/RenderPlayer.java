@@ -13,6 +13,11 @@ public final class RenderPlayer {
 
     public final float rotation;
 
+    public final float shootCooldown;
+    public final float tripleShotCooldown;
+    public final float speedCooldown;
+    public final float blinkCooldown;
+
     public RenderPlayer(
             long id,
             int characterId,
@@ -20,7 +25,11 @@ public final class RenderPlayer {
             float prevY,
             float currX,
             float currY,
-            float rotation
+            float rotation,
+            float shootCooldown,
+            float tripleShotCooldown,
+            float speedCooldown,
+            float blinkCooldown
     ) {
         this.id = id;
         this.characterId = characterId;
@@ -29,5 +38,9 @@ public final class RenderPlayer {
         this.currX = currX;
         this.currY = currY;
         this.rotation = rotation;
+        this.shootCooldown = shootCooldown;
+        this.tripleShotCooldown = tripleShotCooldown;
+        this.speedCooldown = speedCooldown;
+        this.blinkCooldown = blinkCooldown;
     }
 }
