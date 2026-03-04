@@ -18,6 +18,9 @@ public final class RenderPlayer {
     public final float speedCooldown;
     public final float blinkCooldown;
 
+    public final float health;
+    public final float maxHealth;
+
     public RenderPlayer(
             long id,
             int characterId,
@@ -29,7 +32,9 @@ public final class RenderPlayer {
             float shootCooldown,
             float tripleShotCooldown,
             float speedCooldown,
-            float blinkCooldown
+            float blinkCooldown,
+            float health,
+            float maxHealth
     ) {
         this.id = id;
         this.characterId = characterId;
@@ -42,5 +47,7 @@ public final class RenderPlayer {
         this.tripleShotCooldown = tripleShotCooldown;
         this.speedCooldown = speedCooldown;
         this.blinkCooldown = blinkCooldown;
+        this.health = health;
+        this.maxHealth = maxHealth;
     }
 }

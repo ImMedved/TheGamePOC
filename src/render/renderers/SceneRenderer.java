@@ -25,6 +25,7 @@ public final class SceneRenderer {
     private PlayerRenderer playerRenderer;
     private ProjectileRenderer projectileRenderer;
     private EffectRenderer effectRenderer;
+    private HudRenderer hudRenderer;
 
     private boolean levelInitialized = false;
 
@@ -34,11 +35,10 @@ public final class SceneRenderer {
     }
 
     public void init() {
-
         window = new RenderWindow(
                 new VideoMode(1920, 1080),
                 "Game",
-                WindowStyle.DEFAULT
+                WindowStyle.FULLSCREEN
         );
 
         window.setFramerateLimit(0);
@@ -50,6 +50,7 @@ public final class SceneRenderer {
         playerRenderer = new PlayerRenderer(resources);
         projectileRenderer = new ProjectileRenderer(resources);
         effectRenderer = new EffectRenderer(resources);
+        hudRenderer = new HudRenderer(resources);
 
         playerRenderer.init();
         projectileRenderer.init();
@@ -59,7 +60,7 @@ public final class SceneRenderer {
     public void render(RenderSnapshot snapshot, float alpha) {
 
         window.clear(Color.BLACK);
-
+        //window.setMouseCursorVisible(false);
         if (snapshot == null) {
             window.display();
             return;
@@ -93,6 +94,7 @@ public final class SceneRenderer {
             window.draw(entry.getValue().getVertexArray(), entry.getKey().getStates());
         }
         //System.out.println("batchManager size: " + batchManager.getAll().size());
+        hudRenderer.render(window, snapshot.players);
         window.display();
     }
 

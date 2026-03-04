@@ -58,7 +58,9 @@ public final class RenderSnapshotBuilder {
                     currPlayer.shootCooldownRemaining,
                     currPlayer.tripleShotCooldownRemaining,
                     currPlayer.speedCooldownRemaining,
-                    currPlayer.blinkCooldownRemaining
+                    currPlayer.blinkCooldownRemaining,
+                    currPlayer.health,
+                    currPlayer.maxHealth
                     )
             );
         }
