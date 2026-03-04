@@ -3,6 +3,7 @@ package render;
 import core.CoreEngine;
 import core.render.RenderSnapshot;
 import input.InputModule;
+import network.adapter.NetworkAdapter;
 import org.jsfml.window.event.Event;
 import render.renderers.MenuRenderer;
 import render.renderers.SceneRenderer;
@@ -29,13 +30,16 @@ public final class RenderEngine {
 
     private long previousTime;
     private double accumulator = 0.0;
+    private NetworkAdapter networkAdapter;
 
     public RenderEngine(CoreEngine core,
                         ResourceManager resourceManager,
-                        InputModule inputModule) {
+                        InputModule inputModule,
+                        NetworkAdapter networkAdapter) {
         this.core = core;
         this.resourceManager = resourceManager;
         this.inputModule = inputModule;
+        this.networkAdapter = networkAdapter;
     }
 
     public void start() {
@@ -92,7 +96,7 @@ public final class RenderEngine {
     }
 
     private void renderFrame(float alpha) {
-
+        networkAdapter.update();
         var window = sceneRenderer.getWindow();
 
         for (Event event : window.pollEvents()) {

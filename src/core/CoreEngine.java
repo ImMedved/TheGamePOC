@@ -182,6 +182,12 @@ public final class CoreEngine {
         previousWorld = nextWorld;
         currentWorld = nextWorld;
     }
+    public void forceTick() {
+        tick();
+    }
+    public WorldState getCurrentWorld() {
+        return currentWorld;
+    }
 
     public RenderSnapshot getRenderSnapshot() {
         return renderSnapshotRef.get();
