@@ -14,22 +14,12 @@ public final class LockstepSynchronizer {
 
     private final Map<Integer, Map<NodeId, byte[]>> inputs = new HashMap<>();
 
-    private final BiConsumer<Integer, Map<NodeId, byte[]>> tickReadyHandler;
-
-    public LockstepSynchronizer(
-            NodeId localNodeId,
-            BiConsumer<Integer, Map<NodeId, byte[]>> tickReadyHandler
-    ) {
-
+    public LockstepSynchronizer(NodeId localNodeId) {
         this.localNodeId = localNodeId;
-        this.tickReadyHandler = tickReadyHandler;
     }
 
-    public synchronized void submitLocalInput(byte[] input) {
-
-        storeInput(localNodeId, currentTick, input);
-
-        tryAdvanceTick();
+    public synchronized void submitLocalInput(int tick, byte[] input) {
+        storeInput(localNodeId, tick, input);
     }
 
     public synchronized void receiveRemoteInput(
@@ -37,10 +27,7 @@ public final class LockstepSynchronizer {
             int tick,
             byte[] input
     ) {
-
         storeInput(peerId, tick, input);
-
-        tryAdvanceTick();
     }
 
     private void storeInput(
@@ -49,34 +36,23 @@ public final class LockstepSynchronizer {
             byte[] input
     ) {
 
-        Map<NodeId, byte[]> tickInputs =
-                inputs.computeIfAbsent(tick, k -> new HashMap<>());
+        Map<NodeId, byte[]> tickInputs = inputs.computeIfAbsent(tick, k -> new HashMap<>());
 
         tickInputs.put(nodeId, input);
     }
 
-    private void tryAdvanceTick() {
+    public synchronized Map<NodeId, byte[]> tryGetInputs(int tick) {
 
-        while (true) {
+        Map<NodeId, byte[]> tickInputs = inputs.get(tick);
 
-            Map<NodeId, byte[]> tickInputs =
-                    inputs.get(currentTick);
+        if (tickInputs == null)
+            return null;
 
-            if (tickInputs == null)
-                return;
+        if (tickInputs.size() < 2)
+            return null;
 
-            if (tickInputs.size() < 2)
-                return;
+        inputs.remove(tick);
 
-            tickReadyHandler.accept(currentTick, tickInputs);
-
-            inputs.remove(currentTick);
-
-            currentTick++;
-        }
-    }
-
-    public int currentTick() {
-        return currentTick;
+        return tickInputs;
     }
 }

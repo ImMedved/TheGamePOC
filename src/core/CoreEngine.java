@@ -20,7 +20,6 @@ public final class CoreEngine {
     private static final float DT = 1f / TICK_RATE;
 
     private final ExecutorService executor;
-    private final InputModule input;
 
     private final List<GameSystem> gameSystems;
 
@@ -34,8 +33,8 @@ public final class CoreEngine {
 
     private final RenderSnapshotBuilder snapshotBuilder = new RenderSnapshotBuilder();
 
-    private final java.util.concurrent.atomic.AtomicReference<RenderSnapshot>
-            renderSnapshotRef = new java.util.concurrent.atomic.AtomicReference<>();
+    private final java.util.concurrent.atomic.AtomicReference<RenderSnapshot> renderSnapshotRef =
+            new java.util.concurrent.atomic.AtomicReference<>();
 
     private volatile Integer pendingCharacterId = null;
 
@@ -43,12 +42,10 @@ public final class CoreEngine {
         this.pendingCharacterId = characterId;
     }
 
-    public CoreEngine(InputModule input,
-                      WorldState initial,
+    public CoreEngine(WorldState initial,
                       List<GameSystem> gameSystems,
                       ProjectileRegistry projectileRegistry) {
 
-        this.input = input;
         this.previousWorld = initial;
         this.currentWorld = initial;
         this.gameSystems = gameSystems;
@@ -61,9 +58,11 @@ public final class CoreEngine {
         this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
-    public void start() {
+    public void start(java.util.function.Supplier<InputSnapshot> inputSupplier) {
+
         running = true;
-        new Thread(this::runLoop, "CoreLoop").start();
+
+        new Thread(() -> runLoop(inputSupplier), "CoreLoop").start();
     }
 
     public void stop() {
@@ -71,7 +70,7 @@ public final class CoreEngine {
         executor.shutdown();
     }
 
-    private void runLoop() {
+    private void runLoop(java.util.function.Supplier<InputSnapshot> inputSupplier) {
 
         long previous = java.lang.System.nanoTime();
         double lag = 0.0;
@@ -85,13 +84,18 @@ public final class CoreEngine {
             lag += elapsed;
 
             while (lag >= DT) {
-                tick();
+
+                InputSnapshot inputSnapshot =
+                        inputSupplier.get();
+
+                tick(inputSnapshot);
+
                 lag -= DT;
             }
         }
     }
 
-    private void tick() {
+    private void tick(InputSnapshot inputSnapshot) {
 
         if (pendingCharacterId != null) {
 
@@ -101,9 +105,6 @@ public final class CoreEngine {
 
             pendingCharacterId = null;
         }
-
-        input.publishSnapshot((int) currentWorld.tickIndex);
-        InputSnapshot inputSnapshot = input.getLatestSnapshot();
 
         WorldState snapshot = currentWorld;
 
@@ -174,19 +175,11 @@ public final class CoreEngine {
 
         WorldState nextWorld = processor.apply(snapshot, all);
 
-        // ---- snapshot integration ----
-
         RenderSnapshot snapshotRender = snapshotBuilder.build(previousWorld, nextWorld);
         renderSnapshotRef.set(snapshotRender);
 
         previousWorld = nextWorld;
         currentWorld = nextWorld;
-    }
-    public void forceTick() {
-        tick();
-    }
-    public WorldState getCurrentWorld() {
-        return currentWorld;
     }
 
     public RenderSnapshot getRenderSnapshot() {

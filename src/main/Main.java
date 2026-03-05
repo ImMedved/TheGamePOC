@@ -10,10 +10,6 @@ import core.systems.*;
 import input.InputModule;
 import render.RenderEngine;
 import render.resources.ResourceManager;
-import network.adapter.NetworkAdapter;
-import network.bootstrap.NetworkBootstrap;
-import network.config.NetworkConfig;
-import network.node.NetworkNode;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -97,36 +93,16 @@ public class Main {
         // --- Core Engine ---
 
         CoreEngine core = new CoreEngine(
-                inputModule,
                 world,
                 gameSystems,
                 projectileRegistry
         );
-
-        //Сеть
-
-        NetworkConfig config =
-                new NetworkConfig(
-                        true,
-                        "127.0.0.1",
-                        7777,
-                        7777
-                );
-
-        NetworkNode node = NetworkBootstrap.start(config);
-
-        NetworkAdapter adapter = new NetworkAdapter(
-                        node,
-                        core,
-                        inputModule
-                );
-
         // core.start();
 
         Path assetsRoot = Path.of("assets");
         ResourceManager resourceManager = new ResourceManager(assetsRoot);
 
-        RenderEngine render = new RenderEngine(core, resourceManager, inputModule, adapter);
+        RenderEngine render = new RenderEngine(core, resourceManager, inputModule);
         render.start();
     }
 }

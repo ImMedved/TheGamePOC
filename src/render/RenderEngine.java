@@ -3,7 +3,7 @@ package render;
 import core.CoreEngine;
 import core.render.RenderSnapshot;
 import input.InputModule;
-import network.adapter.NetworkAdapter;
+import input.InputSnapshot;
 import org.jsfml.window.event.Event;
 import render.renderers.MenuRenderer;
 import render.renderers.SceneRenderer;
@@ -30,16 +30,13 @@ public final class RenderEngine {
 
     private long previousTime;
     private double accumulator = 0.0;
-    private NetworkAdapter networkAdapter;
 
     public RenderEngine(CoreEngine core,
                         ResourceManager resourceManager,
-                        InputModule inputModule,
-                        NetworkAdapter networkAdapter) {
+                        InputModule inputModule) {
         this.core = core;
         this.resourceManager = resourceManager;
         this.inputModule = inputModule;
-        this.networkAdapter = networkAdapter;
     }
 
     public void start() {
@@ -88,15 +85,31 @@ public final class RenderEngine {
     }
 
     private void startGame() {
+
         int selected = menuRenderer.getSelectedCharacterId();
         core.setSelectedCharacter(selected);
 
-        core.start();
+        core.start(new java.util.function.Supplier<>() {
+
+            private int tick = 0;
+
+            @Override
+            public InputSnapshot get() {
+
+                inputModule.publishSnapshot(tick);
+
+                InputSnapshot snapshot = inputModule.getLatestSnapshot();
+
+                tick++;
+
+                return snapshot;
+            }
+        });
+
         mode = AppMode.GAME;
     }
 
     private void renderFrame(float alpha) {
-        networkAdapter.update();
         var window = sceneRenderer.getWindow();
 
         for (Event event : window.pollEvents()) {

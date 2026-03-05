@@ -32,7 +32,6 @@ public final class NetworkNode {
 
     private int sequenceCounter = 0;
 
-    private BiConsumer<Integer, Map<NodeId, byte[]>> tickCallback;
 
     public NetworkNode(
             NodeId localNodeId,
@@ -46,23 +45,13 @@ public final class NetworkNode {
         this.crypto = crypto;
         this.privateKey = privateKey;
 
-        this.lockstep =
-                new LockstepSynchronizer(
-                        localNodeId,
-                        this::onTickReady
-                );
+        this.lockstep = new LockstepSynchronizer(localNodeId);
 
         this.validator =
                 new StateHashValidator(
                         60,
                         this::onDesync
                 );
-    }
-
-    public void setTickCallback(
-            BiConsumer<Integer, Map<NodeId, byte[]>> callback
-    ) {
-        this.tickCallback = callback;
     }
 
     public void addPeer(
@@ -115,11 +104,9 @@ public final class NetworkNode {
         }
     }
 
-    public void submitLocalInput(byte[] input) {
+    public void submitLocalInput(int tick, byte[] input) {
 
-        int tick = lockstep.currentTick();
-
-        lockstep.submitLocalInput(input);
+        lockstep.submitLocalInput(tick, input);
 
         NetworkPacket packet =
                 createPacket(
@@ -129,6 +116,10 @@ public final class NetworkNode {
                 );
 
         broadcast(packet);
+    }
+
+    public Map<NodeId, byte[]> tryGetInputs(int tick) {
+        return lockstep.tryGetInputs(tick);
     }
 
     public void submitStateHash(int tick, byte[] hash) {
@@ -169,16 +160,6 @@ public final class NetworkNode {
         for (PeerSession session : sessions.values()) {
 
             session.sendPacket(packet);
-        }
-    }
-
-    private void onTickReady(
-            Integer tick,
-            Map<NodeId, byte[]> inputs
-    ) {
-
-        if (tickCallback != null) {
-            tickCallback.accept(tick, inputs);
         }
     }
 
