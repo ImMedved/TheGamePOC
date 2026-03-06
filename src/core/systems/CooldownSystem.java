@@ -2,6 +2,7 @@ package core.systems;
 
 import core.SimulationContext;
 import core.states.PlayerState;
+import input.InputSnapshot;
 
 public final class CooldownSystem implements GameSystem {
 
@@ -14,6 +15,7 @@ public final class CooldownSystem implements GameSystem {
     public void update(SimulationContext context) {
 
         for (PlayerState p : context.snapshot().players.values()) {
+                InputSnapshot input = context.input(p.id);
 
             float dt = context.dt();
 

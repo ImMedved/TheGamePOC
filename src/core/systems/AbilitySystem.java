@@ -5,6 +5,7 @@ import core.commands.*;
 import core.factories.EffectFactory;
 import core.states.PlayerState;
 import core.states.CameraState;
+import input.InputSnapshot;
 
 public final class AbilitySystem implements GameSystem {
 
@@ -17,17 +18,21 @@ public final class AbilitySystem implements GameSystem {
     public void update(SimulationContext context) {
 
         if (context.snapshot().players.isEmpty()) return;
-        PlayerState player = context.snapshot().players.values().iterator().next();
+        for (PlayerState player : context.snapshot().players.values()) {
 
-        if (!player.alive) return;
-        if (context.input().key1Pressed) castTripleShot(context, player);
-        if (context.input().key2Pressed) castSpeedBoost(context, player);
-        if (context.input().key3Pressed) castTeleport(context, player);
+            InputSnapshot input = context.input(player.id);
+            if (input == null) continue;
 
-        for (PlayerState p : context.snapshot().players.values()) {
-            if (p.speedBuffRemaining > 0f) {
-                float newRemaining = p.speedBuffRemaining - context.dt();
-                context.addCommand(new UpdateSpeedBuffCommand(p.id, newRemaining));
+            if (!player.alive) return;
+            if (input.key1Pressed) castTripleShot(context, player);
+            if (input.key2Pressed) castSpeedBoost(context, player);
+            if (input.key3Pressed) castTeleport(context, player);
+
+            for (PlayerState p : context.snapshot().players.values()) {
+                if (p.speedBuffRemaining > 0f) {
+                    float newRemaining = p.speedBuffRemaining - context.dt();
+                    context.addCommand(new UpdateSpeedBuffCommand(p.id, newRemaining));
+                }
             }
         }
     }
@@ -37,8 +42,8 @@ public final class AbilitySystem implements GameSystem {
             return;
         CameraState cam = context.snapshot().camera;
 
-        float worldMouseX = context.input().mouseX - cam.viewportWidth * 0.5f + cam.x;
-        float worldMouseY = context.input().mouseY - cam.viewportHeight * 0.5f + cam.y;
+        float worldMouseX = context.input(player.id).mouseX - cam.viewportWidth * 0.5f + cam.x;
+        float worldMouseY = context.input(player.id).mouseY - cam.viewportHeight * 0.5f + cam.y;
 
         float dx = worldMouseX - player.position.x;
         float dy = worldMouseY - player.position.y;
@@ -114,12 +119,12 @@ public final class AbilitySystem implements GameSystem {
         CameraState cam = context.snapshot().camera;
 
         float worldMouseX =
-                context.input().mouseX
+                context.input(player.id).mouseX
                         - cam.viewportWidth * 0.5f
                         + cam.x;
 
         float worldMouseY =
-                context.input().mouseY
+                context.input(player.id).mouseY
                         - cam.viewportHeight * 0.5f
                         + cam.y;
 

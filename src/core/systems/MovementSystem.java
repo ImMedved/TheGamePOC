@@ -5,6 +5,7 @@ import core.commands.MovePlayerCommand;
 import core.registries.CharacterDefinition;
 import core.registries.CharacterRegistry;
 import core.states.PlayerState;
+import input.InputSnapshot;
 
 public final class MovementSystem implements GameSystem {
 
@@ -23,6 +24,10 @@ public final class MovementSystem implements GameSystem {
     public void update(SimulationContext context) {
 
         for (PlayerState player : context.snapshot().players.values()) {
+            InputSnapshot input = context.input(player.id);
+
+            if (input == null)
+                continue;
 
             if (!player.alive) continue;
 
@@ -31,8 +36,8 @@ public final class MovementSystem implements GameSystem {
             float speed = def.baseSpeed * player.speedMultiplier;
             // System.out.println("speedMultiplier in MovementSystem: " + player.speedMultiplier);
 
-            float dx = context.input().moveX * speed * context.dt();
-            float dy = context.input().moveY * speed * context.dt();
+            float dx = context.input(player.id).moveX * speed * context.dt();
+            float dy = context.input(player.id).moveY * speed * context.dt();
 
             float newX = player.position.x + dx;
             float newY = player.position.y + dy;

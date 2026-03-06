@@ -6,6 +6,7 @@ import core.registries.ProjectileDefinition;
 import core.registries.ProjectileRegistry;
 import core.states.CameraState;
 import core.states.PlayerState;
+import input.InputSnapshot;
 
 public final class ProjectileSpawnSystem implements GameSystem {
 
@@ -23,10 +24,17 @@ public final class ProjectileSpawnSystem implements GameSystem {
     @Override
     public void update(SimulationContext context) {
 
-        if (!context.input().shoot)
-            return;
-
         for (PlayerState player : context.snapshot().players.values()) {
+
+            InputSnapshot input = context.input(player.id);
+            if (input == null) continue;
+
+            if (!input.shoot)
+                continue;
+
+            if (player.id != input.ownerId)
+                continue;
+
             if (player.shootCooldownRemaining > 0f)
                 return;
             if (!player.alive) continue;
@@ -38,12 +46,12 @@ public final class ProjectileSpawnSystem implements GameSystem {
             CameraState cam = context.snapshot().camera;
 
             float worldMouseX =
-                    context.input().mouseX
+                    context.input(player.id).mouseX
                             - cam.viewportWidth * 0.5f
                             + cam.x;
 
             float worldMouseY =
-                    context.input().mouseY
+                    context.input(player.id).mouseY
                             - cam.viewportHeight * 0.5f
                             + cam.y;
 

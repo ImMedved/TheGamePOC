@@ -2,6 +2,7 @@ package core;
 
 import core.commands.Command;
 import core.states.WorldState;
+import input.InputFrame;
 import input.InputSnapshot;
 
 import java.util.List;
@@ -10,20 +11,20 @@ import java.util.function.LongSupplier;
 public final class SimulationContext {
 
     private final WorldState snapshot;
-    private final InputSnapshot input;
+    private final InputFrame inputFrame;
     private final float dt;
     private final LongSupplier idSupplier;
     private final List<Command> localCommands;
 
     public SimulationContext(
             WorldState snapshot,
-            InputSnapshot input,
+            InputFrame inputFrame,
             float dt,
             LongSupplier idSupplier,
             List<Command> localCommands
     ) {
         this.snapshot = snapshot;
-        this.input = input;
+        this.inputFrame = inputFrame;
         this.dt = dt;
         this.idSupplier = idSupplier;
         this.localCommands = localCommands;
@@ -33,8 +34,8 @@ public final class SimulationContext {
         return snapshot;
     }
 
-    public InputSnapshot input() {
-        return input;
+    public InputSnapshot input(long playerId) {
+        return inputFrame.get(playerId);
     }
 
     public float dt() {

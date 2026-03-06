@@ -7,6 +7,7 @@ import core.render.RenderSnapshotBuilder;
 import core.states.WorldState;
 import core.systems.*;
 import core.systems.GameSystem;
+import input.InputFrame;
 import input.InputModule;
 import input.InputSnapshot;
 
@@ -58,7 +59,7 @@ public final class CoreEngine {
         this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
-    public void start(java.util.function.Supplier<InputSnapshot> inputSupplier) {
+    public void start(java.util.function.Supplier<InputFrame> inputSupplier) {
 
         running = true;
 
@@ -70,7 +71,7 @@ public final class CoreEngine {
         executor.shutdown();
     }
 
-    private void runLoop(java.util.function.Supplier<InputSnapshot> inputSupplier) {
+    private void runLoop(java.util.function.Supplier<InputFrame> inputSupplier) {
 
         long previous = java.lang.System.nanoTime();
         double lag = 0.0;
@@ -85,17 +86,15 @@ public final class CoreEngine {
 
             while (lag >= DT) {
 
-                InputSnapshot inputSnapshot =
-                        inputSupplier.get();
-
-                tick(inputSnapshot);
+                InputFrame frame = inputSupplier.get();
+                tick(frame);
 
                 lag -= DT;
             }
         }
     }
 
-    private void tick(InputSnapshot inputSnapshot) {
+    private void tick(InputFrame frame) {
 
         if (pendingCharacterId != null) {
 
@@ -128,7 +127,7 @@ public final class CoreEngine {
             SimulationContext ctx =
                     new SimulationContext(
                             snapshot,
-                            inputSnapshot,
+                            frame,
                             DT,
                             idGenerator::getAndIncrement,
                             localList
@@ -159,7 +158,7 @@ public final class CoreEngine {
             SimulationContext ctx =
                     new SimulationContext(
                             provisional,
-                            inputSnapshot,
+                            frame,
                             DT,
                             idGenerator::getAndIncrement,
                             localList

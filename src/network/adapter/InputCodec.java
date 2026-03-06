@@ -14,6 +14,7 @@ public final class InputCodec {
             DataOutputStream out = new DataOutputStream(baos);
 
             out.writeInt(input.tick);
+            out.writeLong(input.ownerId);
 
             out.writeFloat(input.moveX);
             out.writeFloat(input.moveY);
@@ -44,6 +45,7 @@ public final class InputCodec {
             DataInputStream in = new DataInputStream(bais);
 
             int tick = in.readInt();
+            long ownerId = in.readLong();
 
             float moveX = in.readFloat();
             float moveY = in.readFloat();
@@ -59,6 +61,7 @@ public final class InputCodec {
 
             return new InputSnapshot(
                     tick,
+                    ownerId,
                     moveX,
                     moveY,
                     shoot,

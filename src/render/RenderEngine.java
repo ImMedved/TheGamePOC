@@ -4,6 +4,8 @@ import core.CoreEngine;
 import core.render.RenderSnapshot;
 import input.InputModule;
 import input.InputSnapshot;
+import network.node.NetworkNode;
+import network.adapter.NetworkInputProvider;
 import org.jsfml.window.event.Event;
 import render.renderers.MenuRenderer;
 import render.renderers.SceneRenderer;
@@ -19,6 +21,7 @@ public final class RenderEngine {
     private final CoreEngine core;
     private final ResourceManager resourceManager;
     private final InputModule inputModule;
+    private final NetworkNode networkNode;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private Thread renderThread;
@@ -33,10 +36,12 @@ public final class RenderEngine {
 
     public RenderEngine(CoreEngine core,
                         ResourceManager resourceManager,
-                        InputModule inputModule) {
+                        InputModule inputModule,
+                        NetworkNode networkNode) {
         this.core = core;
         this.resourceManager = resourceManager;
         this.inputModule = inputModule;
+        this.networkNode = networkNode;
     }
 
     public void start() {
@@ -89,22 +94,15 @@ public final class RenderEngine {
         int selected = menuRenderer.getSelectedCharacterId();
         core.setSelectedCharacter(selected);
 
-        core.start(new java.util.function.Supplier<>() {
+        NetworkInputProvider provider =
+                new NetworkInputProvider(
+                        networkNode,
+                        inputModule,
+                        1,
+                        2
+                );
 
-            private int tick = 0;
-
-            @Override
-            public InputSnapshot get() {
-
-                inputModule.publishSnapshot(tick);
-
-                InputSnapshot snapshot = inputModule.getLatestSnapshot();
-
-                tick++;
-
-                return snapshot;
-            }
-        });
+        core.start(provider);
 
         mode = AppMode.GAME;
     }

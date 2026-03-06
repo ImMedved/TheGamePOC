@@ -8,6 +8,9 @@ import core.registries.*;
 import core.states.*;
 import core.systems.*;
 import input.InputModule;
+import network.bootstrap.NetworkBootstrap;
+import network.config.NetworkConfig;
+import network.node.NetworkNode;
 import render.RenderEngine;
 import render.resources.ResourceManager;
 
@@ -37,7 +40,7 @@ public class Main {
 
         characterRegistry.register(defaultCharacter);
 
-        // --- Register default projectile ---
+        // --- Register projectiles ---
 
         ProjectileConfigs.registerAll(projectileRegistry);
 
@@ -60,22 +63,37 @@ public class Main {
         c2.baseHitboxRadius = 20f;
         characterRegistry.register(c2);
 
-        PlayerState player = new PlayerState(1);
-        player.characterId = 0;
-        player.health = 100f;
-        player.maxHealth = 100f;
-        player.hitboxRadius = 20f;
-
         float levelPixelWidth = level.width * 100f;
         float levelPixelHeight = level.height * 100f;
 
-        float startX = levelPixelWidth * 0.5f;
-        float startY = levelPixelHeight * 0.5f;
+        float startX = levelPixelWidth * 0.5f + 500;
+        float startY = levelPixelHeight * 0.5f + 500;
 
-        player.position.set(startX, startY);
-        player.previousPosition.set(startX, startY);
+        // --- Player 1 ---
 
-        world.players.put(player.id, player);
+        PlayerState player1 = new PlayerState(1);
+        player1.characterId = 0;
+        player1.health = 100f;
+        player1.maxHealth = 100f;
+        player1.hitboxRadius = 20f;
+
+        player1.position.set(startX, startY);
+        player1.previousPosition.set(startX, startY);
+
+        world.players.put(player1.id, player1);
+
+        // --- Player 2 ---
+
+        PlayerState player2 = new PlayerState(2);
+        player2.characterId = 0;
+        player2.health = 100f;
+        player2.maxHealth = 100f;
+        player2.hitboxRadius = 20f;
+
+        player2.position.set(startX + 100, startY);
+        player2.previousPosition.set(startX + 100, startY);
+
+        world.players.put(player2.id, player2);
 
         // --- Systems ---
 
@@ -97,12 +115,28 @@ public class Main {
                 gameSystems,
                 projectileRegistry
         );
-        // core.start();
+
+        // --- Network ---
+
+        NetworkConfig config =
+                new NetworkConfig(
+                        true,          // host
+                        "127.0.0.1",   // peer ip
+                        7777,          // local port
+                        7777           // peer port
+                );
+
+        NetworkNode networkNode =
+                NetworkBootstrap.start(config);
+
+        // --- Render ---
 
         Path assetsRoot = Path.of("assets");
         ResourceManager resourceManager = new ResourceManager(assetsRoot);
 
-        RenderEngine render = new RenderEngine(core, resourceManager, inputModule);
+        RenderEngine render =
+                new RenderEngine(core, resourceManager, inputModule, networkNode);
+
         render.start();
     }
 }

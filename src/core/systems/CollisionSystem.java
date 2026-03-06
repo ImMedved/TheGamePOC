@@ -8,6 +8,7 @@ import core.states.LevelState;
 import core.states.PlayerState;
 import core.states.ProjectileState;
 import core.level.TileCollisionFlags;
+import input.InputSnapshot;
 
 public final class CollisionSystem implements GameSystem {
 
@@ -26,6 +27,8 @@ public final class CollisionSystem implements GameSystem {
         // ---- Player - Level ----
 
         for (PlayerState player : context.snapshot().players.values()) {
+            InputSnapshot input = context.input(player.id);
+            if (input == null) continue;
 
             if (!player.alive) continue;
 
