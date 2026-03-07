@@ -24,8 +24,12 @@ public final class PacketSerializer {
 
             byte[] signature = packet.signature();
 
-            out.writeInt(signature.length);
-            out.write(signature);
+            if (signature == null) {
+                out.writeInt(0);
+            } else {
+                out.writeInt(signature.length);
+                out.write(signature);
+            }
             out.flush();
 
             return baos.toByteArray();
@@ -51,8 +55,13 @@ public final class PacketSerializer {
             in.readFully(payload);
 
             int sigSize = in.readInt();
-            byte[] signature = new byte[sigSize];
-            in.readFully(signature);
+
+            byte[] signature = null;
+
+            if (sigSize > 0) {
+                signature = new byte[sigSize];
+                in.readFully(signature);
+            }
 
             return new NetworkPacket(
                     sender,

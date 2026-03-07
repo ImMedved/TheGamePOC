@@ -59,7 +59,7 @@ public final class NetworkNode {
             P2PConnection connection,
             PublicKey peerKey
     ) {
-
+        System.out.println("[NET] Peer added: " + peerId);
         PeerSession session =
                 new PeerSession(
                         peerId,
@@ -77,7 +77,8 @@ public final class NetworkNode {
             NodeId peer,
             NetworkPacket packet
     ) {
-
+        System.out.println("[NET] Handling packet type=" + packet.type()
+                + " tick=" + packet.tickNumber());
         switch (packet.type()) {
 
             case INPUT -> {

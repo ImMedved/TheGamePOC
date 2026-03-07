@@ -120,7 +120,7 @@ public class Main {
         NetworkConfig config =
                 new NetworkConfig(
                         true,
-                        "127.0.0.1",
+                        "192.168.0.103",
                         7777,
                         7777,
                         localKeys.privateKey(),

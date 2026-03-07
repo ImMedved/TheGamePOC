@@ -18,6 +18,7 @@ public final class ConnectionListener {
         try {
 
             serverSocket = new ServerSocket(port);
+            System.out.println("Listener initiation");
 
         } catch (IOException e) {
             throw new RuntimeException("Listener init failed", e);

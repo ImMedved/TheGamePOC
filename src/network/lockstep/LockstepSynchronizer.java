@@ -17,6 +17,7 @@ public final class LockstepSynchronizer {
     }
 
     public synchronized void submitLocalInput(int tick, byte[] input) {
+        System.out.println("[LOCKSTEP] Local input tick=" + tick);
         storeInput(localNodeId, tick, input);
         notifyAll();
     }
@@ -26,6 +27,7 @@ public final class LockstepSynchronizer {
             int tick,
             byte[] input
     ) {
+        System.out.println("[LOCKSTEP] Remote input tick=" + tick + " from " + peerId);
         storeInput(peerId, tick, input);
         notifyAll();
     }
@@ -64,6 +66,7 @@ public final class LockstepSynchronizer {
             if (tickInputs != null && tickInputs.size() >= 2) {
 
                 inputs.remove(tick);
+                System.out.println("[LOCKSTEP] Inputs ready for tick " + tick);
                 return tickInputs;
             }
 

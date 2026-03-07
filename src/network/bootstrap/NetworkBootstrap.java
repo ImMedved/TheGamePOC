@@ -15,7 +15,7 @@ import java.security.KeyPair;
 public final class NetworkBootstrap {
 
     public static NetworkNode start(NetworkConfig config) {
-
+        System.out.println("[NET] Starting node on port " + config.port + " host=" + config.host);
         PacketSerializer serializer = new PacketSerializer();
         CryptoModule crypto = new CryptoModule();
 
@@ -32,6 +32,7 @@ public final class NetworkBootstrap {
         if (config.host) {
             ConnectionListener listener = new ConnectionListener(config.port);
             listener.start(socket -> {
+                System.out.println("[NET] Incoming connection from " + socket.getRemoteSocketAddress());
                 P2PConnection conn = new P2PConnection(socket);
                 node.addPeer(
                         new NodeId(2),
@@ -42,6 +43,7 @@ public final class NetworkBootstrap {
         } else {
             try {
                 Socket socket = new Socket(config.peerIp, config.peerPort);
+                System.out.println("[NET] Connected to peer " + socket.getRemoteSocketAddress());
                 P2PConnection conn = new P2PConnection(socket);
                 node.addPeer(
                         new NodeId(2),

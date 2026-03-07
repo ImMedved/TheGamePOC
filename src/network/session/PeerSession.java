@@ -60,7 +60,9 @@ public final class PeerSession {
             }
 
             packetHandler.accept(packet);
-
+            System.out.println("[NET] Packet received type=" + packet.type()
+                    + " tick=" + packet.tickNumber()
+                    + " seq=" + packet.sequenceNumber());
         });
     }
 
@@ -78,12 +80,14 @@ public final class PeerSession {
 
         byte[] serialized =
                 serializer.serialize(unsigned);
-
-        return crypto.verify(
+        boolean ok = crypto.verify(
                 serialized,
                 packet.signature(),
-                peerPublicKey
-        );
+                peerPublicKey);
+
+        System.out.println("[NET] Verify result=" + ok);
+
+        return ok;
     }
 
     private boolean checkSequence(NetworkPacket packet) {
@@ -94,11 +98,14 @@ public final class PeerSession {
             return false;
 
         lastReceivedSequence = seq;
-
+        System.out.println("[NET] Sequence check: last=" + lastReceivedSequence + " new=" + seq);
         return true;
     }
 
     public void sendPacket(NetworkPacket packet) {
+        System.out.println("[NET] SEND packet type=" + packet.type()
+                + " tick=" + packet.tickNumber()
+                + " seq=" + packet.sequenceNumber());
 
         byte[] data =
                 serializer.serialize(packet);

@@ -81,7 +81,7 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
             throw new IllegalStateException("писяпопа");
         frame.put(remote);
         tick++;
-
+        System.out.println("[CORE] Inputs received for tick " + tick);
         return frame;
     }
 }
