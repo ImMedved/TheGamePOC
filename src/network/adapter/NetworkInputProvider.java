@@ -60,19 +60,7 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
                 codec.encode(local)
         );
 
-        Map<NodeId, byte[]> inputs;
-
-        while (true) {
-
-            inputs = network.tryGetInputs(tick);
-
-            if (inputs != null)
-                break;
-
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignored) {}
-        }
+        Map<NodeId, byte[]> inputs = network.waitForInputs(tick);
 
         InputSnapshot remote = null;
 

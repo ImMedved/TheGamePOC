@@ -10,6 +10,8 @@ import core.systems.GameSystem;
 import input.InputFrame;
 import input.InputModule;
 import input.InputSnapshot;
+import network.adapter.WorldHasher;
+import network.node.NetworkNode;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -37,6 +39,10 @@ public final class CoreEngine {
     private final java.util.concurrent.atomic.AtomicReference<RenderSnapshot> renderSnapshotRef =
             new java.util.concurrent.atomic.AtomicReference<>();
 
+    private final WorldHasher worldHasher = new WorldHasher();
+    private final NetworkNode networkNode;
+    private static final int HASH_INTERVAL = 60;
+
     private volatile Integer pendingCharacterId = null;
 
     public void setSelectedCharacter(int characterId) {
@@ -45,12 +51,14 @@ public final class CoreEngine {
 
     public CoreEngine(WorldState initial,
                       List<GameSystem> gameSystems,
-                      ProjectileRegistry projectileRegistry) {
+                      ProjectileRegistry projectileRegistry,
+                      NetworkNode networkNode) {
 
         this.previousWorld = initial;
         this.currentWorld = initial;
         this.gameSystems = gameSystems;
         this.processor = new CommandProcessor(projectileRegistry);
+        this.networkNode = networkNode;
 
         RenderSnapshot first = snapshotBuilder.build(initial, initial);
 
@@ -173,6 +181,18 @@ public final class CoreEngine {
         all.addAll(phaseBCommands);
 
         WorldState nextWorld = processor.apply(snapshot, all);
+
+        int tickIndex = Math.toIntExact(nextWorld.tickIndex);
+
+        if (networkNode != null && tickIndex % HASH_INTERVAL == 0) {
+
+            byte[] hash = worldHasher.hash(nextWorld);
+
+            networkNode.submitStateHash(
+                    tickIndex,
+                    hash
+            );
+        }
 
         RenderSnapshot snapshotRender = snapshotBuilder.build(previousWorld, nextWorld);
         renderSnapshotRef.set(snapshotRender);

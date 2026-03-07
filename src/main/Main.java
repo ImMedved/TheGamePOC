@@ -110,14 +110,6 @@ public class Main {
                 new CooldownSystem()
         );
 
-        // --- Core Engine ---
-
-        CoreEngine core = new CoreEngine(
-                world,
-                gameSystems,
-                projectileRegistry
-        );
-
         // --- Network ---
 
         CryptoModule crypto = new CryptoModule();
@@ -136,6 +128,15 @@ public class Main {
                 );
 
         NetworkNode networkNode = NetworkBootstrap.start(config);
+
+        // --- Core Engine ---
+
+        CoreEngine core = new CoreEngine(
+                world,
+                gameSystems,
+                projectileRegistry,
+                networkNode
+        );
 
         // --- Render ---
 

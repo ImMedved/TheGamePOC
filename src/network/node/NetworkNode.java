@@ -180,4 +180,7 @@ public final class NetworkNode {
 
         System.out.println("DESYNC detected at tick: " + tick);
     }
+    public Map<NodeId, byte[]> waitForInputs(int tick) {
+        return lockstep.waitForInputs(tick);
+    }
 }

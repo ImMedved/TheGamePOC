@@ -18,6 +18,7 @@ public final class LockstepSynchronizer {
 
     public synchronized void submitLocalInput(int tick, byte[] input) {
         storeInput(localNodeId, tick, input);
+        notifyAll();
     }
 
     public synchronized void receiveRemoteInput(
@@ -26,6 +27,7 @@ public final class LockstepSynchronizer {
             byte[] input
     ) {
         storeInput(peerId, tick, input);
+        notifyAll();
     }
 
     private void storeInput(
@@ -52,5 +54,22 @@ public final class LockstepSynchronizer {
         inputs.remove(tick);
 
         return tickInputs;
+    }
+    public synchronized Map<NodeId, byte[]> waitForInputs(int tick) {
+
+        while (true) {
+
+            Map<NodeId, byte[]> tickInputs = inputs.get(tick);
+
+            if (tickInputs != null && tickInputs.size() >= 2) {
+
+                inputs.remove(tick);
+                return tickInputs;
+            }
+
+            try {
+                wait();
+            } catch (InterruptedException ignored) {}
+        }
     }
 }
