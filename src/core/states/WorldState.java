@@ -6,7 +6,7 @@ public final class WorldState {
 
     public long tickIndex;
 
-    public Map<Long, PlayerState> players;
+    public LinkedHashMap<Long, PlayerState> players;
     public List<ProjectileState> projectiles;
     public List<EffectData> effects;
     public CameraState camera;
@@ -14,7 +14,7 @@ public final class WorldState {
     public LevelState level;
 
     public WorldState() {
-        this.players = new HashMap<>();
+        this.players = new LinkedHashMap<>();
         this.projectiles = new ArrayList<>();
         this.effects = new ArrayList<>();
     }

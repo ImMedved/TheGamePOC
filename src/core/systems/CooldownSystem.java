@@ -4,6 +4,8 @@ import core.SimulationContext;
 import core.states.PlayerState;
 import input.InputSnapshot;
 
+import java.util.Comparator;
+
 public final class CooldownSystem implements GameSystem {
 
     @Override
@@ -14,7 +16,10 @@ public final class CooldownSystem implements GameSystem {
     @Override
     public void update(SimulationContext context) {
 
-        for (PlayerState p : context.snapshot().players.values()) {
+        for (PlayerState p : context.snapshot().players.values()
+                .stream()
+                .sorted(Comparator.comparingLong(p -> p.id))
+                .toList()) {
                 InputSnapshot input = context.input(p.id);
 
             float dt = context.dt();

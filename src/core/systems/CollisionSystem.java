@@ -10,6 +10,8 @@ import core.states.ProjectileState;
 import core.level.TileCollisionFlags;
 import input.InputSnapshot;
 
+import java.util.Comparator;
+
 public final class CollisionSystem implements GameSystem {
 
     @Override
@@ -26,8 +28,11 @@ public final class CollisionSystem implements GameSystem {
 
         // ---- Player - Level ----
 
-        for (PlayerState player : context.snapshot().players.values()) {
-            InputSnapshot input = context.input(player.id);
+        for (PlayerState player : context.snapshot().players.values()
+            .stream()
+            .sorted(Comparator.comparingLong(p -> p.id))
+            .toList()) {
+                    InputSnapshot input = context.input(player.id);
             if (input == null) continue;
 
             if (!player.alive) continue;
@@ -74,9 +79,12 @@ public final class CollisionSystem implements GameSystem {
 
             // Projectile - Player
 
-            for (PlayerState player : context.snapshot().players.values()) {
+            for (PlayerState player : context.snapshot().players.values()
+            .stream()
+            .sorted(Comparator.comparingLong(p -> p.id))
+            .toList()) {
 
-                if (!player.alive) continue;
+                //if (!player.alive) continue;
                 if (projectile.ownerId == player.id) continue;
 
                 float dx = projectile.position.x - player.position.x;

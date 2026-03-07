@@ -7,6 +7,8 @@ import core.registries.CharacterRegistry;
 import core.states.PlayerState;
 import input.InputSnapshot;
 
+import java.util.Comparator;
+
 public final class MovementSystem implements GameSystem {
 
     private final CharacterRegistry characterRegistry;
@@ -23,7 +25,10 @@ public final class MovementSystem implements GameSystem {
     @Override
     public void update(SimulationContext context) {
 
-        for (PlayerState player : context.snapshot().players.values()) {
+        for (PlayerState player : context.snapshot().players.values()
+                .stream()
+                .sorted(Comparator.comparingLong(p -> p.id))
+                .toList()) {
             InputSnapshot input = context.input(player.id);
 
             if (input == null)

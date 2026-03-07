@@ -7,6 +7,8 @@ import core.states.PlayerState;
 import core.states.CameraState;
 import input.InputSnapshot;
 
+import java.util.Comparator;
+
 public final class AbilitySystem implements GameSystem {
 
     @Override
@@ -18,21 +20,22 @@ public final class AbilitySystem implements GameSystem {
     public void update(SimulationContext context) {
 
         if (context.snapshot().players.isEmpty()) return;
-        for (PlayerState player : context.snapshot().players.values()) {
+        for (PlayerState player : context.snapshot().players.values()
+                .stream()
+                .sorted(Comparator.comparingLong(p -> p.id))
+                .toList()) {
 
             InputSnapshot input = context.input(player.id);
             if (input == null) continue;
 
-            if (!player.alive) return;
+            if (!player.alive) continue;
             if (input.key1Pressed) castTripleShot(context, player);
             if (input.key2Pressed) castSpeedBoost(context, player);
             if (input.key3Pressed) castTeleport(context, player);
 
-            for (PlayerState p : context.snapshot().players.values()) {
-                if (p.speedBuffRemaining > 0f) {
-                    float newRemaining = p.speedBuffRemaining - context.dt();
-                    context.addCommand(new UpdateSpeedBuffCommand(p.id, newRemaining));
-                }
+            if (player.speedBuffRemaining > 0f) {
+                float newRemaining = player.speedBuffRemaining - context.dt();
+                context.addCommand(new UpdateSpeedBuffCommand(player.id, newRemaining));
             }
         }
     }

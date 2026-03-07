@@ -8,6 +8,8 @@ import core.states.CameraState;
 import core.states.PlayerState;
 import input.InputSnapshot;
 
+import java.util.Comparator;
+
 public final class ProjectileSpawnSystem implements GameSystem {
 
     private final ProjectileRegistry projectileRegistry;
@@ -24,7 +26,10 @@ public final class ProjectileSpawnSystem implements GameSystem {
     @Override
     public void update(SimulationContext context) {
 
-        for (PlayerState player : context.snapshot().players.values()) {
+        for (PlayerState player : context.snapshot().players.values()
+                .stream()
+                .sorted(Comparator.comparingLong(p -> p.id))
+                .toList()) {
 
             InputSnapshot input = context.input(player.id);
             if (input == null) continue;
@@ -36,7 +41,7 @@ public final class ProjectileSpawnSystem implements GameSystem {
                 continue;
 
             if (player.shootCooldownRemaining > 0f)
-                return;
+                continue;
             if (!player.alive) continue;
 
             int projectileType = 0;
@@ -60,7 +65,7 @@ public final class ProjectileSpawnSystem implements GameSystem {
 
             // System.out.println("Mouse raw posX: " + context.input().mouseX + " Mouse dx: " + dx);
             float len = (float) Math.sqrt(dx * dx + dy * dy);
-            if (len == 0f) return;
+            if (len == 0f) continue;
 
             float vx = (dx / len) * def.speed;
             float vy = (dy / len) * def.speed;
