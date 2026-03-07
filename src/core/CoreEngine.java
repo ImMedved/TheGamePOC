@@ -41,7 +41,7 @@ public final class CoreEngine {
 
     private final WorldHasher worldHasher = new WorldHasher();
     private final NetworkNode networkNode;
-    private static final int HASH_INTERVAL = 60;
+    private static final int HASH_INTERVAL = 1;
 
     private volatile Integer pendingCharacterId = null;
 
@@ -83,7 +83,7 @@ public final class CoreEngine {
 
         long previous = java.lang.System.nanoTime();
         double lag = 0.0;
-
+        System.out.println("[CORE] CoreLoop Thread started");
         while (running) {
 
             long now = java.lang.System.nanoTime();
@@ -103,9 +103,9 @@ public final class CoreEngine {
     }
 
     private void tick(InputFrame frame) {
-
+        System.out.println("[CORE] Tick triggered");
         if (pendingCharacterId != null) {
-
+            System.out.println("[CORE] Players count: " + currentWorld.players.size());
             for (var player : currentWorld.players.values()) {
                 player.characterId = pendingCharacterId;
             }

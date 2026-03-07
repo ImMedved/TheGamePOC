@@ -17,6 +17,12 @@ import render.RenderEngine;
 import render.resources.ResourceManager;
 
 import java.nio.file.Path;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 import java.util.List;
 
 public class Main {
@@ -114,8 +120,17 @@ public class Main {
 
         CryptoModule crypto = new CryptoModule();
 
-        KeyPairData localKeys = crypto.generateKeyPair();
-        KeyPairData peerKeys  = crypto.generateKeyPair();
+        KeyPairData a = crypto.generateKeyPair();
+        KeyPairData b = crypto.generateKeyPair();
+
+        System.out.println(Base64.getEncoder().encodeToString(a.privateKey().getEncoded()));
+        System.out.println(Base64.getEncoder().encodeToString(a.publicKey().getEncoded()));
+
+        System.out.println(Base64.getEncoder().encodeToString(b.privateKey().getEncoded()));
+        System.out.println(Base64.getEncoder().encodeToString(b.publicKey().getEncoded()));
+
+        PrivateKey privateKey = loadPrivate(A_PRIVATE);
+        PublicKey peerKey = loadPublic(B_PUBLIC);
 
         NetworkConfig config =
                 new NetworkConfig(
@@ -146,5 +161,22 @@ public class Main {
         RenderEngine render = new RenderEngine(core, resourceManager, inputModule, networkNode);
 
         render.start();
+    }
+    static PrivateKey loadPrivate(String base64) throws Exception {
+
+        byte[] bytes = Base64.getDecoder().decode(base64);
+
+        KeyFactory factory = KeyFactory.getInstance("Ed25519");
+
+        return factory.generatePrivate(new PKCS8EncodedKeySpec(bytes));
+    }
+
+    static PublicKey loadPublic(String base64) throws Exception {
+
+        byte[] bytes = Base64.getDecoder().decode(base64);
+
+        KeyFactory factory = KeyFactory.getInstance("Ed25519");
+
+        return factory.generatePublic(new X509EncodedKeySpec(bytes));
     }
 }
