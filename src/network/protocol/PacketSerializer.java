@@ -10,18 +10,15 @@ public final class PacketSerializer {
     public byte[] serialize(NetworkPacket packet) {
 
         try {
-
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(baos);
 
             out.writeInt((int) packet.sender().value());
             out.writeInt(packet.sequenceNumber());
             out.writeInt(packet.tickNumber());
-
             out.writeInt(packet.type().ordinal());
 
             byte[] payload = packet.payload();
-
             out.writeInt(payload.length);
             out.write(payload);
 
@@ -29,7 +26,6 @@ public final class PacketSerializer {
 
             out.writeInt(signature.length);
             out.write(signature);
-
             out.flush();
 
             return baos.toByteArray();
@@ -42,31 +38,19 @@ public final class PacketSerializer {
     public NetworkPacket deserialize(byte[] data) {
 
         try {
-
             ByteArrayInputStream bais = new ByteArrayInputStream(data);
             DataInputStream in = new DataInputStream(bais);
+            NodeId sender = new NodeId(in.readInt());
 
-            NodeId sender =
-                    new NodeId(in.readInt());
+            int sequence = in.readInt();
+            int tick = in.readInt();
+            NetworkPacket.PacketType type = NetworkPacket.PacketType.values()[in.readInt()];
 
-            int sequence =
-                    in.readInt();
-
-            int tick =
-                    in.readInt();
-
-            NetworkPacket.PacketType type =
-                    NetworkPacket.PacketType.values()[in.readInt()];
-
-            int payloadSize =
-                    in.readInt();
-
+            int payloadSize = in.readInt();
             byte[] payload = new byte[payloadSize];
             in.readFully(payload);
 
-            int sigSize =
-                    in.readInt();
-
+            int sigSize = in.readInt();
             byte[] signature = new byte[sigSize];
             in.readFully(signature);
 
@@ -78,7 +62,6 @@ public final class PacketSerializer {
                     payload,
                     signature
             );
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

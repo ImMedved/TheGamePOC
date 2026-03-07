@@ -10,6 +10,8 @@ import core.systems.*;
 import input.InputModule;
 import network.bootstrap.NetworkBootstrap;
 import network.config.NetworkConfig;
+import network.crypto.CryptoModule;
+import network.crypto.KeyPairData;
 import network.node.NetworkNode;
 import render.RenderEngine;
 import render.resources.ResourceManager;
@@ -118,24 +120,29 @@ public class Main {
 
         // --- Network ---
 
+        CryptoModule crypto = new CryptoModule();
+
+        KeyPairData localKeys = crypto.generateKeyPair();
+        KeyPairData peerKeys  = crypto.generateKeyPair();
+
         NetworkConfig config =
                 new NetworkConfig(
-                        true,          // host
-                        "127.0.0.1",   // peer ip
-                        7777,          // local port
-                        7777           // peer port
+                        true,
+                        "127.0.0.1",
+                        7777,
+                        7777,
+                        localKeys.privateKey(),
+                        peerKeys.publicKey()
                 );
 
-        NetworkNode networkNode =
-                NetworkBootstrap.start(config);
+        NetworkNode networkNode = NetworkBootstrap.start(config);
 
         // --- Render ---
 
         Path assetsRoot = Path.of("assets");
         ResourceManager resourceManager = new ResourceManager(assetsRoot);
 
-        RenderEngine render =
-                new RenderEngine(core, resourceManager, inputModule, networkNode);
+        RenderEngine render = new RenderEngine(core, resourceManager, inputModule, networkNode);
 
         render.start();
     }

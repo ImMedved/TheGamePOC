@@ -142,12 +142,25 @@ public final class NetworkNode {
             byte[] payload
     ) {
 
+        NetworkPacket unsignedPacket =
+                new NetworkPacket(
+                        localNodeId,
+                        sequenceCounter++,
+                        tick,
+                        type,
+                        payload,
+                        null
+                );
+
+        byte[] serialized =
+                serializer.serialize(unsignedPacket);
+
         byte[] signature =
-                crypto.sign(payload, privateKey);
+                crypto.sign(serialized, privateKey);
 
         return new NetworkPacket(
                 localNodeId,
-                sequenceCounter++,
+                unsignedPacket.sequenceNumber(),
                 tick,
                 type,
                 payload,

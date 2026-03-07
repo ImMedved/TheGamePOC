@@ -19,8 +19,6 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
     private final long localPlayerId;
     private final long remotePlayerId;
 
-    private InputSnapshot lastRemote;
-
     private int tick = 0;
 
     public NetworkInputProvider(
@@ -35,14 +33,6 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
 
         this.localPlayerId = localPlayerId;
         this.remotePlayerId = remotePlayerId;
-
-        lastRemote = new InputSnapshot(
-                0,
-                remotePlayerId,
-                0,0,false,
-                0,0,
-                false,false,false
-        );
     }
 
     @Override
@@ -70,27 +60,38 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
                 codec.encode(local)
         );
 
-        Map<NodeId, byte[]> inputs =
-                network.tryGetInputs(tick);
+        Map<NodeId, byte[]> inputs;
 
-        if (inputs != null) {
+        while (true) {
 
-            for (byte[] data : inputs.values()) {
+            inputs = network.tryGetInputs(tick);
 
-                InputSnapshot decoded =
-                        codec.decode(data);
+            if (inputs != null)
+                break;
 
-                if (decoded.ownerId == remotePlayerId) {
-                    lastRemote = decoded;
-                }
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException ignored) {}
+        }
+
+        InputSnapshot remote = null;
+
+        for (byte[] data : inputs.values()) {
+
+            InputSnapshot decoded =
+                    codec.decode(data);
+
+            if (decoded.ownerId == remotePlayerId) {
+                remote = decoded;
             }
         }
 
         InputFrame frame = new InputFrame(tick);
 
         frame.put(local);
-        frame.put(lastRemote);
-
+        if (remote == null)
+            throw new IllegalStateException("писяпопа");
+        frame.put(remote);
         tick++;
 
         return frame;

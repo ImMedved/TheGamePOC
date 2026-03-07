@@ -17,10 +17,8 @@ public final class NetworkBootstrap {
     public static NetworkNode start(NetworkConfig config) {
 
         PacketSerializer serializer = new PacketSerializer();
-
         CryptoModule crypto = new CryptoModule();
 
-        KeyPairData keys = crypto.generateKeyPair();
         NodeId localId = new NodeId(1);
 
         NetworkNode node =
@@ -28,48 +26,32 @@ public final class NetworkBootstrap {
                         localId,
                         serializer,
                         crypto,
-                        keys.privateKey()
+                        config.privateKey
                 );
 
         if (config.host) {
-
-            ConnectionListener listener =
-                    new ConnectionListener(config.port);
-
+            ConnectionListener listener = new ConnectionListener(config.port);
             listener.start(socket -> {
-
-                P2PConnection conn =
-                        new P2PConnection(socket);
-
+                P2PConnection conn = new P2PConnection(socket);
                 node.addPeer(
                         new NodeId(2),
                         conn,
-                        keys.publicKey()
+                        config.peerPublicKey
                 );
-
             });
-
         } else {
-
             try {
-
-                Socket socket =
-                        new Socket(config.peerIp, config.peerPort);
-
-                P2PConnection conn =
-                        new P2PConnection(socket);
-
+                Socket socket = new Socket(config.peerIp, config.peerPort);
+                P2PConnection conn = new P2PConnection(socket);
                 node.addPeer(
                         new NodeId(2),
                         conn,
-                        keys.publicKey()
+                        config.peerPublicKey
                 );
-
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-
         return node;
     }
 }

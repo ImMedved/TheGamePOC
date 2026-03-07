@@ -10,8 +10,6 @@ public final class LockstepSynchronizer {
 
     private final NodeId localNodeId;
 
-    private int currentTick = 0;
-
     private final Map<Integer, Map<NodeId, byte[]>> inputs = new HashMap<>();
 
     public LockstepSynchronizer(NodeId localNodeId) {

@@ -9,11 +9,8 @@ public final class CryptoModule {
 
         try {
 
-            KeyPairGenerator generator =
-                    KeyPairGenerator.getInstance("Ed25519");
-
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("Ed25519");
             KeyPair pair = generator.generateKeyPair();
-
             return new KeyPairData(
                     pair.getPrivate(),
                     pair.getPublic()
@@ -28,13 +25,10 @@ public final class CryptoModule {
 
         try {
 
-            Signature signature =
-                    Signature.getInstance("Ed25519");
+            Signature signature = Signature.getInstance("Ed25519");
 
             signature.initSign(privateKey);
-
             signature.update(data);
-
             return signature.sign();
 
         } catch (Exception e) {
@@ -45,18 +39,11 @@ public final class CryptoModule {
     public boolean verify(byte[] data,
                           byte[] signatureBytes,
                           PublicKey publicKey) {
-
         try {
-
-            Signature signature =
-                    Signature.getInstance("Ed25519");
-
+            Signature signature = Signature.getInstance("Ed25519");
             signature.initVerify(publicKey);
-
             signature.update(data);
-
             return signature.verify(signatureBytes);
-
         } catch (Exception e) {
             throw new RuntimeException("Verification failed", e);
         }
@@ -69,12 +56,8 @@ public final class CryptoModule {
     public PublicKey decodePublicKey(byte[] bytes) {
 
         try {
-
-            KeyFactory factory =
-                    KeyFactory.getInstance("Ed25519");
-
-            return factory.generatePublic(
-                    new X509EncodedKeySpec(bytes)
+            KeyFactory factory = KeyFactory.getInstance("Ed25519");
+            return factory.generatePublic(new X509EncodedKeySpec(bytes)
             );
 
         } catch (Exception e) {

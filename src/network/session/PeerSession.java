@@ -66,13 +66,21 @@ public final class PeerSession {
 
     private boolean verifyPacket(NetworkPacket packet) {
 
-        if (packet.signature() == null)
-            return false;
+        NetworkPacket unsigned =
+                new NetworkPacket(
+                        packet.sender(),
+                        packet.sequenceNumber(),
+                        packet.tickNumber(),
+                        packet.type(),
+                        packet.payload(),
+                        null
+                );
 
-        byte[] payload = packet.payload();
+        byte[] serialized =
+                serializer.serialize(unsigned);
 
         return crypto.verify(
-                payload,
+                serialized,
                 packet.signature(),
                 peerPublicKey
         );
