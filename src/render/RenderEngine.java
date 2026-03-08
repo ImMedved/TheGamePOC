@@ -34,14 +34,22 @@ public final class RenderEngine {
     private long previousTime;
     private double accumulator = 0.0;
 
+    private final long localPlayerId;
+    private final long remotePlayerId;
+
     public RenderEngine(CoreEngine core,
                         ResourceManager resourceManager,
                         InputModule inputModule,
-                        NetworkNode networkNode) {
+                        NetworkNode networkNode,
+                        long localPlayerId,
+                        long remotePlayerId) {
+
         this.core = core;
         this.resourceManager = resourceManager;
         this.inputModule = inputModule;
         this.networkNode = networkNode;
+        this.localPlayerId = localPlayerId;
+        this.remotePlayerId = remotePlayerId;
     }
 
     public void start() {
@@ -98,8 +106,8 @@ public final class RenderEngine {
                 new NetworkInputProvider(
                         networkNode,
                         inputModule,
-                        1,
-                        2
+                        localPlayerId,
+                        remotePlayerId
                 );
 
         core.start(provider);

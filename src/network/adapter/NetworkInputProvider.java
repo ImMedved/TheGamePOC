@@ -64,13 +64,10 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
 
         InputSnapshot remote = null;
 
-        for (byte[] data : inputs.values()) {
+        for (Map.Entry<NodeId, byte[]> entry : inputs.entrySet()) {
 
-            InputSnapshot decoded =
-                    codec.decode(data);
-
-            if (decoded.ownerId == remotePlayerId) {
-                remote = decoded;
+            if (entry.getKey().value() == remotePlayerId) {
+                remote = codec.decode(entry.getValue());
             }
         }
 

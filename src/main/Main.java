@@ -170,7 +170,10 @@ public class Main {
         Path assetsRoot = Path.of("assets");
         ResourceManager resourceManager = new ResourceManager(assetsRoot);
 
-        RenderEngine render = new RenderEngine(core, resourceManager, inputModule, networkNode);
+        long localPlayerId = config.host ? 1 : 2;
+        long remotePlayerId = config.host ? 2 : 1;
+
+        RenderEngine render = new RenderEngine(core, resourceManager, inputModule, networkNode, localPlayerId, remotePlayerId);
 
         render.start();
     }
