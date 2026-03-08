@@ -110,7 +110,7 @@ public final class RenderEngine {
                         remotePlayerId
                 );
 
-        core.start(provider);
+        core.start(provider, localPlayerId);
 
         mode = AppMode.GAME;
     }

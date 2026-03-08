@@ -67,11 +67,11 @@ public final class CoreEngine {
         this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
 
-    public void start(java.util.function.Supplier<InputFrame> inputSupplier) {
+    public void start(java.util.function.Supplier<InputFrame> inputSupplier, long localPlayerId) {
 
         running = true;
 
-        new Thread(() -> runLoop(inputSupplier), "CoreLoop").start();
+        new Thread(() -> runLoop(inputSupplier, localPlayerId), "CoreLoop").start();
     }
 
     public void stop() {
@@ -79,7 +79,7 @@ public final class CoreEngine {
         executor.shutdown();
     }
 
-    private void runLoop(java.util.function.Supplier<InputFrame> inputSupplier) {
+    private void runLoop(java.util.function.Supplier<InputFrame> inputSupplier, long localPlayerId) {
 
         long previous = java.lang.System.nanoTime();
         double lag = 0.0;
@@ -95,14 +95,14 @@ public final class CoreEngine {
             while (lag >= DT) {
 
                 InputFrame frame = inputSupplier.get();
-                tick(frame);
+                tick(frame, localPlayerId);
 
                 lag -= DT;
             }
         }
     }
 
-    private void tick(InputFrame frame) {
+    private void tick(InputFrame frame, long localPlayerId) {
         System.out.println("[CORE] Tick triggered");
         if (pendingCharacterId != null) {
             System.out.println("[CORE] Players count: " + currentWorld.players.size());
@@ -138,7 +138,8 @@ public final class CoreEngine {
                             frame,
                             DT,
                             idGenerator::getAndIncrement,
-                            localList
+                            localList,
+                            localPlayerId
                     );
 
             tasks.add(() -> {
@@ -169,7 +170,8 @@ public final class CoreEngine {
                             frame,
                             DT,
                             idGenerator::getAndIncrement,
-                            localList
+                            localList,
+                            localPlayerId
                     );
 
             gameSystem.update(ctx);
