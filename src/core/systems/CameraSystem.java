@@ -24,7 +24,7 @@ public final class CameraSystem implements GameSystem {
         if (camera == null || level == null) return;
         if (context.snapshot().players.isEmpty()) return;
 
-        PlayerState player = context.snapshot().players.values().iterator().next();
+        PlayerState player = context.snapshot().players.get(context.localPlayerId());
 
         float camX = camera.x;
         float camY = camera.y;

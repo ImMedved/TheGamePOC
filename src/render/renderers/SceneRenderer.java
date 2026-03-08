@@ -29,9 +29,12 @@ public final class SceneRenderer {
 
     private boolean levelInitialized = false;
 
-    public SceneRenderer(ResourceManager resources, InputModule inputModule) {
+    private final long localPlayerId;
+
+    public SceneRenderer(ResourceManager resources, InputModule inputModule, long localPlayerId) {
         this.resources = resources;
         this.inputModule = inputModule;
+        this.localPlayerId = localPlayerId;
     }
 
     public void init() {
@@ -73,7 +76,7 @@ public final class SceneRenderer {
 
         if (!snapshot.players.isEmpty()) {
             //System.out.println("!snapshot.players.isEmpty() trigger");
-            var focus = snapshot.players.get(0);
+            var focus = snapshot.players.get(Math.toIntExact(localPlayerId));
 
             float x = focus.prevX + (focus.currX - focus.prevX) * alpha;
             float y = focus.prevY + (focus.currY - focus.prevY) * alpha;
@@ -94,7 +97,11 @@ public final class SceneRenderer {
             window.draw(entry.getValue().getVertexArray(), entry.getKey().getStates());
         }
         //System.out.println("batchManager size: " + batchManager.getAll().size());
-        hudRenderer.render(window, snapshot.players);
+        hudRenderer.render(
+                window,
+                snapshot.players,
+                localPlayerId
+        );
         window.display();
     }
 

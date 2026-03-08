@@ -19,7 +19,8 @@ public final class NetworkBootstrap {
         PacketSerializer serializer = new PacketSerializer();
         CryptoModule crypto = new CryptoModule();
 
-        NodeId localId = new NodeId(1);
+        NodeId localId = new NodeId(config.host ? 1 : 2);
+        NodeId peerId = new NodeId(config.host ? 2 : 1);
 
         NetworkNode node =
                 new NetworkNode(
@@ -35,7 +36,7 @@ public final class NetworkBootstrap {
                 System.out.println("[NET] Incoming connection from " + socket.getRemoteSocketAddress());
                 P2PConnection conn = new P2PConnection(socket);
                 node.addPeer(
-                        new NodeId(2),
+                        peerId,
                         conn,
                         config.peerPublicKey
                 );
@@ -46,7 +47,7 @@ public final class NetworkBootstrap {
                 System.out.println("[NET] Connected to peer " + socket.getRemoteSocketAddress());
                 P2PConnection conn = new P2PConnection(socket);
                 node.addPeer(
-                        new NodeId(2),
+                        peerId,
                         conn,
                         config.peerPublicKey
                 );

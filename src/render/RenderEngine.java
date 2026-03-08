@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class RenderEngine {
 
-    private static final int TARGET_FPS = 120;
+    private static final int TARGET_FPS = 60;
     private static final double FRAME_TIME = 1.0 / TARGET_FPS;
 
     private final CoreEngine core;
@@ -90,7 +90,7 @@ public final class RenderEngine {
 
     private void init() {
 
-        sceneRenderer = new SceneRenderer(resourceManager, inputModule);
+        sceneRenderer = new SceneRenderer(resourceManager, inputModule, localPlayerId);
         sceneRenderer.init();
 
         menuRenderer = new MenuRenderer(resourceManager, this::startGame);

@@ -27,11 +27,12 @@ public final class HudRenderer {
     }
 
     public void render(RenderWindow window,
-                       List<RenderPlayer> players) {
+                       List<RenderPlayer> players,
+                       long localPlayerId) {
 
         if (players.isEmpty()) return;
 
-        RenderPlayer player = players.get(0);
+        RenderPlayer player = players.get(Math.toIntExact(localPlayerId));
 
         renderCursor(window, player);
         renderHealth(window, player);

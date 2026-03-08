@@ -15,19 +15,22 @@ public final class SimulationContext {
     private final float dt;
     private final LongSupplier idSupplier;
     private final List<Command> localCommands;
+    private final long localPlayerId;
 
     public SimulationContext(
             WorldState snapshot,
             InputFrame inputFrame,
             float dt,
             LongSupplier idSupplier,
-            List<Command> localCommands
+            List<Command> localCommands,
+            long localPlayerId
     ) {
         this.snapshot = snapshot;
         this.inputFrame = inputFrame;
         this.dt = dt;
         this.idSupplier = idSupplier;
         this.localCommands = localCommands;
+        this.localPlayerId = localPlayerId;
     }
 
     public WorldState snapshot() {
@@ -48,5 +51,9 @@ public final class SimulationContext {
 
     public void addCommand(Command command) {
         localCommands.add(command);
+    }
+
+    public long localPlayerId() {
+        return localPlayerId;
     }
 }
