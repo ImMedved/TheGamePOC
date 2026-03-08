@@ -22,8 +22,11 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 import java.util.List;
+
+import java.security.*;
+import java.security.spec.*;
+import java.util.Base64;
 
 public class Main {
 
@@ -117,20 +120,29 @@ public class Main {
         );
 
         // --- Network ---
-
         CryptoModule crypto = new CryptoModule();
 
         KeyPairData a = crypto.generateKeyPair();
         KeyPairData b = crypto.generateKeyPair();
 
-        System.out.println(Base64.getEncoder().encodeToString(a.privateKey().getEncoded()));
-        System.out.println(Base64.getEncoder().encodeToString(a.publicKey().getEncoded()));
+        System.out.println("A_PRIVATE=" + Base64.getEncoder().encodeToString(a.privateKey().getEncoded()));
+        System.out.println("A_PUBLIC=" + Base64.getEncoder().encodeToString(a.publicKey().getEncoded()));
+        System.out.println("B_PRIVATE=" + Base64.getEncoder().encodeToString(b.privateKey().getEncoded()));
+        System.out.println("B_PUBLIC=" + Base64.getEncoder().encodeToString(b.publicKey().getEncoded()));
 
-        System.out.println(Base64.getEncoder().encodeToString(b.privateKey().getEncoded()));
-        System.out.println(Base64.getEncoder().encodeToString(b.publicKey().getEncoded()));
+        String A_PRIVATE = "MC4CAQAwBQYDK2VwBCIEIEoLrEF7dUGY26UAgtXvj8azOq5TSFIlGeB9lrvqguct";
+        String A_PUBLIC  = "MCowBQYDK2VwAyEAcVejzRXtlfeISy5GLJIudINgt+WLEyAta4EO2gu7e2c=";
 
+        String B_PRIVATE = "MC4CAQAwBQYDK2VwBCIEIOb9j7pcwIpzWclwoaS3Y7jQsiFBQ/ZTvVDd7skpwEh2";
+        String B_PUBLIC  = "MCowBQYDK2VwAyEAPy8j2K+/oc3elVMGxQvW9LRe38p9h2S6xXjs0WUO/WI=";
+
+        // host
         PrivateKey privateKey = loadPrivate(A_PRIVATE);
-        PublicKey peerKey = loadPublic(B_PUBLIC);
+        PublicKey peerPublicKey = loadPublic(B_PUBLIC);
+
+        //client
+        //PrivateKey privateKey = loadPrivate(B_PRIVATE);
+        //PublicKey peerPublicKey = loadPublic(A_PUBLIC);
 
         NetworkConfig config =
                 new NetworkConfig(
@@ -138,8 +150,8 @@ public class Main {
                         "192.168.0.103",
                         7777,
                         7777,
-                        localKeys.privateKey(),
-                        peerKeys.publicKey()
+                        privateKey,
+                        peerPublicKey
                 );
 
         NetworkNode networkNode = NetworkBootstrap.start(config);
@@ -162,21 +174,28 @@ public class Main {
 
         render.start();
     }
-    static PrivateKey loadPrivate(String base64) throws Exception {
+    private static PrivateKey loadPrivate(String base64) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            KeyFactory factory = KeyFactory.getInstance("Ed25519");
 
-        byte[] bytes = Base64.getDecoder().decode(base64);
-
-        KeyFactory factory = KeyFactory.getInstance("Ed25519");
-
-        return factory.generatePrivate(new PKCS8EncodedKeySpec(bytes));
+            return factory.generatePrivate(
+                    new PKCS8EncodedKeySpec(bytes)
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    static PublicKey loadPublic(String base64) throws Exception {
-
-        byte[] bytes = Base64.getDecoder().decode(base64);
-
-        KeyFactory factory = KeyFactory.getInstance("Ed25519");
-
-        return factory.generatePublic(new X509EncodedKeySpec(bytes));
+    private static PublicKey loadPublic(String base64) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            KeyFactory factory = KeyFactory.getInstance("Ed25519");
+            return factory.generatePublic(
+                    new X509EncodedKeySpec(bytes)
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
