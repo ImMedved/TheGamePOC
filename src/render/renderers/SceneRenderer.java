@@ -76,7 +76,7 @@ public final class SceneRenderer {
 
         if (!snapshot.players.isEmpty()) {
             //System.out.println("!snapshot.players.isEmpty() trigger");
-            var focus = snapshot.players.get(Math.toIntExact(localPlayerId));
+            var focus = snapshot.players.get(Math.toIntExact(localPlayerId)-1);
 
             float x = focus.prevX + (focus.currX - focus.prevX) * alpha;
             float y = focus.prevY + (focus.currY - focus.prevY) * alpha;

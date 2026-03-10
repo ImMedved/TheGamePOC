@@ -137,17 +137,24 @@ public class Main {
         String B_PUBLIC  = "MCowBQYDK2VwAyEAPy8j2K+/oc3elVMGxQvW9LRe38p9h2S6xXjs0WUO/WI=";
 
         // host
-        PrivateKey privateKey = loadPrivate(A_PRIVATE);
-        PublicKey peerPublicKey = loadPublic(B_PUBLIC);
+        //PrivateKey privateKey = loadPrivate(A_PRIVATE);
+        //PublicKey peerPublicKey = loadPublic(B_PUBLIC);
 
         //client
-        //PrivateKey privateKey = loadPrivate(B_PRIVATE);
-        //PublicKey peerPublicKey = loadPublic(A_PUBLIC);
+        PrivateKey privateKey = loadPrivate(B_PRIVATE);
+        PublicKey peerPublicKey = loadPublic(A_PUBLIC);
 
+        boolean host = false;
+
+        for (String arg : args) {
+            if (arg.equals("--host")) {
+                host = true;
+            }
+        }
         NetworkConfig config =
                 new NetworkConfig(
-                        true,
-                        "192.168.0.103",
+                        host,
+                        "88.200.64.165",
                         7777,
                         7777,
                         privateKey,
