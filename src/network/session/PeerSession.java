@@ -7,6 +7,7 @@ import network.protocol.PacketSerializer;
 import network.transport.P2PConnection;
 
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public final class PeerSession {
@@ -42,6 +43,7 @@ public final class PeerSession {
         this.packetHandler = packetHandler;
 
         startReceiving();
+
     }
 
     private void startReceiving() {
@@ -80,13 +82,17 @@ public final class PeerSession {
 
         byte[] serialized =
                 serializer.serialize(unsigned);
+        //System.out.println("VERIFY sender=" + packet.sender());
+        //System.out.println("VERIFY seq=" + packet.sequenceNumber());
+        //System.out.println("VERIFY tick=" + packet.tickNumber());
         boolean ok = crypto.verify(
                 serialized,
                 packet.signature(),
                 peerPublicKey);
 
-        System.out.println("[NET] Verify result=" + ok);
-
+        //System.out.println("[NET] Verify result=" + ok);
+        byte[] serializedCounter = serializer.serialize(unsigned);
+        //System.out.println("VERIFY bytes=" + serializedCounter.length);
         return ok;
     }
 
@@ -109,7 +115,6 @@ public final class PeerSession {
 
         byte[] data =
                 serializer.serialize(packet);
-
         connection.send(data);
     }
 

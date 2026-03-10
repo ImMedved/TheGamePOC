@@ -13,7 +13,7 @@ public final class PacketSerializer {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(baos);
 
-            out.writeInt((int) packet.sender().value());
+            out.writeLong(packet.sender().value());
             out.writeInt(packet.sequenceNumber());
             out.writeInt(packet.tickNumber());
             out.writeInt(packet.type().ordinal());
@@ -31,7 +31,8 @@ public final class PacketSerializer {
                 out.write(signature);
             }
             out.flush();
-
+            //System.out.println("SER payload=" + payload.length);
+            //System.out.println("SER signature=" + (signature == null ? 0 : signature.length));
             return baos.toByteArray();
 
         } catch (IOException e) {
@@ -44,7 +45,7 @@ public final class PacketSerializer {
         try {
             ByteArrayInputStream bais = new ByteArrayInputStream(data);
             DataInputStream in = new DataInputStream(bais);
-            NodeId sender = new NodeId(in.readInt());
+            NodeId sender = new NodeId(in.readLong());
 
             int sequence = in.readInt();
             int tick = in.readInt();
@@ -53,6 +54,7 @@ public final class PacketSerializer {
             int payloadSize = in.readInt();
             byte[] payload = new byte[payloadSize];
             in.readFully(payload);
+            payload = payload.clone();
 
             int sigSize = in.readInt();
 
@@ -62,7 +64,8 @@ public final class PacketSerializer {
                 signature = new byte[sigSize];
                 in.readFully(signature);
             }
-
+            //System.out.println("DES payload=" + payloadSize);
+            //System.out.println("DES signature=" + sigSize);
             return new NetworkPacket(
                     sender,
                     sequence,

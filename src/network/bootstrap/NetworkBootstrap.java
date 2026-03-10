@@ -35,6 +35,7 @@ public final class NetworkBootstrap {
             listener.start(socket -> {
                 System.out.println("[NET] Incoming connection from " + socket.getRemoteSocketAddress());
                 P2PConnection conn = new P2PConnection(socket);
+
                 node.addPeer(
                         peerId,
                         conn,

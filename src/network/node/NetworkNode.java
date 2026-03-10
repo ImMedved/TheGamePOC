@@ -143,13 +143,15 @@ public final class NetworkNode {
             byte[] payload
     ) {
 
+        byte[] payloadCopy = payload.clone();
+
         NetworkPacket unsignedPacket =
                 new NetworkPacket(
                         localNodeId,
                         sequenceCounter++,
                         tick,
                         type,
-                        payload,
+                        payloadCopy,
                         null
                 );
 
@@ -164,7 +166,7 @@ public final class NetworkNode {
                 unsignedPacket.sequenceNumber(),
                 tick,
                 type,
-                payload,
+                payloadCopy,
                 signature
         );
     }

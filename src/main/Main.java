@@ -141,8 +141,8 @@ public class Main {
         //PublicKey peerPublicKey = loadPublic(B_PUBLIC);
 
         //client
-        PrivateKey privateKey = loadPrivate(B_PRIVATE);
-        PublicKey peerPublicKey = loadPublic(A_PUBLIC);
+        //PrivateKey privateKey = loadPrivate(B_PRIVATE);
+        //PublicKey peerPublicKey = loadPublic(A_PUBLIC);
 
         boolean host = false;
 
@@ -151,10 +151,22 @@ public class Main {
                 host = true;
             }
         }
+
+        PrivateKey privateKey;
+        PublicKey peerPublicKey;
+
+        if (host) {
+            privateKey = loadPrivate(A_PRIVATE);
+            peerPublicKey = loadPublic(B_PUBLIC);
+        } else {
+            privateKey = loadPrivate(B_PRIVATE);
+            peerPublicKey = loadPublic(A_PUBLIC);
+        }
+
         NetworkConfig config =
                 new NetworkConfig(
                         host,
-                        "88.200.64.165",
+                        "192.168.0.103",
                         7777,
                         7777,
                         privateKey,
