@@ -111,9 +111,9 @@ public class Main {
         PublicKey pubKey3 = loadPublic(C_PUBLIC);
 
         List<NodeInfo> nodes = List.of(
-                new NodeInfo(1, "192.168.0.101", 7777, pubKey1),
-                new NodeInfo(2, "192.168.0.102", 7777, pubKey2),
-                new NodeInfo(3, "192.168.0.103", 7777, pubKey3)
+                new NodeInfo(1, "192.168.0.105", 7777, pubKey1),
+                new NodeInfo(2, "192.168.0.103", 7777, pubKey2),
+                new NodeInfo(3, "192.168.0.100", 7777, pubKey3)
         );
 
         return new NetworkTopology(nodes);

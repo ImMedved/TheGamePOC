@@ -42,11 +42,11 @@ public final class LevelLoader {
 
                 char c = line.charAt(x);
 
-                if (!Character.isDigit(c)) {
+                int textureId = Character.digit(c, 16);
+
+                if (textureId == -1) {
                     throw new IllegalArgumentException("Invalid tile character: " + c);
                 }
-
-                int textureId = c - '0';
 
                 level.textureMap[x][y] = textureId;
                 level.collisionMask[x][y] = resolveMask(textureId);
