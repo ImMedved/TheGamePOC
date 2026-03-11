@@ -82,17 +82,17 @@ public final class PeerSession {
 
         byte[] serialized =
                 serializer.serialize(unsigned);
-        //System.out.println("VERIFY sender=" + packet.sender());
-        //System.out.println("VERIFY seq=" + packet.sequenceNumber());
-        //System.out.println("VERIFY tick=" + packet.tickNumber());
+        System.out.println("VERIFY sender=" + packet.sender());
+        System.out.println("VERIFY seq=" + packet.sequenceNumber());
+        System.out.println("VERIFY tick=" + packet.tickNumber());
         boolean ok = crypto.verify(
                 serialized,
                 packet.signature(),
                 peerPublicKey);
 
-        //System.out.println("[NET] Verify result=" + ok);
+        System.out.println("[NET] Verify result=" + ok);
         byte[] serializedCounter = serializer.serialize(unsigned);
-        //System.out.println("VERIFY bytes=" + serializedCounter.length);
+        System.out.println("VERIFY bytes=" + serializedCounter.length);
         return ok;
     }
 

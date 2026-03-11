@@ -54,6 +54,7 @@ public final class RenderEngine {
     }
 
     public void start() {
+        System.out.println("[RENDER] RenderEngine.start running is: " + running.get());
         if (running.get()) return;
         running.set(true);
         renderThread = new Thread(this::runLoop, "RenderThread");
@@ -65,7 +66,7 @@ public final class RenderEngine {
     }
 
     private void runLoop() {
-
+        System.out.println("[RENDER] RenderEngine.runLoop started");
         init();
 
         previousTime = System.nanoTime();
@@ -118,7 +119,7 @@ public final class RenderEngine {
                         localPlayerId,
                         remotePlayerId
                 );
-
+        System.out.println("[RENDER] RenderEngine.startGame triggered core.start(provider, localPlayerId)");
         core.start(provider, localPlayerId);
 
         mode = AppMode.GAME;
