@@ -14,7 +14,7 @@ import java.security.KeyPair;
 
 public final class NetworkBootstrap {
 
-    public static NetworkNode start(NetworkConfig config) {
+    public static NetworkNode start(NetworkConfig config, long nodeId) {
         System.out.println("[NET] Starting node on port " + config.port + " host=" + config.host);
         PacketSerializer serializer = new PacketSerializer();
         CryptoModule crypto = new CryptoModule();
@@ -24,6 +24,7 @@ public final class NetworkBootstrap {
 
         NetworkNode node =
                 new NetworkNode(
+                        nodeId,
                         localId,
                         serializer,
                         crypto,

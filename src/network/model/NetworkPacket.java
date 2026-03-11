@@ -4,7 +4,13 @@ public final class NetworkPacket {
 
     public enum PacketType {
         INPUT,
-        STATE_HASH
+        STATE_HASH,
+
+        GAME_START,
+        VDF_RESULT,
+        MOVE,
+        VALIDATION,
+        VOID
     }
 
     private final NodeId sender;

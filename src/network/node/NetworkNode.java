@@ -1,19 +1,27 @@
 package network.node;
 
+import network.consensus.ValidatorSelector;
 import network.crypto.CryptoModule;
 import network.lockstep.LockstepSynchronizer;
+import network.model.GameStartPayload;
 import network.model.NetworkPacket;
 import network.model.NodeId;
 import network.protocol.PacketSerializer;
 import network.session.PeerSession;
 import network.transport.P2PConnection;
 import network.validation.StateHashValidator;
+import network.validation.ValidationPayload;
+import network.vdf.VDFModule;
+import network.vdf.VDFSeed;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class NetworkNode {
 
@@ -22,36 +30,71 @@ public final class NetworkNode {
     private final PacketSerializer serializer;
     private final CryptoModule crypto;
 
+    public final long nodeId;
     private final Map<NodeId, PeerSession> sessions = new HashMap<>();
-
     private final LockstepSynchronizer lockstep;
-
     private final StateHashValidator validator;
-
     private final PrivateKey privateKey;
 
     private int sequenceCounter = 0;
-
+    private final ExecutorService consensusExecutor =
+            Executors.newSingleThreadExecutor();
 
     public NetworkNode(
+            long nodeId,
             NodeId localNodeId,
             PacketSerializer serializer,
             CryptoModule crypto,
             PrivateKey privateKey
     ) {
-
+        this.nodeId = nodeId;
         this.localNodeId = localNodeId;
         this.serializer = serializer;
         this.crypto = crypto;
         this.privateKey = privateKey;
 
         this.lockstep = new LockstepSynchronizer(localNodeId);
+        this.validator = new StateHashValidator(60, this::onDesync);
+    }
 
-        this.validator =
-                new StateHashValidator(
-                        60,
-                        this::onDesync
+    public void startGame(UUID gameId, long playerA, long playerB) {
+        System.out.println("[NETWORK] GAME_START received");
+        GameStartPayload payload =
+                new GameStartPayload(gameId, playerA, playerB);
+
+        byte[] payloadBytes = payload.toBytes();
+
+        int seq = sequenceCounter++;
+
+        int tick = 0;
+
+        NetworkPacket unsigned =
+                new NetworkPacket(
+                        localNodeId,
+                        seq,
+                        tick,
+                        NetworkPacket.PacketType.GAME_START,
+                        payloadBytes,
+                        null
                 );
+
+        byte[] serialized = serializer.serialize(unsigned);
+
+        byte[] signature = crypto.sign(serialized, privateKey);
+
+        NetworkPacket signed =
+                new NetworkPacket(
+                        localNodeId,
+                        seq,
+                        tick,
+                        NetworkPacket.PacketType.GAME_START,
+                        payloadBytes,
+                        signature
+                );
+
+        broadcast(signed);
+        System.out.println("[NETWORK] GAME_START sent seq=" + seq);
+
     }
 
     public void addPeer(
@@ -77,19 +120,14 @@ public final class NetworkNode {
             NodeId peer,
             NetworkPacket packet
     ) {
-        System.out.println("[NET] Handling packet type=" + packet.type()
-                + " tick=" + packet.tickNumber());
+        System.out.println("[NET] Handling packet type=" + packet.type() + " tick=" + packet.tickNumber());
         switch (packet.type()) {
 
             case INPUT -> {
 
-                int tick = packet.tickNumber();
-
-                lockstep.receiveRemoteInput(
-                        peer,
-                        tick,
-                        packet.payload()
-                );
+                if (isValidator) {
+                    validateMove(packet);
+                }
             }
 
             case STATE_HASH -> {
@@ -102,6 +140,9 @@ public final class NetworkNode {
                         packet.payload()
                 );
             }
+            case GAME_START -> handleGameStart(packet);
+
+            case VOID -> handleVoid(packet);
         }
     }
 
@@ -155,11 +196,8 @@ public final class NetworkNode {
                         null
                 );
 
-        byte[] serialized =
-                serializer.serialize(unsignedPacket);
-
-        byte[] signature =
-                crypto.sign(serialized, privateKey);
+        byte[] serialized = serializer.serialize(unsignedPacket);
+        byte[] signature = crypto.sign(serialized, privateKey);
 
         return new NetworkPacket(
                 localNodeId,
@@ -185,5 +223,186 @@ public final class NetworkNode {
     }
     public Map<NodeId, byte[]> waitForInputs(int tick) {
         return lockstep.waitForInputs(tick);
+    }
+
+    private volatile UUID currentGameId;
+    private final VDFModule vdf = new VDFModule();
+    private final ValidatorSelector selector = new ValidatorSelector();
+
+    private NodeId validatorNodeId;
+    private boolean isValidator;
+
+    private void handleGameStart(NetworkPacket packet) {
+
+        GameStartPayload payload =
+                GameStartPayload.fromBytes(packet.payload());
+
+        currentGameId = payload.gameId;
+
+        System.out.println("[GAME] start " + payload.gameId);
+
+        consensusExecutor.submit(() -> runVdfAndSelectValidator(payload));
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+
+        StringBuilder sb = new StringBuilder();
+
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+
+        return sb.toString();
+    }
+
+    private void runVdfAndSelectValidator(GameStartPayload payload) {
+
+        List<Long> nodeIds = List.of(1L, 2L, 3L);
+
+        byte[] seed = VDFSeed.create(
+                payload.gameId,
+                nodeIds
+        );
+
+        byte[] entropy = vdf.compute(seed);
+
+        System.out.println("[VDF] entropy=" + bytesToHex(entropy));
+
+        long validator = selector.selectValidator(
+                entropy,
+                nodeIds
+        );
+
+        validatorNodeId = new NodeId(validator);
+
+        isValidator = validatorNodeId.equals(localNodeId);
+
+        System.out.println("[CONSENSUS] validator=" + validatorNodeId);
+
+        if (isValidator) {
+            System.out.println("[ROLE] this node is VALIDATOR");
+        } else {
+            System.out.println("[ROLE] this node is PLAYER");
+        }
+    }
+
+    private int lastTickA = -1;
+    private int lastTickB = -1;
+
+    private void validateMove(NetworkPacket packet) {
+
+        int tick = packet.tickNumber();
+
+        long player = packet.sender().value();
+
+        boolean valid = true;
+
+        if (player == 1) {
+
+            if (tick <= lastTickA) {
+                valid = false;
+            }
+
+            lastTickA = tick;
+
+        } else if (player == 2) {
+
+            if (tick <= lastTickB) {
+                valid = false;
+            }
+
+            lastTickB = tick;
+        }
+
+        if (!valid) {
+
+            System.out.println("[VALIDATOR] invalid move tick=" + tick);
+
+            sendVoid(tick);
+
+        } else {
+
+            sendValidation(tick);
+        }
+    }
+
+    private void sendValidation(int tick) {
+
+        ValidationPayload payload = new ValidationPayload(currentGameId, tick, true);
+
+        byte[] payloadBytes = payload.toBytes();
+
+        int seq = sequenceCounter++;
+
+        NetworkPacket unsigned =
+                new NetworkPacket(
+                        localNodeId,
+                        seq,
+                        tick,
+                        NetworkPacket.PacketType.VALIDATION,
+                        payloadBytes,
+                        null
+                );
+
+        byte[] serialized = serializer.serialize(unsigned);
+
+        byte[] signature = crypto.sign(serialized, privateKey);
+
+        NetworkPacket signed =
+                new NetworkPacket(
+                        localNodeId,
+                        seq,
+                        tick,
+                        NetworkPacket.PacketType.VALIDATION,
+                        payloadBytes,
+                        signature
+                );
+
+        broadcast(signed);
+    }
+
+    private void sendVoid(int tick) {
+
+        ValidationPayload payload =
+                new ValidationPayload(currentGameId, tick, false);
+
+        byte[] payloadBytes = payload.toBytes();
+
+        int seq = sequenceCounter++;
+
+        NetworkPacket unsigned =
+                new NetworkPacket(
+                        localNodeId,
+                        seq,
+                        tick,
+                        NetworkPacket.PacketType.VOID,
+                        payloadBytes,
+                        null
+                );
+
+        byte[] serialized = serializer.serialize(unsigned);
+
+        byte[] signature = crypto.sign(serialized, privateKey);
+
+        NetworkPacket signed =
+                new NetworkPacket(
+                        localNodeId,
+                        seq,
+                        tick,
+                        NetworkPacket.PacketType.VOID,
+                        payloadBytes,
+                        signature
+                );
+
+        broadcast(signed);
+    }
+
+    private void handleVoid(NetworkPacket packet) {
+
+        ValidationPayload payload = ValidationPayload.fromBytes(packet.payload());
+
+        System.out.println("[GAME] VOID detected at tick " + payload.tick);
+
+        // остановить игру
     }
 }

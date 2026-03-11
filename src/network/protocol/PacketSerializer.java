@@ -4,6 +4,7 @@ import network.model.NetworkPacket;
 import network.model.NodeId;
 
 import java.io.*;
+import java.util.UUID;
 
 public final class PacketSerializer {
 
@@ -77,5 +78,15 @@ public final class PacketSerializer {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+    private void writeUUID(DataOutputStream out, UUID id) throws IOException {
+        out.writeLong(id.getMostSignificantBits());
+        out.writeLong(id.getLeastSignificantBits());
+    }
+
+    private UUID readUUID(DataInputStream in) throws IOException {
+        long msb = in.readLong();
+        long lsb = in.readLong();
+        return new UUID(msb, lsb);
     }
 }

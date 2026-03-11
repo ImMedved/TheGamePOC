@@ -11,6 +11,7 @@ import render.renderers.MenuRenderer;
 import render.renderers.SceneRenderer;
 import render.resources.ResourceManager;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class RenderEngine {
@@ -101,6 +102,14 @@ public final class RenderEngine {
 
         int selected = menuRenderer.getSelectedCharacterId();
         core.setSelectedCharacter(selected);
+
+        UUID gameId = UUID.randomUUID();
+
+        networkNode.startGame(
+                gameId,
+                localPlayerId,
+                remotePlayerId
+        );
 
         NetworkInputProvider provider =
                 new NetworkInputProvider(
