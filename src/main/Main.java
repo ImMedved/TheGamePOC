@@ -42,7 +42,7 @@ public class Main {
     static String C_PRIVATE = "MC4CAQAwBQYDK2VwBCIEIPQJmA9jF+7rV6t2fAvFp8ZUBKbjrKMg09uXBJgp7waP";
     static String C_PUBLIC  = "MCowBQYDK2VwAyEAQKk7uXH7Q1Xq2Y7jZ9m+Kp8yU6cV7cYHk4Zz9y4p5m0=";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         boolean host = hasArg(args, "--host");
         boolean validator = hasArg(args, "--validator");
@@ -55,8 +55,8 @@ public class Main {
                 " host=" + host +
                 " validator=" + validator);
 
-        NetworkNode networkNode = startNetwork(nodeId, host, keys);
-
+        NetworkNode networkNode = startNetwork(nodeId, host, keys, topology);
+        Thread.sleep(2000);
         if (host) {networkNode.startGame(UUID.randomUUID(), 1, 2);}
 
         WorldState world = createWorld();
@@ -67,7 +67,8 @@ public class Main {
 
         if (!validator) {
             startRender(core, inputModule, networkNode, nodeId);
-        }    }
+        }
+    }
 
     private static final class NodeKeys {
 
@@ -127,7 +128,8 @@ public class Main {
     private static NetworkNode startNetwork(
             long nodeId,
             boolean host,
-            NodeKeys keys
+            NodeKeys keys,
+            NetworkTopology topology
     ) {
 
         NetworkConfig config =
@@ -141,7 +143,7 @@ public class Main {
                         keys.peerKey
                 );
 
-        return NetworkBootstrap.start(config, nodeId);
+        return NetworkBootstrap.start(config, nodeId, topology);
     }
 
     private static WorldState createWorld() {

@@ -1,10 +1,12 @@
 package network.bootstrap;
 
 import network.config.NetworkConfig;
+import network.config.NetworkTopology;
 import network.crypto.CryptoModule;
 import network.crypto.KeyPairData;
 import network.model.NodeId;
 import network.node.NetworkNode;
+import network.node.NodeInfo;
 import network.protocol.PacketSerializer;
 import network.transport.ConnectionListener;
 import network.transport.P2PConnection;
@@ -14,7 +16,7 @@ import java.security.KeyPair;
 
 public final class NetworkBootstrap {
 
-    public static NetworkNode start(NetworkConfig config, long nodeId) {
+    public static NetworkNode start(NetworkConfig config, long nodeId, NetworkTopology topology) {
         System.out.println("[NET] Starting node on port " + config.port + " host=" + config.host);
         PacketSerializer serializer = new PacketSerializer();
         CryptoModule crypto = new CryptoModule();
@@ -40,26 +42,29 @@ public final class NetworkBootstrap {
 
         });
 
-        for (long peer = nodeId + 1; peer <= 3; peer++) {
+        for (NodeInfo info : topology.nodes()) {
 
-            if (peer == nodeId)
+            if (info.nodeId <= nodeId)
                 continue;
 
             try {
 
-                Socket socket = new Socket(config.peerIp, config.peerPort);
+                Socket socket = new Socket(info.ip, info.port);
 
-                System.out.println("[NET] Connected to peer NodeId[" + peer + "]");
+                System.out.println("[NET] Connected to peer NodeId[" + info.nodeId + "]");
 
                 P2PConnection conn = new P2PConnection(socket);
 
                 node.addPeer(
-                        new NodeId(peer),
+                        new NodeId(info.nodeId),
                         conn,
-                        config.peerPublicKey
+                        info.publicKey
                 );
 
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+
+                System.out.println("[NET] Failed connect to NodeId[" + info.nodeId + "]");
+
             }
         }
 
