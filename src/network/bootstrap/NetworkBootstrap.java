@@ -19,8 +19,7 @@ public final class NetworkBootstrap {
         PacketSerializer serializer = new PacketSerializer();
         CryptoModule crypto = new CryptoModule();
 
-        NodeId localId = new NodeId(config.host ? 1 : 2);
-        NodeId peerId = new NodeId(config.host ? 2 : 1);
+        NodeId localId = new NodeId(nodeId);
 
         NetworkNode node =
                 new NetworkNode(
@@ -31,32 +30,39 @@ public final class NetworkBootstrap {
                         config.privateKey
                 );
 
-        if (config.host) {
-            ConnectionListener listener = new ConnectionListener(config.port);
-            listener.start(socket -> {
-                System.out.println("[NET] Incoming connection from " + socket.getRemoteSocketAddress());
+        ConnectionListener listener = new ConnectionListener(config.port);
+
+        listener.start(socket -> {
+
+            System.out.println("[NET] Incoming connection from " + socket.getRemoteSocketAddress());
+
+            P2PConnection conn = new P2PConnection(socket);
+
+        });
+
+        for (long peer = 1; peer <= 3; peer++) {
+
+            if (peer == nodeId)
+                continue;
+
+            try {
+
+                Socket socket = new Socket(config.peerIp, config.peerPort);
+
+                System.out.println("[NET] Connected to peer NodeId[" + peer + "]");
+
                 P2PConnection conn = new P2PConnection(socket);
 
                 node.addPeer(
-                        peerId,
+                        new NodeId(peer),
                         conn,
                         config.peerPublicKey
                 );
-            });
-        } else {
-            try {
-                Socket socket = new Socket(config.peerIp, config.peerPort);
-                System.out.println("[NET] Connected to peer " + socket.getRemoteSocketAddress());
-                P2PConnection conn = new P2PConnection(socket);
-                node.addPeer(
-                        peerId,
-                        conn,
-                        config.peerPublicKey
-                );
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+
+            } catch (Exception ignored) {
             }
         }
+
         return node;
     }
 }

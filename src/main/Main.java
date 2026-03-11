@@ -55,6 +55,9 @@ public class Main {
                 " validator=" + validator);
 
         NetworkNode networkNode = startNetwork(nodeId, host, keys);
+
+        if (host) {networkNode.startGame(java.util.UUID.randomUUID(), 1, 2);}
+
         WorldState world = createWorld();
         List<GameSystem> systems = createSystems();
         InputModule inputModule = new InputModule();
@@ -113,7 +116,7 @@ public class Main {
         List<NodeInfo> nodes = List.of(
                 new NodeInfo(1, "192.168.0.105", 7777, pubKey1),
                 new NodeInfo(2, "192.168.0.103", 7777, pubKey2),
-                new NodeInfo(3, "192.168.0.100", 7777, pubKey3)
+                new NodeInfo(3, "192.168.0.109", 7777, pubKey3)
         );
 
         return new NetworkTopology(nodes);

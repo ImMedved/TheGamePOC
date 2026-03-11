@@ -125,6 +125,12 @@ public final class NetworkNode {
 
             case INPUT -> {
 
+                lockstep.receiveRemoteInput(
+                        packet.sender(),
+                        packet.tickNumber(),
+                        packet.payload()
+                );
+
                 if (isValidator) {
                     validateMove(packet);
                 }
@@ -234,11 +240,11 @@ public final class NetworkNode {
 
     private void handleGameStart(NetworkPacket packet) {
 
-        GameStartPayload payload =
-                GameStartPayload.fromBytes(packet.payload());
+        GameStartPayload payload = GameStartPayload.fromBytes(packet.payload());
 
+        if (currentGameId != null)
+            return;
         currentGameId = payload.gameId;
-
         System.out.println("[GAME] start " + payload.gameId);
 
         consensusExecutor.submit(() -> runVdfAndSelectValidator(payload));

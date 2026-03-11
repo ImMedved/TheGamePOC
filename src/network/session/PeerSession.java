@@ -103,8 +103,8 @@ public final class PeerSession {
         if (seq <= lastReceivedSequence)
             return false;
 
-        lastReceivedSequence = seq;
         System.out.println("[NET] Sequence check: last=" + lastReceivedSequence + " new=" + seq);
+        lastReceivedSequence = seq;
         return true;
     }
 
