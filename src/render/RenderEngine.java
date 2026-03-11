@@ -104,14 +104,6 @@ public final class RenderEngine {
         int selected = menuRenderer.getSelectedCharacterId();
         core.setSelectedCharacter(selected);
 
-        UUID gameId = UUID.randomUUID();
-
-        networkNode.startGame(
-                gameId,
-                localPlayerId,
-                remotePlayerId
-        );
-
         NetworkInputProvider provider =
                 new NetworkInputProvider(
                         networkNode,

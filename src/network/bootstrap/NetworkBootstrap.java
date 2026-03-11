@@ -39,6 +39,15 @@ public final class NetworkBootstrap {
             System.out.println("[NET] Incoming connection from " + socket.getRemoteSocketAddress());
 
             P2PConnection conn = new P2PConnection(socket);
+            long remoteId = resolveNodeId(socket.getInetAddress().getHostAddress(), topology);
+
+            NodeInfo info = topology.get(remoteId);
+
+            node.addPeer(
+                    new NodeId(remoteId),
+                    conn,
+                    info.publicKey
+            );
 
         });
 
@@ -70,4 +79,17 @@ public final class NetworkBootstrap {
 
         return node;
     }
+
+    private static long resolveNodeId(String ip, NetworkTopology topology) {
+
+        for (NodeInfo info : topology.nodes()) {
+
+            if (info.ip.equals(ip)) {
+                return info.nodeId;
+            }
+        }
+
+        throw new IllegalStateException("Unknown peer ip " + ip);
+    }
+
 }

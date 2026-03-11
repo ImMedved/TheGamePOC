@@ -56,7 +56,7 @@ public class Main {
                 " validator=" + validator);
 
         NetworkNode networkNode = startNetwork(nodeId, host, keys, topology);
-        Thread.sleep(2000);
+        Thread.sleep(20000);
         if (host) {networkNode.startGame(UUID.randomUUID(), 1, 2);}
 
         WorldState world = createWorld();
