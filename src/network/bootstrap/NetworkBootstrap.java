@@ -40,7 +40,7 @@ public final class NetworkBootstrap {
 
         });
 
-        for (long peer = 1; peer <= 3; peer++) {
+        for (long peer = nodeId + 1; peer <= 3; peer++) {
 
             if (peer == nodeId)
                 continue;

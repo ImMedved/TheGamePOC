@@ -29,6 +29,7 @@ import java.util.List;
 import java.security.*;
 import java.security.spec.*;
 import java.util.Base64;
+import java.util.UUID;
 
 public class Main {
 
@@ -56,7 +57,7 @@ public class Main {
 
         NetworkNode networkNode = startNetwork(nodeId, host, keys);
 
-        if (host) {networkNode.startGame(java.util.UUID.randomUUID(), 1, 2);}
+        if (host) {networkNode.startGame(UUID.randomUUID(), 1, 2);}
 
         WorldState world = createWorld();
         List<GameSystem> systems = createSystems();
@@ -64,8 +65,9 @@ public class Main {
 
         CoreEngine core = new CoreEngine(world, systems, new ProjectileRegistry(4), networkNode);
 
-        startRender(core, inputModule, networkNode, nodeId);
-    }
+        if (!validator) {
+            startRender(core, inputModule, networkNode, nodeId);
+        }    }
 
     private static final class NodeKeys {
 

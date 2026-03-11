@@ -59,9 +59,11 @@ public final class P2PConnection {
 
             } catch (IOException e) {
 
-                if (running) {
-                    e.printStackTrace();
-                }
+                running = false;
+
+                try {
+                    socket.close();
+                } catch (IOException ignored) {}
 
             }
 
