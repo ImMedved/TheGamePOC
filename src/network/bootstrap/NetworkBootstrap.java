@@ -56,24 +56,30 @@ public final class NetworkBootstrap {
             if (info.nodeId <= nodeId)
                 continue;
 
-            try {
+            while (true) {
+                try {
 
-                Socket socket = new Socket(info.ip, info.port);
+                    Socket socket = new Socket(info.ip, info.port);
 
-                System.out.println("[NET] Connected to peer NodeId[" + info.nodeId + "]");
+                    System.out.println("[NET] Connected to peer NodeId[" + info.nodeId + "]");
 
-                P2PConnection conn = new P2PConnection(socket);
+                    P2PConnection conn = new P2PConnection(socket);
 
-                node.addPeer(
-                        new NodeId(info.nodeId),
-                        conn,
-                        info.publicKey
-                );
+                    node.addPeer(
+                            new NodeId(info.nodeId),
+                            conn,
+                            info.publicKey
+                    );
 
-            } catch (Exception e) {
+                    break;
 
-                System.out.println("[NET] Failed connect to NodeId[" + info.nodeId + "]");
+                } catch (Exception e) {
 
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {}
+
+                }
             }
         }
 
