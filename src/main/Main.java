@@ -11,8 +11,6 @@ import input.InputModule;
 import network.bootstrap.NetworkBootstrap;
 import network.config.NetworkConfig;
 import network.config.NetworkTopology;
-import network.crypto.CryptoModule;
-import network.crypto.KeyPairData;
 import network.node.NetworkNode;
 import network.node.NodeInfo;
 import render.RenderEngine;
@@ -24,11 +22,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.List;
-
-import java.security.*;
-import java.security.spec.*;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 public class Main {
@@ -42,12 +37,15 @@ public class Main {
     static String C_PRIVATE = "MC4CAQAwBQYDK2VwBCIEIPQJmA9jF+7rV6t2fAvFp8ZUBKbjrKMg09uXBJgp7waP";
     static String C_PUBLIC  = "MCowBQYDK2VwAyEAQKk7uXH7Q1Xq2Y7jZ9m+Kp8yU6cV7cYHk4Zz9y4p5m0=";
 
+    private static ProjectileRegistry projectileRegistry;
+
     public static void main(String[] args) throws InterruptedException {
 
         boolean host = hasArg(args, "--host");
         boolean validator = hasArg(args, "--validator");
 
         long nodeId = host ? 1 : (validator ? 3 : 2);
+
         NodeKeys keys = loadKeys(nodeId);
         NetworkTopology topology = createTopology();
 
@@ -56,58 +54,49 @@ public class Main {
                 " validator=" + validator);
 
         NetworkNode networkNode = startNetwork(nodeId, host, keys, topology);
-        Thread.sleep(20000);
-        if (host) {networkNode.startGame(UUID.randomUUID(), 1, 2);}
+
+        Thread.sleep(2000);
+
+        if (host) {
+            networkNode.startGame(UUID.randomUUID(), 1, 2);
+        }
 
         WorldState world = createWorld();
-        List<GameSystem> systems = createSystems();
+
+        projectileRegistry = new ProjectileRegistry(4);
+        EffectRegistry effectRegistry = new EffectRegistry(4);
+
+        EffectConfigs.registerAll(effectRegistry);
+        ProjectileConfigs.registerAll(projectileRegistry);
+
+        List<GameSystem> systems = createSystems(projectileRegistry, effectRegistry);
+
         InputModule inputModule = new InputModule();
 
-        CoreEngine core = new CoreEngine(world, systems, new ProjectileRegistry(4), networkNode);
+        CoreEngine core = new CoreEngine(world, systems, projectileRegistry, networkNode);
 
         if (!validator) {
             startRender(core, inputModule, networkNode, nodeId);
         }
     }
 
-    private static final class NodeKeys {
+    private static List<GameSystem> createSystems(
+            ProjectileRegistry projectileRegistry,
+            EffectRegistry effectRegistry
+    ) {
 
-        final PrivateKey privateKey;
-        final PublicKey peerKey;
+        CharacterRegistry characterRegistry = new CharacterRegistry(4);
 
-        NodeKeys(PrivateKey privateKey, PublicKey peerKey) {
-            this.privateKey = privateKey;
-            this.peerKey = peerKey;
-        }
-    }
-
-    private static NodeKeys loadKeys(long nodeId) {
-
-        switch ((int) nodeId) {
-
-            case 1 -> {
-                return new NodeKeys(
-                        loadPrivate(A_PRIVATE),
-                        loadPublic(B_PUBLIC)
-                );
-            }
-
-            case 2 -> {
-                return new NodeKeys(
-                        loadPrivate(B_PRIVATE),
-                        loadPublic(A_PUBLIC)
-                );
-            }
-
-            case 3 -> {
-                return new NodeKeys(
-                        loadPrivate(C_PRIVATE),
-                        loadPublic(A_PUBLIC)
-                );
-            }
-
-            default -> throw new IllegalStateException();
-        }
+        return List.of(
+                new MovementSystem(characterRegistry),
+                new ProjectileSpawnSystem(projectileRegistry),
+                new ProjectileMoveSystem(),
+                new AbilitySystem(),
+                new EffectTickSystem(effectRegistry),
+                new CollisionSystem(),
+                new CameraSystem(),
+                new CooldownSystem()
+        );
     }
 
     private static NetworkTopology createTopology() {
@@ -117,7 +106,7 @@ public class Main {
         PublicKey pubKey3 = loadPublic(C_PUBLIC);
 
         List<NodeInfo> nodes = List.of(
-                new NodeInfo(1, "192.168.0.105", 7777, pubKey1),
+                new NodeInfo(1, "192.168.0.110", 7777, pubKey1),
                 new NodeInfo(2, "192.168.0.103", 7777, pubKey2),
                 new NodeInfo(3, "192.168.0.109", 7777, pubKey3)
         );
@@ -172,27 +161,6 @@ public class Main {
         return world;
     }
 
-    private static List<GameSystem> createSystems() {
-
-        CharacterRegistry characterRegistry = new CharacterRegistry(4);
-        ProjectileRegistry projectileRegistry = new ProjectileRegistry(4);
-        EffectRegistry effectRegistry = new EffectRegistry(4);
-
-        EffectConfigs.registerAll(effectRegistry);
-        ProjectileConfigs.registerAll(projectileRegistry);
-
-        return List.of(
-                new MovementSystem(characterRegistry),
-                new ProjectileSpawnSystem(projectileRegistry),
-                new ProjectileMoveSystem(),
-                new AbilitySystem(),
-                new EffectTickSystem(effectRegistry),
-                new CollisionSystem(),
-                new CameraSystem(),
-                new CooldownSystem()
-        );
-    }
-
     private static void startRender(
             CoreEngine core,
             InputModule input,
@@ -214,45 +182,69 @@ public class Main {
     }
 
     private static boolean hasArg(String[] args, String name) {
-
         for (String a : args) {
             if (a.equals(name)) return true;
         }
-
         return false;
     }
 
     private static PrivateKey loadPrivate(String base64) {
-
         try {
-
             byte[] bytes = Base64.getDecoder().decode(base64);
-
             KeyFactory factory = KeyFactory.getInstance("Ed25519");
-
-            return factory.generatePrivate(
-                    new PKCS8EncodedKeySpec(bytes)
-            );
-
+            return factory.generatePrivate(new PKCS8EncodedKeySpec(bytes));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private static PublicKey loadPublic(String base64) {
-
         try {
-
             byte[] bytes = Base64.getDecoder().decode(base64);
-
             KeyFactory factory = KeyFactory.getInstance("Ed25519");
-
-            return factory.generatePublic(
-                    new X509EncodedKeySpec(bytes)
-            );
-
+            return factory.generatePublic(new X509EncodedKeySpec(bytes));
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static final class NodeKeys {
+
+        final PrivateKey privateKey;
+        final PublicKey peerKey;
+
+        NodeKeys(PrivateKey privateKey, PublicKey peerKey) {
+            this.privateKey = privateKey;
+            this.peerKey = peerKey;
+        }
+    }
+
+    private static NodeKeys loadKeys(long nodeId) {
+
+        switch ((int) nodeId) {
+
+            case 1 -> {
+                return new NodeKeys(
+                        loadPrivate(A_PRIVATE),
+                        loadPublic(B_PUBLIC)
+                );
+            }
+
+            case 2 -> {
+                return new NodeKeys(
+                        loadPrivate(B_PRIVATE),
+                        loadPublic(A_PUBLIC)
+                );
+            }
+
+            case 3 -> {
+                return new NodeKeys(
+                        loadPrivate(C_PRIVATE),
+                        loadPublic(A_PUBLIC)
+                );
+            }
+
+            default -> throw new IllegalStateException();
         }
     }
 }
