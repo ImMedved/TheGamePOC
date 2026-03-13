@@ -118,6 +118,7 @@ public final class RenderEngine {
     }
 
     private void renderFrame(float alpha) {
+        long start = System.nanoTime();
         var window = sceneRenderer.getWindow();
 
         for (Event event : window.pollEvents()) {
@@ -142,6 +143,10 @@ public final class RenderEngine {
         if (snapshot == null) return;
 
         sceneRenderer.render(snapshot, alpha);
+
+        long end = System.nanoTime();
+        double ms = (end - start) / 1_000_000.0;
+        //System.out.println("[METRIC][RENDER] frame = " + ms + " ms");
     }
 
     private void shutdown() {

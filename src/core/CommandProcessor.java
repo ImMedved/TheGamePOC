@@ -105,7 +105,7 @@ public final class CommandProcessor {
                         p.speedMultiplier = c.multiplier();
                         p.speedBuffRemaining = c.duration();
                     }
-                    //System.out.println("Triggered ApplySpeedBoostCommand");
+                    System.out.println("[CORE] Triggered ApplySpeedBoostCommand");
                 }
 
                 case TeleportPlayerCommand c -> {
@@ -114,7 +114,7 @@ public final class CommandProcessor {
                         p.previousPosition = p.position.copy();
                         p.position.set(c.x(), c.y());
                     }
-                    //System.out.println("Triggered TeleportPlayerCommand");
+                    System.out.println("[CORE] Triggered TeleportPlayerCommand");
 
                 }
 
@@ -126,7 +126,7 @@ public final class CommandProcessor {
                             p.speedMultiplier = 1f;
                         }
                     }
-                    //System.out.println("Triggered UpdateSpeedBuffCommand");
+                    System.out.println("[CORE] Triggered UpdateSpeedBuffCommand");
 
                 }
 

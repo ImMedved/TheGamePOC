@@ -129,7 +129,7 @@ public final class RenderSnapshotBuilder {
                 PlayerState source = curr.players.get(effect.sourceId);
                 if (source != null) {
                     characterId = source.characterId;
-                    //System.out.println(source.characterId);
+                    System.out.println("[CORE] charId: " + source.characterId);
                 }
             }
 

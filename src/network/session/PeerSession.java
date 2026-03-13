@@ -62,9 +62,7 @@ public final class PeerSession {
             }
 
             packetHandler.accept(packet);
-            System.out.println("[NET] Packet received type=" + packet.type()
-                    + " tick=" + packet.tickNumber()
-                    + " seq=" + packet.sequenceNumber());
+            System.out.println("[NET] Packet received type=" + packet.type() + " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
         });
     }
 
@@ -82,17 +80,17 @@ public final class PeerSession {
 
         byte[] serialized =
                 serializer.serialize(unsigned);
-        System.out.println("VERIFY sender=" + packet.sender());
-        System.out.println("VERIFY seq=" + packet.sequenceNumber());
-        System.out.println("VERIFY tick=" + packet.tickNumber());
+        //System.out.println("[NET] VERIFY sender=" + packet.sender());
+        //System.out.println("[NET] VERIFY seq=" + packet.sequenceNumber());
+        //System.out.println("[NET] VERIFY tick=" + packet.tickNumber());
         boolean ok = crypto.verify(
                 serialized,
                 packet.signature(),
                 peerPublicKey);
 
-        System.out.println("[NET] Verify result=" + ok);
+        //System.out.println("[NET] Verify result=" + ok);
         byte[] serializedCounter = serializer.serialize(unsigned);
-        System.out.println("VERIFY bytes=" + serializedCounter.length);
+        //System.out.println("[NET] VERIFY bytes=" + serializedCounter.length);
         return ok;
     }
 

@@ -225,7 +225,7 @@ public final class NetworkNode {
 
     private void onDesync(Integer tick) {
 
-        System.out.println("DESYNC detected at tick: " + tick);
+        System.out.println("[NET] DESYNC detected at tick: " + tick);
     }
     public Map<NodeId, byte[]> waitForInputs(int tick) {
         return lockstep.waitForInputs(tick);
@@ -245,7 +245,7 @@ public final class NetworkNode {
         if (currentGameId != null)
             return;
         currentGameId = payload.gameId;
-        System.out.println("[GAME] start " + payload.gameId);
+        System.out.println("[GAME][NET] start " + payload.gameId);
 
         consensusExecutor.submit(() -> runVdfAndSelectValidator(payload));
     }
@@ -272,7 +272,7 @@ public final class NetworkNode {
 
         byte[] entropy = vdf.compute(seed);
 
-        System.out.println("[VDF] entropy=" + bytesToHex(entropy));
+        System.out.println("[VDF][NET] entropy=" + bytesToHex(entropy));
 
         long validator = selector.selectValidator(
                 entropy,

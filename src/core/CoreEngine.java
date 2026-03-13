@@ -104,6 +104,8 @@ public final class CoreEngine {
 
     private void tick(InputFrame frame, long localPlayerId) {
         System.out.println("[CORE] Tick triggered");
+        long start = System.nanoTime();
+
         if (pendingCharacterId != null) {
             System.out.println("[CORE] Players count: " + currentWorld.players.size());
             for (var player : currentWorld.players.values()) {
@@ -201,6 +203,11 @@ public final class CoreEngine {
 
         previousWorld = nextWorld;
         currentWorld = nextWorld;
+
+        long end = System.nanoTime();
+        double ms = (end - start) / 1_000_000.0;
+
+        System.out.println("[METRIC][CORE] tick time = " + ms + " ms");
     }
 
     public RenderSnapshot getRenderSnapshot() {

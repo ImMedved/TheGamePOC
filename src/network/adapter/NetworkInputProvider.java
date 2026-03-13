@@ -60,7 +60,14 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
                 codec.encode(local)
         );
 
+        long start = System.nanoTime();
+
         Map<NodeId, byte[]> inputs = network.waitForInputs(tick);
+
+        long end = System.nanoTime();
+
+        double ms = (end - start) / 1_000_000.0;
+        System.out.println("[METRIC][NET] input wait = " + ms + " ms");
 
         InputSnapshot remote = null;
 
