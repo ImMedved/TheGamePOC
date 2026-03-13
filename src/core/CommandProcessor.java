@@ -30,6 +30,8 @@ public final class CommandProcessor {
                         player.position.set(m.newX(), m.newY());
                         player.velocity.set(m.velocityX(), m.velocityY());
                     }
+                    System.out.println("[CMD] move for player=" + m.playerId());
+                    System.out.println("[CMD] players in world=" + next.players.keySet());
                 }
 
                 case ChangeCharacterCommand c -> {

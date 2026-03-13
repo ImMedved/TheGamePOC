@@ -14,13 +14,17 @@ public final class CharacterRegistry {
     }
 
     public CharacterDefinition get(int id) {
+        System.out.println("[CHAR REG] id: " + id + " definitions.length: " + definitions.length);
         if (id < 0 || id >= definitions.length)
             throw new IllegalArgumentException("Invalid character id: " + id);
 
         CharacterDefinition def = definitions[id];
-        if (def == null)
+        if (def == null) {
+            System.out.println("def == null");
             throw new IllegalStateException("Character not registered: " + id);
-
+        }else{
+            System.out.println("Else in if (def == null) check");
+        }
         return def;
     }
 

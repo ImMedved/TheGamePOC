@@ -13,6 +13,8 @@ public final class InputCodec {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(baos);
 
+            System.out.println("[ENCODE] moveX=" + input.moveX + " moveY=" + input.moveY + " tick=" + input.tick);
+
             out.writeInt(input.tick);
             out.writeLong(input.ownerId);
 
@@ -58,6 +60,8 @@ public final class InputCodec {
             boolean key1 = in.readBoolean();
             boolean key2 = in.readBoolean();
             boolean key3 = in.readBoolean();
+
+            System.out.println("[DECODE] moveX=" + moveX + " moveY=" + moveY + " tick=" + tick);
 
             return new InputSnapshot(
                     tick,

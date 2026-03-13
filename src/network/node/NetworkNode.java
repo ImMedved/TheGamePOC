@@ -58,7 +58,7 @@ public final class NetworkNode {
     }
 
     public void startGame(UUID gameId, long playerA, long playerB) {
-        System.out.println("[NETWORK] GAME_START received");
+        //System.out.println("[NETWORK] GAME_START received");
         GameStartPayload payload =
                 new GameStartPayload(gameId, playerA, playerB);
 
@@ -93,7 +93,7 @@ public final class NetworkNode {
                 );
 
         broadcast(signed);
-        System.out.println("[NETWORK] GAME_START sent seq=" + seq);
+        //System.out.println("[NETWORK] GAME_START sent seq=" + seq);
 
     }
 
@@ -120,7 +120,7 @@ public final class NetworkNode {
             NodeId peer,
             NetworkPacket packet
     ) {
-        System.out.println("[NET] Handling packet type=" + packet.type() + " tick=" + packet.tickNumber());
+        //System.out.println("[NET] Handling packet type=" + packet.type() + " tick=" + packet.tickNumber());
         switch (packet.type()) {
 
             case INPUT -> {
@@ -225,7 +225,7 @@ public final class NetworkNode {
 
     private void onDesync(Integer tick) {
 
-        System.out.println("[NET] DESYNC detected at tick: " + tick);
+        //System.out.println("[NET] DESYNC detected at tick: " + tick);
     }
     public Map<NodeId, byte[]> waitForInputs(int tick) {
         return lockstep.waitForInputs(tick);
@@ -272,7 +272,7 @@ public final class NetworkNode {
 
         byte[] entropy = vdf.compute(seed);
 
-        System.out.println("[VDF][NET] entropy=" + bytesToHex(entropy));
+        //System.out.println("[VDF][NET] entropy=" + bytesToHex(entropy));
 
         long validator = selector.selectValidator(
                 entropy,
@@ -283,7 +283,7 @@ public final class NetworkNode {
 
         isValidator = validatorNodeId.equals(localNodeId);
 
-        System.out.println("[CONSENSUS] validator=" + validatorNodeId);
+        //System.out.println("[CONSENSUS] validator=" + validatorNodeId);
 
         if (isValidator) {
             System.out.println("[ROLE] this node is VALIDATOR");

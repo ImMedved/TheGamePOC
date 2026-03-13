@@ -39,7 +39,7 @@ public class Main {
 
     private static ProjectileRegistry projectileRegistry;
 
-    public static void main(String[] args) throws InterruptedException {
+    static void main(String[] args) throws InterruptedException {
 
         boolean host = hasArg(args, "--host");
         boolean validator = hasArg(args, "--validator");
@@ -49,9 +49,7 @@ public class Main {
         NodeKeys keys = loadKeys(nodeId);
         NetworkTopology topology = createTopology();
 
-        System.out.println("[NODE] id=" + nodeId +
-                " host=" + host +
-                " validator=" + validator);
+        //System.out.println("[NODE] id=" + nodeId + " host=" + host + " validator=" + validator);
 
         NetworkNode networkNode = startNetwork(nodeId, host, keys, topology);
 
@@ -87,6 +85,19 @@ public class Main {
 
         CharacterRegistry characterRegistry = new CharacterRegistry(4);
 
+        CharacterDefinition c1 = new CharacterDefinition(1);
+        c1.baseSpeed = 220f;
+        c1.baseHealth = 100f;
+        c1.baseHitboxRadius = 20f;
+        characterRegistry.register(c1);
+
+        CharacterDefinition c2 = new CharacterDefinition(2);
+        c2.baseSpeed = 220f;
+        c2.baseHealth = 100f;
+        c2.baseHitboxRadius = 20f;
+        characterRegistry.register(c2);
+
+        System.out.println("[REGISTRY INIT] registry=" + characterRegistry.hashCode());
         return List.of(
                 new MovementSystem(characterRegistry),
                 new ProjectileSpawnSystem(projectileRegistry),

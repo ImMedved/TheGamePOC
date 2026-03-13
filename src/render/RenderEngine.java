@@ -111,7 +111,7 @@ public final class RenderEngine {
                         localPlayerId,
                         remotePlayerId
                 );
-        System.out.println("[RENDER] RenderEngine.startGame triggered core.start(provider, localPlayerId)");
+        //System.out.println("[RENDER] RenderEngine.startGame triggered core.start(provider, localPlayerId)");
         core.start(provider, localPlayerId);
 
         mode = AppMode.GAME;

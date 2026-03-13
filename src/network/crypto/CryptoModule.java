@@ -39,7 +39,7 @@ public final class CryptoModule {
     public boolean verify(byte[] data,
                           byte[] signatureBytes,
                           PublicKey publicKey) {
-        System.out.println("[CORE] signatureBytes length is: " + signatureBytes.length);
+        //System.out.println("[CORE] signatureBytes length is: " + signatureBytes.length);
 
         try {
             Signature signature = Signature.getInstance("Ed25519");

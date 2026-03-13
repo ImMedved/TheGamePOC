@@ -62,7 +62,7 @@ public final class PeerSession {
             }
 
             packetHandler.accept(packet);
-            System.out.println("[NET] Packet received type=" + packet.type() + " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
+            //System.out.println("[NET] Packet received type=" + packet.type() + " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
         });
     }
 
@@ -101,15 +101,13 @@ public final class PeerSession {
         if (seq <= lastReceivedSequence)
             return false;
 
-        System.out.println("[NET] Sequence check: last=" + lastReceivedSequence + " new=" + seq);
+        //System.out.println("[NET] Sequence check: last=" + lastReceivedSequence + " new=" + seq);
         lastReceivedSequence = seq;
         return true;
     }
 
     public void sendPacket(NetworkPacket packet) {
-        System.out.println("[NET] SEND packet type=" + packet.type()
-                + " tick=" + packet.tickNumber()
-                + " seq=" + packet.sequenceNumber());
+        //System.out.println("[NET] SEND packet type=" + packet.type()+ " tick=" + packet.tickNumber()+ " seq=" + packet.sequenceNumber());
 
         byte[] data =
                 serializer.serialize(packet);

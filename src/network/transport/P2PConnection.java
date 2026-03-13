@@ -53,8 +53,8 @@ public final class P2PConnection {
                     in.readFully(data);
 
                     packetHandler.accept(data);
-                    System.out.println("Triggered packetHandler.accept(data) from P2PConnection.startReceiving:");
-                    System.out.println("[NET] Transport received bytes=" + data.length);
+                    //System.out.println("Triggered packetHandler.accept(data) from P2PConnection.startReceiving:");
+                    //System.out.println("[NET] Transport received bytes=" + data.length);
                 }
 
             } catch (IOException e) {
@@ -75,7 +75,7 @@ public final class P2PConnection {
     public synchronized void send(byte[] data) {
 
         try {
-            System.out.println("[NET] Transport send bytes=" + data.length);
+            //System.out.println("[NET] Transport send bytes=" + data.length);
             out.writeInt(data.length);
 
             out.write(data);
