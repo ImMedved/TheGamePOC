@@ -39,7 +39,7 @@ public class Main {
 
     private static ProjectileRegistry projectileRegistry;
 
-    static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
 
         boolean host = hasArg(args, "--host");
         boolean validator = hasArg(args, "--validator");
@@ -49,7 +49,7 @@ public class Main {
         NodeKeys keys = loadKeys(nodeId);
         NetworkTopology topology = createTopology();
 
-        //System.out.println("[NODE] id=" + nodeId + " host=" + host + " validator=" + validator);
+        util.Log.info("[NODE] id=" + nodeId + " host=" + host + " validator=" + validator);
 
         NetworkNode networkNode = startNetwork(nodeId, host, keys, topology);
 
@@ -97,7 +97,7 @@ public class Main {
         c2.baseHitboxRadius = 20f;
         characterRegistry.register(c2);
 
-        System.out.println("[REGISTRY INIT] registry=" + characterRegistry.hashCode());
+        util.Log.debug("[REGISTRY INIT] registry=" + characterRegistry.hashCode());
         return List.of(
                 new MovementSystem(characterRegistry),
                 new ProjectileSpawnSystem(projectileRegistry),
@@ -117,9 +117,9 @@ public class Main {
         PublicKey pubKey3 = loadPublic(C_PUBLIC);
 
         List<NodeInfo> nodes = List.of(
-                new NodeInfo(1, "192.168.0.110", 7777, pubKey1),
-                new NodeInfo(2, "192.168.0.103", 7777, pubKey2),
-                new NodeInfo(3, "192.168.0.109", 7777, pubKey3)
+                new NodeInfo(1, "node1", 7777, pubKey1),
+                new NodeInfo(2, "node2", 7777, pubKey2),
+                new NodeInfo(3, "node3", 7777, pubKey3)
         );
 
         return new NetworkTopology(nodes);
@@ -136,7 +136,7 @@ public class Main {
                 new NetworkConfig(
                         nodeId,
                         host,
-                        "192.168.0.103",
+                        System.getenv().getOrDefault("HOST", "node2"),
                         7777,
                         7777,
                         keys.privateKey,

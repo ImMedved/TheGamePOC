@@ -62,7 +62,7 @@ public final class EffectRenderer {
                        BatchManager batchManager) {
 
         for (RenderEffect e : effects) {
-            //System.out.println("effects count: " + effects.size());
+            util.Log.debug("[RENDER] effects count=" + effects.size());
 
             float screenX = camera.worldToScreenX(e.x);
             float screenY = camera.worldToScreenY(e.y);
@@ -72,7 +72,7 @@ public final class EffectRenderer {
                 case DASH_TRACE -> {
                     VertexBatch batch = batchManager.getBatch(dashMaterial);
                     renderDash(e, camera, batch);
-                    //System.out.println("Trigger DASH_TRACE");
+                    util.Log.debug("[RENDER] DASH_TRACE");
 
                 }
 
@@ -103,7 +103,6 @@ public final class EffectRenderer {
         float dy = endY - startY;
 
         float length = (float)Math.sqrt(dx * dx + dy * dy);
-        //System.out.println("dx: " + e.dx + " dy: " + e.dy);
         if (length <= 0.001f) return;
 
         float nx = dx / length;
@@ -193,7 +192,6 @@ public final class EffectRenderer {
 
         float tileSize = 53f;
         float uOffset = e.characterId * tileSize;
-        //System.out.println(e.characterId);
 
         batch.getVertexArray().add(new Vertex(new Vector2f(x0, y0),
                 new Color(255,255,255,alpha), new Vector2f(uOffset, 0)));

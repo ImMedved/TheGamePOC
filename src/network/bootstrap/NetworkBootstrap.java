@@ -17,7 +17,7 @@ import java.security.KeyPair;
 public final class NetworkBootstrap {
 
     public static NetworkNode start(NetworkConfig config, long nodeId, NetworkTopology topology) {
-        //System.out.println("[NET] Starting node on port " + config.port + " host=" + config.host);
+        util.Log.info("[NET] Starting node on port " + config.port + " host=" + config.host);
         PacketSerializer serializer = new PacketSerializer();
         CryptoModule crypto = new CryptoModule();
 
@@ -36,10 +36,11 @@ public final class NetworkBootstrap {
 
         listener.start(socket -> {
 
-            System.out.println("[NET] Incoming connection from " + socket.getRemoteSocketAddress());
+            util.Log.info("[NET] Incoming connection from " + socket.getRemoteSocketAddress());
 
             P2PConnection conn = new P2PConnection(socket);
-            long remoteId = resolveNodeId(socket.getInetAddress().getHostAddress(), topology);
+            long remoteId = conn.readPeerNodeId();
+            conn.sendLocalNodeId(nodeId);
 
             NodeInfo info = topology.get(remoteId);
 
@@ -61,9 +62,18 @@ public final class NetworkBootstrap {
 
                     Socket socket = new Socket(info.ip, info.port);
 
-                    System.out.println("[NET] Connected to peer NodeId[" + info.nodeId + "]");
+                    util.Log.info("[NET] Connected to peer NodeId[" + info.nodeId + "]");
 
                     P2PConnection conn = new P2PConnection(socket);
+                    conn.sendLocalNodeId(nodeId);
+                    long remoteId = conn.readPeerNodeId();
+
+                    if (remoteId != info.nodeId) {
+                        throw new IllegalStateException(
+                                "Connected to unexpected node. expected=" + info.nodeId +
+                                        " actual=" + remoteId
+                        );
+                    }
 
                     node.addPeer(
                             new NodeId(info.nodeId),
@@ -74,28 +84,21 @@ public final class NetworkBootstrap {
                     break;
 
                 } catch (Exception e) {
+                    util.Log.debug("[NET] Waiting for NodeId[" + info.nodeId +
+                            "]: " + e.getMessage());
 
                     try {
                         Thread.sleep(1000);
-                    } catch (InterruptedException ignored) {}
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException("Network bootstrap interrupted", interrupted);
+                    }
 
                 }
             }
         }
 
         return node;
-    }
-
-    private static long resolveNodeId(String ip, NetworkTopology topology) {
-
-        for (NodeInfo info : topology.nodes()) {
-
-            if (info.ip.equals(ip)) {
-                return info.nodeId;
-            }
-        }
-
-        throw new IllegalStateException("Unknown peer ip " + ip);
     }
 
 }

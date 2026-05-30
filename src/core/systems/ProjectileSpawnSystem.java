@@ -63,14 +63,12 @@ public final class ProjectileSpawnSystem implements GameSystem {
             float dx = worldMouseX - player.position.x;
             float dy = worldMouseY - player.position.y;
 
-            // System.out.println("Mouse raw posX: " + context.input().mouseX + " Mouse dx: " + dx);
             float len = (float) Math.sqrt(dx * dx + dy * dy);
             if (len == 0f) continue;
 
             float vx = (dx / len) * def.speed;
             float vy = (dy / len) * def.speed;
 
-            // System.out.println("Spawn lifetime: " + def.lifetime);
 
             context.addCommand(new SpawnProjectileCommand(
                             context.nextId(),

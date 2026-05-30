@@ -18,7 +18,7 @@ public final class ConnectionListener {
         try {
 
             serverSocket = new ServerSocket(port);
-            System.out.println("Listener initiation");
+            util.Log.info("[NET] Listener started on port " + port);
 
         } catch (IOException e) {
             throw new RuntimeException("Listener init failed", e);
@@ -42,7 +42,7 @@ public final class ConnectionListener {
                 } catch (IOException e) {
 
                     if (running)
-                        e.printStackTrace();
+                        util.Log.error("[NET] Listener accept failed", e);
                 }
             }
 

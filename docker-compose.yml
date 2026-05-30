@@ -1,0 +1,49 @@
+services:
+  player1:
+    build: .
+    container_name: thegame-player1
+    command: ["java", "-cp", "target/classes:lib/jsfml.jar", "main.Main", "--host"]
+    environment:
+      DISPLAY: ${DISPLAY:-host.docker.internal:0.0}
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      MESA_GL_VERSION_OVERRIDE: "2.1"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "7777:7777"
+    networks:
+      game:
+        aliases:
+          - node1
+
+  player2:
+    build: .
+    container_name: thegame-player2
+    command: ["java", "-cp", "target/classes:lib/jsfml.jar", "main.Main"]
+    depends_on:
+      - player1
+    environment:
+      DISPLAY: ${DISPLAY:-host.docker.internal:0.0}
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      MESA_GL_VERSION_OVERRIDE: "2.1"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    networks:
+      game:
+        aliases:
+          - node2
+
+  validator:
+    build: .
+    container_name: thegame-validator
+    command: ["java", "-cp", "target/classes:lib/jsfml.jar", "main.Main", "--validator"]
+    depends_on:
+      - player1
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    networks:
+      game:
+        aliases:
+          - node3
+
+networks:
+  game:
+    name: thegamepoc_game

@@ -54,15 +54,19 @@ public final class PeerSession {
                     serializer.deserialize(data);
 
             if (!verifyPacket(packet)) {
+                util.Log.warn("[NET] Rejected packet with invalid signature from " + peerId);
                 return;
             }
 
             if (!checkSequence(packet)) {
+                util.Log.warn("[NET] Rejected stale packet from " + peerId +
+                        " seq=" + packet.sequenceNumber());
                 return;
             }
 
             packetHandler.accept(packet);
-            //System.out.println("[NET] Packet received type=" + packet.type() + " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
+            util.Log.debug("[NET] Packet received type=" + packet.type() +
+                    " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
         });
     }
 
@@ -80,17 +84,17 @@ public final class PeerSession {
 
         byte[] serialized =
                 serializer.serialize(unsigned);
-        //System.out.println("[NET] VERIFY sender=" + packet.sender());
-        //System.out.println("[NET] VERIFY seq=" + packet.sequenceNumber());
-        //System.out.println("[NET] VERIFY tick=" + packet.tickNumber());
         boolean ok = crypto.verify(
                 serialized,
                 packet.signature(),
                 peerPublicKey);
 
-        //System.out.println("[NET] Verify result=" + ok);
         byte[] serializedCounter = serializer.serialize(unsigned);
-        //System.out.println("[NET] VERIFY bytes=" + serializedCounter.length);
+        util.Log.debug("[NET] Verify sender=" + packet.sender() +
+                " seq=" + packet.sequenceNumber() +
+                " tick=" + packet.tickNumber() +
+                " bytes=" + serializedCounter.length +
+                " result=" + ok);
         return ok;
     }
 
@@ -101,13 +105,14 @@ public final class PeerSession {
         if (seq <= lastReceivedSequence)
             return false;
 
-        //System.out.println("[NET] Sequence check: last=" + lastReceivedSequence + " new=" + seq);
+        util.Log.debug("[NET] Sequence check last=" + lastReceivedSequence + " new=" + seq);
         lastReceivedSequence = seq;
         return true;
     }
 
     public void sendPacket(NetworkPacket packet) {
-        //System.out.println("[NET] SEND packet type=" + packet.type()+ " tick=" + packet.tickNumber()+ " seq=" + packet.sequenceNumber());
+        util.Log.debug("[NET] SEND packet type=" + packet.type() +
+                " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
 
         byte[] data =
                 serializer.serialize(packet);

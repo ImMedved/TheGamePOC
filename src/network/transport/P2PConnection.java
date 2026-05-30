@@ -53,13 +53,13 @@ public final class P2PConnection {
                     in.readFully(data);
 
                     packetHandler.accept(data);
-                    //System.out.println("Triggered packetHandler.accept(data) from P2PConnection.startReceiving:");
-                    //System.out.println("[NET] Transport received bytes=" + data.length);
+                    util.Log.debug("[NET] Transport received bytes=" + data.length);
                 }
 
             } catch (IOException e) {
 
                 running = false;
+                util.Log.info("[NET] Connection closed: " + e.getMessage());
 
                 try {
                     socket.close();
@@ -72,10 +72,27 @@ public final class P2PConnection {
         receiveThread.start();
     }
 
+    public long readPeerNodeId() {
+        try {
+            return in.readLong();
+        } catch (IOException e) {
+            throw new RuntimeException("Node handshake read failed", e);
+        }
+    }
+
+    public synchronized void sendLocalNodeId(long nodeId) {
+        try {
+            out.writeLong(nodeId);
+            out.flush();
+        } catch (IOException e) {
+            throw new RuntimeException("Node handshake write failed", e);
+        }
+    }
+
     public synchronized void send(byte[] data) {
 
         try {
-            //System.out.println("[NET] Transport send bytes=" + data.length);
+            util.Log.debug("[NET] Transport send bytes=" + data.length);
             out.writeInt(data.length);
 
             out.write(data);

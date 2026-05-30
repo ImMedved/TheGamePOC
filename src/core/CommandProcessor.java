@@ -30,8 +30,8 @@ public final class CommandProcessor {
                         player.position.set(m.newX(), m.newY());
                         player.velocity.set(m.velocityX(), m.velocityY());
                     }
-                    System.out.println("[CMD] move for player=" + m.playerId());
-                    System.out.println("[CMD] players in world=" + next.players.keySet());
+                    util.Log.debug("[CMD] move for player=" + m.playerId());
+                    util.Log.debug("[CMD] players in world=" + next.players.keySet());
                 }
 
                 case ChangeCharacterCommand c -> {
@@ -107,7 +107,7 @@ public final class CommandProcessor {
                         p.speedMultiplier = c.multiplier();
                         p.speedBuffRemaining = c.duration();
                     }
-                    System.out.println("[CORE] Triggered ApplySpeedBoostCommand");
+                    util.Log.debug("[CORE] Triggered ApplySpeedBoostCommand");
                 }
 
                 case TeleportPlayerCommand c -> {
@@ -116,7 +116,7 @@ public final class CommandProcessor {
                         p.previousPosition = p.position.copy();
                         p.position.set(c.x(), c.y());
                     }
-                    System.out.println("[CORE] Triggered TeleportPlayerCommand");
+                    util.Log.debug("[CORE] Triggered TeleportPlayerCommand");
 
                 }
 
@@ -128,7 +128,7 @@ public final class CommandProcessor {
                             p.speedMultiplier = 1f;
                         }
                     }
-                    System.out.println("[CORE] Triggered UpdateSpeedBuffCommand");
+                    util.Log.debug("[CORE] Triggered UpdateSpeedBuffCommand");
 
                 }
 

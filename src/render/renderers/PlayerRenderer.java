@@ -49,8 +49,6 @@ public final class PlayerRenderer {
 
             float x = p.prevX + (p.currX - p.prevX) * alpha;
             float y = p.prevY + (p.currY - p.prevY) * alpha;
-            // System.out.println("new frame player: " + x + "<- x" + y + "<- y");
-
             float screenX = camera.worldToScreenX(x);
             float screenY = camera.worldToScreenY(y);
 

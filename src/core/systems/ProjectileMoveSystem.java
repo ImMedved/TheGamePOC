@@ -45,7 +45,6 @@ public final class ProjectileMoveSystem implements GameSystem {
                     )
             );
 
-            // System.out.println("p.maxDistance is: " + p.maxDistance + " newDistance is: " + newDistance);
             if (p.maxDistance > 0f && newDistance >= p.maxDistance) {
 
                 context.addCommand(
@@ -62,7 +61,6 @@ public final class ProjectileMoveSystem implements GameSystem {
 
                 context.addCommand(new RemoveProjectileCommand(p.id));
             }
-            //System.out.println("Elapsed: " + p.elapsed);
         }
     }
 }

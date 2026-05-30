@@ -15,7 +15,7 @@ public final class MovementSystem implements GameSystem {
 
     public MovementSystem(CharacterRegistry registry) {
         this.characterRegistry = registry;
-        System.out.println("[MOVE SYS] registry=" + registry.hashCode());
+        util.Log.debug("[MOVE SYS] registry=" + registry.hashCode());
     }
 
     @Override
@@ -32,13 +32,11 @@ public final class MovementSystem implements GameSystem {
                 .toList()) {
             InputSnapshot input = context.input(player.id);
 
-            System.out.println("[MOVE SYS] moveX=" + input.moveX + " moveY=" + input.moveY);
-            //System.out.println("[MOVE SYS] is player.alive?:" +  player.alive);
-
+            util.Log.debug("[MOVE SYS] moveX=" + input.moveX + " moveY=" + input.moveY);
             CharacterDefinition def = characterRegistry.get(Math.max(1, player.characterId));
 
             float speed = def.baseSpeed * player.speedMultiplier;
-            System.out.println(
+            util.Log.debug(
                     "[MOVE SYS] character=" + player.characterId +
                             " speed=" + speed +
                             " multiplier=" + player.speedMultiplier
@@ -48,7 +46,7 @@ public final class MovementSystem implements GameSystem {
 
             float newX = player.position.x + dx;
             float newY = player.position.y + dy;
-            System.out.println(
+            util.Log.debug(
                     "[MOVE SYS] player=" + player.id +
                             " input=(" + input.moveX + "," + input.moveY + ")"
             );
@@ -60,7 +58,7 @@ public final class MovementSystem implements GameSystem {
                             dy / context.dt()
                     )
             );
-            System.out.println("[MOVE SYS] creating MovePlayerCommand for " + player.id);
+            util.Log.debug("[MOVE SYS] creating MovePlayerCommand for " + player.id);
         }
     }
 }

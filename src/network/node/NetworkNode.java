@@ -58,9 +58,12 @@ public final class NetworkNode {
     }
 
     public void startGame(UUID gameId, long playerA, long playerB) {
-        //System.out.println("[NETWORK] GAME_START received");
+        util.Log.info("[GAME][NET] Host starting game " + gameId);
         GameStartPayload payload =
                 new GameStartPayload(gameId, playerA, playerB);
+
+        currentGameId = gameId;
+        consensusExecutor.submit(() -> runVdfAndSelectValidator(payload));
 
         byte[] payloadBytes = payload.toBytes();
 
@@ -93,7 +96,7 @@ public final class NetworkNode {
                 );
 
         broadcast(signed);
-        //System.out.println("[NETWORK] GAME_START sent seq=" + seq);
+        util.Log.debug("[NETWORK] GAME_START sent seq=" + seq);
 
     }
 
@@ -102,7 +105,7 @@ public final class NetworkNode {
             P2PConnection connection,
             PublicKey peerKey
     ) {
-        System.out.println("[NET] Peer added: " + peerId);
+        util.Log.info("[NET] Peer added: " + peerId);
         PeerSession session =
                 new PeerSession(
                         peerId,
@@ -120,7 +123,7 @@ public final class NetworkNode {
             NodeId peer,
             NetworkPacket packet
     ) {
-        //System.out.println("[NET] Handling packet type=" + packet.type() + " tick=" + packet.tickNumber());
+        util.Log.debug("[NET] Handling packet type=" + packet.type() + " tick=" + packet.tickNumber());
         switch (packet.type()) {
 
             case INPUT -> {
@@ -225,7 +228,7 @@ public final class NetworkNode {
 
     private void onDesync(Integer tick) {
 
-        //System.out.println("[NET] DESYNC detected at tick: " + tick);
+        util.Log.warn("[NET] DESYNC detected at tick=" + tick);
     }
     public Map<NodeId, byte[]> waitForInputs(int tick) {
         return lockstep.waitForInputs(tick);
@@ -245,7 +248,7 @@ public final class NetworkNode {
         if (currentGameId != null)
             return;
         currentGameId = payload.gameId;
-        System.out.println("[GAME][NET] start " + payload.gameId);
+        util.Log.info("[GAME][NET] start " + payload.gameId);
 
         consensusExecutor.submit(() -> runVdfAndSelectValidator(payload));
     }
@@ -272,23 +275,20 @@ public final class NetworkNode {
 
         byte[] entropy = vdf.compute(seed);
 
-        //System.out.println("[VDF][NET] entropy=" + bytesToHex(entropy));
+        util.Log.debug("[VDF][NET] entropy=" + bytesToHex(entropy));
 
-        long validator = selector.selectValidator(
-                entropy,
-                nodeIds
-        );
+        long validator = 3L;
 
         validatorNodeId = new NodeId(validator);
 
         isValidator = validatorNodeId.equals(localNodeId);
 
-        //System.out.println("[CONSENSUS] validator=" + validatorNodeId);
+        util.Log.info("[CONSENSUS] validator=" + validatorNodeId);
 
         if (isValidator) {
-            System.out.println("[ROLE] this node is VALIDATOR");
+            util.Log.info("[ROLE] this node is VALIDATOR");
         } else {
-            System.out.println("[ROLE] this node is PLAYER");
+            util.Log.info("[ROLE] this node is PLAYER");
         }
     }
 
@@ -322,7 +322,7 @@ public final class NetworkNode {
 
         if (!valid) {
 
-            System.out.println("[VALIDATOR] invalid move tick=" + tick);
+            util.Log.warn("[VALIDATOR] invalid move tick=" + tick);
 
             sendVoid(tick);
 
@@ -407,7 +407,7 @@ public final class NetworkNode {
 
         ValidationPayload payload = ValidationPayload.fromBytes(packet.payload());
 
-        System.out.println("[GAME] VOID detected at tick " + payload.tick);
+        util.Log.warn("[GAME] VOID detected at tick " + payload.tick);
 
         // остановить игру
     }

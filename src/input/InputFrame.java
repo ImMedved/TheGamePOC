@@ -14,7 +14,7 @@ public final class InputFrame {
     }
 
     public void put(InputSnapshot snapshot) {
-        System.out.println("[FRAME] put player=" + snapshot.ownerId +
+        util.Log.debug("[FRAME] put player=" + snapshot.ownerId +
                 " moveX=" + snapshot.moveX +
                 " tick=" + snapshot.tick);
         inputs.put(snapshot.ownerId, snapshot);

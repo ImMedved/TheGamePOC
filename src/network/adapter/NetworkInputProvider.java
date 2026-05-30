@@ -41,7 +41,7 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
         inputModule.publishSnapshot(tick);
 
         InputSnapshot raw = inputModule.getLatestSnapshot();
-        System.out.println("[InputFrame.get] moveX=" + raw.moveX + " moveY=" + raw.moveY + " tick=" + tick);
+        util.Log.debug("[INPUT] moveX=" + raw.moveX + " moveY=" + raw.moveY + " tick=" + tick);
         InputSnapshot local = new InputSnapshot(
                 tick,
                 localPlayerId,
@@ -63,11 +63,11 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
         long start = System.nanoTime();
 
         Map<NodeId, byte[]> inputs = network.waitForInputs(tick);
-        System.out.println("[NET] inputs size=" + inputs.size());
+        util.Log.debug("[NET] inputs size=" + inputs.size());
         long end = System.nanoTime();
 
         double ms = (end - start) / 1_000_000.0;
-        //System.out.println("[METRIC][NET] input wait = " + ms + " ms");
+        util.Log.debug("[METRIC][NET] input wait=" + ms + "ms");
 
         InputSnapshot remote = null;
 
@@ -75,7 +75,7 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
 
             if (entry.getKey().value() == remotePlayerId) {
                 byte[] data = entry.getValue();
-                System.out.println("[NET] packet bytes=" + data.length);
+                util.Log.debug("[NET] packet bytes=" + data.length);
                 remote = codec.decode(entry.getValue());
             }
         }
@@ -87,7 +87,7 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
             throw new IllegalStateException("писяпопа");
         frame.put(remote);
         tick++;
-        //System.out.println("[CORE] Inputs received for tick " + tick);
+        util.Log.debug("[CORE] Inputs received for tick " + tick);
         return frame;
     }
 }

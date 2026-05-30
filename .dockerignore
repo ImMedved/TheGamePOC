@@ -1,0 +1,8 @@
+.git
+.idea
+out
+*.log
+core.*
+src.zip
+TheGamePOC.iml
+target

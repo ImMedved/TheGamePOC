@@ -54,7 +54,7 @@ public final class RenderEngine {
     }
 
     public void start() {
-        System.out.println("[RENDER] RenderEngine.start running is: " + running.get());
+        util.Log.info("[RENDER] start requested running=" + running.get());
         if (running.get()) return;
         running.set(true);
         renderThread = new Thread(this::runLoop, "RenderThread");
@@ -62,11 +62,12 @@ public final class RenderEngine {
     }
 
     public void stop() {
+        util.Log.info("[RENDER] stop requested");
         running.set(false);
     }
 
     private void runLoop() {
-        System.out.println("[RENDER] RenderEngine.runLoop started");
+        util.Log.info("[RENDER] run loop started");
         init();
 
         previousTime = System.nanoTime();
@@ -111,7 +112,7 @@ public final class RenderEngine {
                         localPlayerId,
                         remotePlayerId
                 );
-        //System.out.println("[RENDER] RenderEngine.startGame triggered core.start(provider, localPlayerId)");
+        util.Log.info("[RENDER] game requested for localPlayer=" + localPlayerId);
         core.start(provider, localPlayerId);
 
         mode = AppMode.GAME;
@@ -146,10 +147,11 @@ public final class RenderEngine {
 
         long end = System.nanoTime();
         double ms = (end - start) / 1_000_000.0;
-        //System.out.println("[METRIC][RENDER] frame = " + ms + " ms");
+        util.Log.debug("[METRIC][RENDER] frame=" + ms + "ms");
     }
 
     private void shutdown() {
+        util.Log.info("[RENDER] shutting down");
         core.stop();
         sceneRenderer.shutdown();
     }

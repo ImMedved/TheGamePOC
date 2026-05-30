@@ -38,10 +38,12 @@ public final class SceneRenderer {
     }
 
     public void init() {
+        util.Log.info("[RENDER] Creating window for player=" + localPlayerId +
+                " DISPLAY=" + System.getenv("DISPLAY"));
         window = new RenderWindow(
                 new VideoMode(1920, 1080),
-                "Game",
-                WindowStyle.FULLSCREEN
+                "Game - Player " + localPlayerId,
+                WindowStyle.DEFAULT
         );
 
         window.setFramerateLimit(0);
@@ -75,7 +77,6 @@ public final class SceneRenderer {
         }
 
         if (!snapshot.players.isEmpty()) {
-            //System.out.println("!snapshot.players.isEmpty() trigger");
             var focus = snapshot.players.get(Math.toIntExact(localPlayerId)-1);
 
             float x = focus.prevX + (focus.currX - focus.prevX) * alpha;
@@ -96,7 +97,7 @@ public final class SceneRenderer {
         for (var entry : batchManager.getAll().entrySet()) {
             window.draw(entry.getValue().getVertexArray(), entry.getKey().getStates());
         }
-        //System.out.println("batchManager size: " + batchManager.getAll().size());
+        util.Log.debug("[RENDER] batch count=" + batchManager.getAll().size());
         hudRenderer.render(
                 window,
                 snapshot.players,

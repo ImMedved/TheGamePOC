@@ -75,6 +75,7 @@ public final class CoreEngine {
     }
 
     public void stop() {
+        util.Log.info("[CORE] stop requested");
         running = false;
         executor.shutdown();
     }
@@ -83,7 +84,7 @@ public final class CoreEngine {
 
         long previous = java.lang.System.nanoTime();
         double lag = 0.0;
-        //System.out.println("[CORE] CoreLoop Thread started");
+        util.Log.info("[CORE] loop started");
         while (running) {
 
             long now = java.lang.System.nanoTime();
@@ -103,11 +104,11 @@ public final class CoreEngine {
     }
 
     private void tick(InputFrame frame, long localPlayerId) {
-        //System.out.println("[CORE] Tick triggered");
+        util.Log.debug("[CORE] Tick triggered");
         long start = System.nanoTime();
 
         if (pendingCharacterId != null) {
-            //System.out.println("[CORE] Players count: " + currentWorld.players.size());
+            util.Log.debug("[CORE] Players count=" + currentWorld.players.size());
             for (var player : currentWorld.players.values()) {
                 player.characterId = pendingCharacterId;
             }
@@ -118,7 +119,7 @@ public final class CoreEngine {
         WorldState snapshot = currentWorld;
 
         for (var e : frame.all().entrySet()) {
-            System.out.println("[CORE] frame input player=" + e.getKey()
+            util.Log.debug("[CORE] frame input player=" + e.getKey()
                     + " moveX=" + e.getValue().moveX
                     + " tick=" + frame.tick);
         }
@@ -213,7 +214,7 @@ public final class CoreEngine {
         long end = System.nanoTime();
         double ms = (end - start) / 1_000_000.0;
 
-        //System.out.println("[METRIC][CORE] tick time = " + ms + " ms");
+        util.Log.debug("[METRIC][CORE] tick time=" + ms + "ms");
     }
 
     public RenderSnapshot getRenderSnapshot() {

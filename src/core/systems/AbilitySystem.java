@@ -95,7 +95,7 @@ public final class AbilitySystem implements GameSystem {
     }
 
     private void castSpeedBoost(SimulationContext context, PlayerState player) {
-        //System.out.println("Current multiplier: " + player.speedMultiplier);
+        util.Log.debug("[ABILITY] Current multiplier=" + player.speedMultiplier);
         if (player.speedCooldownRemaining > 0f)
             return;
         context.addCommand(new ApplySpeedBoostCommand(
@@ -112,7 +112,7 @@ public final class AbilitySystem implements GameSystem {
         ));
         player.speedCooldownRemaining =
                 PlayerState.SPEED_COOLDOWN;
-        //System.out.println("Updated multiplier: " + player.speedMultiplier);
+        util.Log.debug("[ABILITY] Speed boost queued for player=" + player.id);
 
     }
 

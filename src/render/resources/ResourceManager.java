@@ -26,6 +26,7 @@ public class ResourceManager {
 
     private Texture loadTexture(String key) {
         try {
+            util.Log.debug("[RESOURCE] Loading texture " + key);
             Texture texture = new Texture();
             texture.loadFromFile(rootPath.resolve(key));
             texture.setRepeated(false);
