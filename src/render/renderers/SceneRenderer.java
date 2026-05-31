@@ -12,6 +12,9 @@ import render.resources.ResourceManager;
 
 public final class SceneRenderer {
 
+    private static final int WINDOW_WIDTH = 1280;
+    private static final int WINDOW_HEIGHT = 720;
+
     private final ResourceManager resources;
     private final InputModule inputModule;
 
@@ -41,14 +44,14 @@ public final class SceneRenderer {
         util.Log.info("[RENDER] Creating window for player=" + localPlayerId +
                 " DISPLAY=" + System.getenv("DISPLAY"));
         window = new RenderWindow(
-                new VideoMode(1920, 1080),
+                new VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT),
                 "Game - Player " + localPlayerId,
                 WindowStyle.DEFAULT
         );
 
-        window.setFramerateLimit(0);
+        window.setFramerateLimit(30);
 
-        camera.setViewport(1920f, 1080f);
+        camera.setViewport(WINDOW_WIDTH, WINDOW_HEIGHT);
 
         backgroundRenderer = new BackgroundRenderer(resources);
         levelRenderer = new LevelRenderer(resources);
@@ -97,7 +100,9 @@ public final class SceneRenderer {
         for (var entry : batchManager.getAll().entrySet()) {
             window.draw(entry.getValue().getVertexArray(), entry.getKey().getStates());
         }
-        util.Log.debug("[RENDER] batch count=" + batchManager.getAll().size());
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[RENDER] batch count=" + batchManager.getAll().size());
+        }
         hudRenderer.render(
                 window,
                 snapshot.players,

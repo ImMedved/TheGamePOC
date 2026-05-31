@@ -4,7 +4,6 @@ import core.SimulationContext;
 import core.commands.*;
 import core.factories.EffectFactory;
 import core.states.PlayerState;
-import core.states.CameraState;
 import input.InputSnapshot;
 
 import java.util.Comparator;
@@ -43,10 +42,8 @@ public final class AbilitySystem implements GameSystem {
     private void castTripleShot(SimulationContext context, PlayerState player) {
         if (player.tripleShotCooldownRemaining > 0f)
             return;
-        CameraState cam = context.snapshot().camera;
-
-        float worldMouseX = context.input(player.id).mouseX - cam.viewportWidth * 0.5f + cam.x;
-        float worldMouseY = context.input(player.id).mouseY - cam.viewportHeight * 0.5f + cam.y;
+        float worldMouseX = context.input(player.id).mouseX;
+        float worldMouseY = context.input(player.id).mouseY;
 
         float dx = worldMouseX - player.position.x;
         float dy = worldMouseY - player.position.y;
@@ -119,17 +116,8 @@ public final class AbilitySystem implements GameSystem {
     private void castTeleport(SimulationContext context, PlayerState player) {
         if (player.blinkCooldownRemaining > 0f)
             return;
-        CameraState cam = context.snapshot().camera;
-
-        float worldMouseX =
-                context.input(player.id).mouseX
-                        - cam.viewportWidth * 0.5f
-                        + cam.x;
-
-        float worldMouseY =
-                context.input(player.id).mouseY
-                        - cam.viewportHeight * 0.5f
-                        + cam.y;
+        float worldMouseX = context.input(player.id).mouseX;
+        float worldMouseY = context.input(player.id).mouseY;
 
         float dx = worldMouseX - player.position.x;
         float dy = worldMouseY - player.position.y;

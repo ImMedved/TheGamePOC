@@ -28,6 +28,14 @@ public final class Camera {
         return y;
     }
 
+    public float getViewportWidth() {
+        return viewportWidth;
+    }
+
+    public float getViewportHeight() {
+        return viewportHeight;
+    }
+
     public float worldToScreenX(float worldX) {
         return worldX - x + viewportWidth * 0.5f;
     }

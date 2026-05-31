@@ -1,19 +1,10 @@
 param(
     [ValidateSet("DEBUG", "INFO", "WARN", "ERROR")]
-    [string]$LogLevel = "INFO"
+    [string]$LogLevel = "INFO",
+    [switch]$SoftwareRendering
 )
 
 $ErrorActionPreference = "Stop"
-
-if (-not (Get-Command vcxsrv.exe -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing VcXsrv..."
-    choco install vcxsrv -y
-}
-
-if (-not (Get-Process vcxsrv -ErrorAction SilentlyContinue)) {
-    Start-Process "C:\Program Files\VcXsrv\vcxsrv.exe" `
-        -ArgumentList ":0 -multiwindow -clipboard -ac"
-}
 
 function Test-XServer {
     try {
@@ -48,14 +39,31 @@ function Find-VcXsrv {
 
 $vcxsrv = Find-VcXsrv
 
-if (-not (Test-XServer)) {
-    if (-not $vcxsrv) {
-        Write-Host "VcXsrv is required to show JSFML windows from Docker on Windows."
-        Write-Host "Install VcXsrv, then run this script again."
+if (-not $vcxsrv) {
+    if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+        Write-Host "VcXsrv is required. Install Chocolatey or VcXsrv manually, then run this script again."
         exit 1
     }
 
-    Start-Process -FilePath $vcxsrv -ArgumentList ":0 -multiwindow -ac -nowgl -silent-dup-error" -WindowStyle Hidden
+    Write-Host "Installing VcXsrv..."
+    choco install vcxsrv -y
+    $vcxsrv = Find-VcXsrv
+}
+
+if (-not $vcxsrv) {
+    Write-Host "VcXsrv installation did not complete. Run PowerShell as Administrator and try again."
+    exit 1
+}
+
+if (-not (Test-XServer)) {
+    $xServerArguments = ":0 -multiwindow -clipboard -ac -silent-dup-error"
+    if ($SoftwareRendering) {
+        $xServerArguments += " -nowgl"
+    }
+
+    Start-Process -FilePath $vcxsrv `
+        -ArgumentList $xServerArguments `
+        -WindowStyle Hidden
     Start-Sleep -Seconds 2
 }
 
@@ -64,6 +72,10 @@ if (-not (Test-XServer)) {
     exit 1
 }
 
+New-Item -ItemType Directory -Path ".\logs" -Force | Out-Null
+
 $env:DISPLAY = "host.docker.internal:0.0"
 $env:LOG_LEVEL = $LogLevel
+$env:LIBGL_ALWAYS_SOFTWARE = if ($SoftwareRendering) { "1" } else { "0" }
+
 docker compose up --build

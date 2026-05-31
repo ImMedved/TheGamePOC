@@ -3,6 +3,7 @@ package network.adapter;
 import input.InputFrame;
 import input.InputModule;
 import input.InputSnapshot;
+import core.states.CameraState;
 import network.model.NodeId;
 import network.node.NetworkNode;
 
@@ -18,6 +19,7 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
 
     private final long localPlayerId;
     private final long remotePlayerId;
+    private final Supplier<CameraState> cameraSupplier;
 
     private int tick = 0;
 
@@ -25,7 +27,8 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
             NetworkNode network,
             InputModule inputModule,
             long localPlayerId,
-            long remotePlayerId
+            long remotePlayerId,
+            Supplier<CameraState> cameraSupplier
     ) {
 
         this.network = network;
@@ -33,6 +36,7 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
 
         this.localPlayerId = localPlayerId;
         this.remotePlayerId = remotePlayerId;
+        this.cameraSupplier = cameraSupplier;
     }
 
     @Override
@@ -41,15 +45,26 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
         inputModule.publishSnapshot(tick);
 
         InputSnapshot raw = inputModule.getLatestSnapshot();
-        util.Log.debug("[INPUT] moveX=" + raw.moveX + " moveY=" + raw.moveY + " tick=" + tick);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[INPUT] moveX=" + raw.moveX + " moveY=" + raw.moveY + " tick=" + tick);
+        }
+        CameraState camera = cameraSupplier.get();
+        float worldMouseX = raw.mouseX;
+        float worldMouseY = raw.mouseY;
+
+        if (camera != null) {
+            worldMouseX = raw.mouseX - camera.viewportWidth * 0.5f + camera.x;
+            worldMouseY = raw.mouseY - camera.viewportHeight * 0.5f + camera.y;
+        }
+
         InputSnapshot local = new InputSnapshot(
                 tick,
                 localPlayerId,
                 raw.moveX,
                 raw.moveY,
                 raw.shoot,
-                raw.mouseX,
-                raw.mouseY,
+                worldMouseX,
+                worldMouseY,
                 raw.key1Pressed,
                 raw.key2Pressed,
                 raw.key3Pressed
@@ -63,11 +78,15 @@ public final class NetworkInputProvider implements Supplier<InputFrame> {
         long start = System.nanoTime();
 
         Map<NodeId, byte[]> inputs = network.waitForInputs(tick);
-        util.Log.debug("[NET] inputs size=" + inputs.size());
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] inputs size=" + inputs.size());
+        }
         long end = System.nanoTime();
 
         double ms = (end - start) / 1_000_000.0;
-        util.Log.debug("[METRIC][NET] input wait=" + ms + "ms");
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[METRIC][NET] input wait=" + ms + "ms");
+        }
 
         InputSnapshot remote = null;
 

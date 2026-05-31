@@ -7,6 +7,9 @@ import render.resources.ResourceManager;
 
 public final class MenuRenderer {
 
+    private static final float WINDOW_WIDTH = 1280f;
+    private static final float WINDOW_HEIGHT = 720f;
+
     private final Runnable onStart;
 
     private final Texture backgroundTexture;
@@ -38,16 +41,16 @@ public final class MenuRenderer {
 
         backgroundSprite = new Sprite(backgroundTexture);
 
-        float scaleX = 1920f / backgroundTexture.getSize().x;
-        float scaleY = 1080f / backgroundTexture.getSize().y;
+        float scaleX = WINDOW_WIDTH / backgroundTexture.getSize().x;
+        float scaleY = WINDOW_HEIGHT / backgroundTexture.getSize().y;
         backgroundSprite.setScale(scaleX, scaleY);
 
         startButtonSprite = new Sprite(startButtonTexture);
 
         FloatRect startBounds = startButtonSprite.getLocalBounds();
         startButtonSprite.setPosition(
-                960f - startBounds.width * 0.5f,
-                500f - startBounds.height * 0.5f
+                WINDOW_WIDTH * 0.5f - startBounds.width * 0.5f,
+                320f - startBounds.height * 0.5f
         );
 
         initCharacterButtons();
@@ -59,8 +62,8 @@ public final class MenuRenderer {
 
         float spacing = 220f;
         float totalWidth = (CHARACTER_COUNT - 1) * spacing;
-        float startX = 960f - totalWidth * 0.5f;
-        float y = 700f;
+        float startX = WINDOW_WIDTH * 0.5f - totalWidth * 0.5f;
+        float y = 500f;
 
         for (int i = 0; i < CHARACTER_COUNT; i++) {
 

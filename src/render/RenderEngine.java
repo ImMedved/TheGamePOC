@@ -13,11 +13,13 @@ import render.resources.ResourceManager;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
 
 public final class RenderEngine {
 
-    private static final int TARGET_FPS = 60;
+    private static final int TARGET_FPS = 30;
     private static final double FRAME_TIME = 1.0 / TARGET_FPS;
+    private static final long FRAME_TIME_NANOS = 1_000_000_000L / TARGET_FPS;
 
     private final CoreEngine core;
     private final ResourceManager resourceManager;
@@ -74,6 +76,7 @@ public final class RenderEngine {
 
         while (running.get()) {
 
+            long frameStart = System.nanoTime();
             long now = System.nanoTime();
             double elapsed = (now - previousTime) / 1_000_000_000.0;
 
@@ -86,6 +89,11 @@ public final class RenderEngine {
 
             float alpha = (float)(accumulator / FRAME_TIME);
             renderFrame(alpha);
+
+            long remaining = FRAME_TIME_NANOS - (System.nanoTime() - frameStart);
+            if (remaining > 0) {
+                LockSupport.parkNanos(remaining);
+            }
         }
 
         shutdown();
@@ -110,7 +118,8 @@ public final class RenderEngine {
                         networkNode,
                         inputModule,
                         localPlayerId,
-                        remotePlayerId
+                        remotePlayerId,
+                        core::getCameraSnapshot
                 );
         util.Log.info("[RENDER] game requested for localPlayer=" + localPlayerId);
         core.start(provider, localPlayerId);

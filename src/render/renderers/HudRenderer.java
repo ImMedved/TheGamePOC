@@ -85,8 +85,8 @@ public final class HudRenderer {
         float width = 400f;
         float height = 28f;
 
-        float x = 1920f * 0.5f - width * 0.5f;
-        float y = 960f;
+        float x = window.getSize().x * 0.5f - width * 0.5f;
+        float y = window.getSize().y - 100f;
 
         float ratio = player.health / player.maxHealth;
 
@@ -108,8 +108,8 @@ public final class HudRenderer {
 
         float spacing = 90f;
 
-        float startX = 1920f * 0.5f - spacing;
-        float y = 1000f;
+        float startX = window.getSize().x * 0.5f - spacing;
+        float y = window.getSize().y - 68f;
 
         renderAbility(window,
                 startX,

@@ -23,8 +23,8 @@ public final class WorldState {
         WorldState world = new WorldState();
         world.tickIndex = 0;
         world.camera = new CameraState();
-        world.camera.viewportWidth = 1920f;
-        world.camera.viewportHeight = 1080f;
+        world.camera.viewportWidth = 1280f;
+        world.camera.viewportHeight = 720f;
         return world;
     }
 

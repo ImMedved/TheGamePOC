@@ -1,6 +1,5 @@
 package network.node;
 
-import network.consensus.ValidatorSelector;
 import network.crypto.CryptoModule;
 import network.lockstep.LockstepSynchronizer;
 import network.model.GameStartPayload;
@@ -236,7 +235,6 @@ public final class NetworkNode {
 
     private volatile UUID currentGameId;
     private final VDFModule vdf = new VDFModule();
-    private final ValidatorSelector selector = new ValidatorSelector();
 
     private NodeId validatorNodeId;
     private boolean isValidator;
@@ -327,44 +325,8 @@ public final class NetworkNode {
             sendVoid(tick);
 
         } else {
-
-            sendValidation(tick);
+            util.Log.debug("[VALIDATOR] accepted move tick=" + tick);
         }
-    }
-
-    private void sendValidation(int tick) {
-
-        ValidationPayload payload = new ValidationPayload(currentGameId, tick, true);
-
-        byte[] payloadBytes = payload.toBytes();
-
-        int seq = sequenceCounter++;
-
-        NetworkPacket unsigned =
-                new NetworkPacket(
-                        localNodeId,
-                        seq,
-                        tick,
-                        NetworkPacket.PacketType.VALIDATION,
-                        payloadBytes,
-                        null
-                );
-
-        byte[] serialized = serializer.serialize(unsigned);
-
-        byte[] signature = crypto.sign(serialized, privateKey);
-
-        NetworkPacket signed =
-                new NetworkPacket(
-                        localNodeId,
-                        seq,
-                        tick,
-                        NetworkPacket.PacketType.VALIDATION,
-                        payloadBytes,
-                        signature
-                );
-
-        broadcast(signed);
     }
 
     private void sendVoid(int tick) {

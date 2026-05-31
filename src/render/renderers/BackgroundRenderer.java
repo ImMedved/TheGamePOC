@@ -28,8 +28,8 @@ public final class BackgroundRenderer {
 
     public void render(Camera camera, RenderWindow window) {
 
-        float offsetX = -camera.getX() * 0.3f + 960f;
-        float offsetY = -camera.getY() * 0.3f + 540f;
+        float offsetX = -camera.getX() * 0.3f + camera.getViewportWidth() * 0.5f;
+        float offsetY = -camera.getY() * 0.3f + camera.getViewportHeight() * 0.5f;
 
         Transform transform = new Transform(
                 1, 0, offsetX,

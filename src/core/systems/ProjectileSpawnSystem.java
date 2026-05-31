@@ -4,7 +4,6 @@ import core.SimulationContext;
 import core.commands.SpawnProjectileCommand;
 import core.registries.ProjectileDefinition;
 import core.registries.ProjectileRegistry;
-import core.states.CameraState;
 import core.states.PlayerState;
 import input.InputSnapshot;
 
@@ -48,17 +47,8 @@ public final class ProjectileSpawnSystem implements GameSystem {
 
             ProjectileDefinition def = projectileRegistry.get(projectileType);
 
-            CameraState cam = context.snapshot().camera;
-
-            float worldMouseX =
-                    context.input(player.id).mouseX
-                            - cam.viewportWidth * 0.5f
-                            + cam.x;
-
-            float worldMouseY =
-                    context.input(player.id).mouseY
-                            - cam.viewportHeight * 0.5f
-                            + cam.y;
+            float worldMouseX = input.mouseX;
+            float worldMouseY = input.mouseY;
 
             float dx = worldMouseX - player.position.x;
             float dy = worldMouseY - player.position.y;

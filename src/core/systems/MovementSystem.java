@@ -32,24 +32,31 @@ public final class MovementSystem implements GameSystem {
                 .toList()) {
             InputSnapshot input = context.input(player.id);
 
-            util.Log.debug("[MOVE SYS] moveX=" + input.moveX + " moveY=" + input.moveY);
+            boolean debug = util.Log.isDebugEnabled();
+            if (debug) {
+                util.Log.debug("[MOVE SYS] moveX=" + input.moveX + " moveY=" + input.moveY);
+            }
             CharacterDefinition def = characterRegistry.get(Math.max(1, player.characterId));
 
             float speed = def.baseSpeed * player.speedMultiplier;
-            util.Log.debug(
-                    "[MOVE SYS] character=" + player.characterId +
-                            " speed=" + speed +
-                            " multiplier=" + player.speedMultiplier
-            );
+            if (debug) {
+                util.Log.debug(
+                        "[MOVE SYS] character=" + player.characterId +
+                                " speed=" + speed +
+                                " multiplier=" + player.speedMultiplier
+                );
+            }
             float dx = context.input(player.id).moveX * speed * context.dt();
             float dy = context.input(player.id).moveY * speed * context.dt();
 
             float newX = player.position.x + dx;
             float newY = player.position.y + dy;
-            util.Log.debug(
-                    "[MOVE SYS] player=" + player.id +
-                            " input=(" + input.moveX + "," + input.moveY + ")"
-            );
+            if (debug) {
+                util.Log.debug(
+                        "[MOVE SYS] player=" + player.id +
+                                " input=(" + input.moveX + "," + input.moveY + ")"
+                );
+            }
             context.addCommand(new MovePlayerCommand(
                             player.id,
                             newX,
@@ -58,7 +65,9 @@ public final class MovementSystem implements GameSystem {
                             dy / context.dt()
                     )
             );
-            util.Log.debug("[MOVE SYS] creating MovePlayerCommand for " + player.id);
+            if (debug) {
+                util.Log.debug("[MOVE SYS] creating MovePlayerCommand for " + player.id);
+            }
         }
     }
 }

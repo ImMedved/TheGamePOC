@@ -40,8 +40,6 @@ public final class ProjectileRenderer {
                        float alpha,
                        BatchManager batchManager) {
 
-        float camX = camera.getX();
-        float camY = camera.getY();
         VertexBatch batch = batchManager.getBatch(projectileMaterial);
         for (RenderProjectile p : projectiles) {
 
@@ -57,8 +55,8 @@ public final class ProjectileRenderer {
                 angle = (float) Math.toDegrees(Math.atan2(vy, vx)) + 90f;
             }
 
-            float screenX = x - camX + 960f;
-            float screenY = y - camY + 540f;
+            float screenX = camera.worldToScreenX(x);
+            float screenY = camera.worldToScreenY(y);
 
             addRotatedQuad(
                     batch,

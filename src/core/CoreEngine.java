@@ -16,6 +16,7 @@ import network.node.NetworkNode;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.LockSupport;
 
 public final class CoreEngine {
 
@@ -41,7 +42,7 @@ public final class CoreEngine {
 
     private final WorldHasher worldHasher = new WorldHasher();
     private final NetworkNode networkNode;
-    private static final int HASH_INTERVAL = 1;
+    private static final int HASH_INTERVAL = 60;
 
     private volatile Integer pendingCharacterId = null;
 
@@ -91,7 +92,7 @@ public final class CoreEngine {
             double elapsed = (now - previous) / 1_000_000_000.0;
 
             previous = now;
-            lag += elapsed;
+            lag = Math.min(lag + elapsed, DT * 5);
 
             while (lag >= DT) {
 
@@ -100,11 +101,18 @@ public final class CoreEngine {
 
                 lag -= DT;
             }
+
+            if (lag < DT) {
+                LockSupport.parkNanos(500_000L);
+            }
         }
     }
 
     private void tick(InputFrame frame, long localPlayerId) {
-        util.Log.debug("[CORE] Tick triggered");
+        boolean debug = util.Log.isDebugEnabled();
+        if (debug) {
+            util.Log.debug("[CORE] Tick triggered");
+        }
         long start = System.nanoTime();
 
         if (pendingCharacterId != null) {
@@ -118,10 +126,12 @@ public final class CoreEngine {
 
         WorldState snapshot = currentWorld;
 
-        for (var e : frame.all().entrySet()) {
-            util.Log.debug("[CORE] frame input player=" + e.getKey()
-                    + " moveX=" + e.getValue().moveX
-                    + " tick=" + frame.tick);
+        if (debug) {
+            for (var e : frame.all().entrySet()) {
+                util.Log.debug("[CORE] frame input player=" + e.getKey()
+                        + " moveX=" + e.getValue().moveX
+                        + " tick=" + frame.tick);
+            }
         }
 
         List<List<Command>> phaseALists = new ArrayList<>();
@@ -214,10 +224,16 @@ public final class CoreEngine {
         long end = System.nanoTime();
         double ms = (end - start) / 1_000_000.0;
 
-        util.Log.debug("[METRIC][CORE] tick time=" + ms + "ms");
+        if (debug) {
+            util.Log.debug("[METRIC][CORE] tick time=" + ms + "ms");
+        }
     }
 
     public RenderSnapshot getRenderSnapshot() {
         return renderSnapshotRef.get();
+    }
+
+    public core.states.CameraState getCameraSnapshot() {
+        return currentWorld.camera != null ? currentWorld.camera.copy() : null;
     }
 }
