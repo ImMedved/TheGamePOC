@@ -4,7 +4,7 @@ public final class NetworkPacket {
 
     public enum PacketType {
         INPUT,
-        STATE_HASH,
+        STATE_FRAME,
 
         GAME_START,
         VDF_RESULT,

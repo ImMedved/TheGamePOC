@@ -81,9 +81,15 @@ public final class CommandProcessor {
                 case DamagePlayerCommand d -> {
                     PlayerState player = next.players.get(d.playerId());
                     if (player != null) {
-                        player.health -= d.damage();
+                        player.health = Math.max(0f, player.health - d.damage());
                         if (player.health <= 0f) {
                             player.alive = false;
+                            if (!next.gameOver) {
+                                next.gameOver = true;
+                                next.winnerPlayerId = player.id == 1L ? 2L : 1L;
+                                util.Log.info("[GAME] player=" + player.id
+                                        + " defeated winner=" + next.winnerPlayerId);
+                            }
                         }
                     }
                 }

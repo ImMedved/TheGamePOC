@@ -5,6 +5,15 @@ import java.security.spec.X509EncodedKeySpec;
 
 public final class CryptoModule {
 
+    private static final ThreadLocal<Signature> ED25519 =
+            ThreadLocal.withInitial(() -> {
+                try {
+                    return Signature.getInstance("Ed25519");
+                } catch (NoSuchAlgorithmException e) {
+                    throw new IllegalStateException("Ed25519 is not available", e);
+                }
+            });
+
     public KeyPairData generateKeyPair() {
 
         try {
@@ -25,7 +34,7 @@ public final class CryptoModule {
 
         try {
 
-            Signature signature = Signature.getInstance("Ed25519");
+            Signature signature = ED25519.get();
 
             signature.initSign(privateKey);
             signature.update(data);
@@ -40,7 +49,7 @@ public final class CryptoModule {
                           byte[] signatureBytes,
                           PublicKey publicKey) {
         try {
-            Signature signature = Signature.getInstance("Ed25519");
+            Signature signature = ED25519.get();
             signature.initVerify(publicKey);
             signature.update(data);
             return signature.verify(signatureBytes);

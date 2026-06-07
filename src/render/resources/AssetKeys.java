@@ -12,4 +12,6 @@ public final class AssetKeys {
     public static final String BULLET_HOLE = "bulletHole.png";
     public static final String TILES = "level.png";
     public static final String CHARS = "chars.png";
+    public static final String WIN = "win.png";
+    public static final String LOSE = "lose.png";
 }

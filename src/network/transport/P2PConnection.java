@@ -53,7 +53,9 @@ public final class P2PConnection {
                     in.readFully(data);
 
                     packetHandler.accept(data);
-                    util.Log.debug("[NET] Transport received bytes=" + data.length);
+                    if (util.Log.isDebugEnabled()) {
+                        util.Log.debug("[NET] Transport received bytes=" + data.length);
+                    }
                 }
 
             } catch (IOException e) {
@@ -92,7 +94,9 @@ public final class P2PConnection {
     public synchronized void send(byte[] data) {
 
         try {
-            util.Log.debug("[NET] Transport send bytes=" + data.length);
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[NET] Transport send bytes=" + data.length);
+            }
             out.writeInt(data.length);
 
             out.write(data);

@@ -1,5 +1,8 @@
 package network.node;
 
+import core.registries.ProjectileRegistry;
+import core.states.WorldState;
+import core.systems.GameSystem;
 import network.crypto.CryptoModule;
 import network.lockstep.LockstepSynchronizer;
 import network.model.GameStartPayload;
@@ -8,7 +11,8 @@ import network.model.NodeId;
 import network.protocol.PacketSerializer;
 import network.session.PeerSession;
 import network.transport.P2PConnection;
-import network.validation.StateHashValidator;
+import network.validation.RuleValidationEngine;
+import network.validation.StateFramePayload;
 import network.validation.ValidationPayload;
 import network.vdf.VDFModule;
 import network.vdf.VDFSeed;
@@ -32,7 +36,7 @@ public final class NetworkNode {
     public final long nodeId;
     private final Map<NodeId, PeerSession> sessions = new HashMap<>();
     private final LockstepSynchronizer lockstep;
-    private final StateHashValidator validator;
+    private RuleValidationEngine ruleValidator;
     private final PrivateKey privateKey;
 
     private int sequenceCounter = 0;
@@ -53,7 +57,6 @@ public final class NetworkNode {
         this.privateKey = privateKey;
 
         this.lockstep = new LockstepSynchronizer(localNodeId);
-        this.validator = new StateHashValidator(60, this::onDesync);
     }
 
     public void startGame(UUID gameId, long playerA, long playerB) {
@@ -112,7 +115,8 @@ public final class NetworkNode {
                         serializer,
                         crypto,
                         peerKey,
-                        packet -> handlePacket(peerId, packet)
+                        packet -> handlePacket(peerId, packet),
+                        this::handleInvalidSignature
                 );
 
         sessions.put(peerId, session);
@@ -122,7 +126,9 @@ public final class NetworkNode {
             NodeId peer,
             NetworkPacket packet
     ) {
-        util.Log.debug("[NET] Handling packet type=" + packet.type() + " tick=" + packet.tickNumber());
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] Handling packet type=" + packet.type() + " tick=" + packet.tickNumber());
+        }
         switch (packet.type()) {
 
             case INPUT -> {
@@ -138,15 +144,36 @@ public final class NetworkNode {
                 }
             }
 
-            case STATE_HASH -> {
+            case STATE_FRAME -> {
 
-                int tick = packet.tickNumber();
+                if (isValidator && ruleValidator != null) {
+                    StateFramePayload report = null;
+                    RuleValidationEngine.ValidationResult result = null;
+                    try {
+                        report = StateFramePayload.fromBytes(packet.payload());
+                    } catch (RuntimeException e) {
+                        result = RuleValidationEngine.ValidationResult.invalid(
+                                peer,
+                                packet.tickNumber(),
+                                "state report payload is malformed"
+                        );
+                    }
 
-                validator.receiveRemoteHash(
-                        peer,
-                        tick,
-                        packet.payload()
-                );
+                    if (report != null && report.tick != packet.tickNumber()) {
+                        result = RuleValidationEngine.ValidationResult.invalid(
+                                peer,
+                                packet.tickNumber(),
+                                "state report tick " + report.tick + " does not match packet tick " + packet.tickNumber()
+                        );
+                    } else if (report != null) {
+                        result = ruleValidator.acceptStateReport(peer, report);
+                    }
+
+                    if (result != null && !result.valid()) {
+                        reportRuleViolation(result);
+                        sendVoid(result.tick());
+                    }
+                }
             }
             case GAME_START -> handleGameStart(packet);
 
@@ -172,18 +199,27 @@ public final class NetworkNode {
         return lockstep.tryGetInputs(tick);
     }
 
-    public void submitStateHash(int tick, byte[] hash) {
+    public void submitStateFrame(int tick, WorldState world) {
 
-        validator.storeLocalHash(tick, hash);
+        StateFramePayload payload = StateFramePayload.fromWorld(world);
+        byte[] payloadBytes = payload.toBytes();
 
         NetworkPacket packet =
                 createPacket(
-                        NetworkPacket.PacketType.STATE_HASH,
+                        NetworkPacket.PacketType.STATE_FRAME,
                         tick,
-                        hash
+                        payloadBytes
                 );
 
         broadcast(packet);
+    }
+
+    public void configureRuleValidator(
+            WorldState initialWorld,
+            List<GameSystem> gameSystems,
+            ProjectileRegistry projectileRegistry
+    ) {
+        this.ruleValidator = new RuleValidationEngine(initialWorld, gameSystems, projectileRegistry);
     }
 
     private NetworkPacket createPacket(
@@ -225,10 +261,6 @@ public final class NetworkNode {
         }
     }
 
-    private void onDesync(Integer tick) {
-
-        util.Log.warn("[NET] DESYNC detected at tick=" + tick);
-    }
     public Map<NodeId, byte[]> waitForInputs(int tick) {
         return lockstep.waitForInputs(tick);
     }
@@ -325,11 +357,44 @@ public final class NetworkNode {
             sendVoid(tick);
 
         } else {
+            if (ruleValidator != null) {
+                RuleValidationEngine.ValidationResult result = ruleValidator.acceptInput(packet);
+                if (!result.valid()) {
+                    reportRuleViolation(result);
+                    sendVoid(tick);
+                    return;
+                }
+            }
             util.Log.debug("[VALIDATOR] accepted move tick=" + tick);
         }
     }
 
+    private void reportRuleViolation(RuleValidationEngine.ValidationResult result) {
+        util.Log.warn("[VALIDATOR] desync culprit=" + result.culprit()
+                + " tick=" + result.tick()
+                + " reason=" + result.reason());
+    }
+
+    private void handleInvalidSignature(NodeId peer, NetworkPacket packet) {
+        if (isValidator) {
+            util.Log.warn("[VALIDATOR] invalid signature culprit=" + peer
+                    + " claimedSender=" + packet.sender()
+                    + " tick=" + packet.tickNumber()
+                    + " type=" + packet.type());
+            sendVoid(packet.tickNumber());
+        } else {
+            util.Log.warn("[NET] invalid signature from=" + peer
+                    + " claimedSender=" + packet.sender()
+                    + " tick=" + packet.tickNumber()
+                    + " type=" + packet.type());
+        }
+    }
+
     private void sendVoid(int tick) {
+        if (currentGameId == null) {
+            util.Log.warn("[VALIDATOR] void requested before game id is known tick=" + tick);
+            return;
+        }
 
         ValidationPayload payload =
                 new ValidationPayload(currentGameId, tick, false);

@@ -2,5 +2,6 @@ package render;
 
 public enum AppMode {
     MENU,
-    GAME
+    GAME,
+    END_SCREEN
 }

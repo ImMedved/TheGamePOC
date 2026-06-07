@@ -8,6 +8,7 @@ import network.node.NetworkNode;
 import network.adapter.NetworkInputProvider;
 import org.jsfml.window.event.Event;
 import render.renderers.MenuRenderer;
+import render.renderers.EndScreenRenderer;
 import render.renderers.SceneRenderer;
 import render.resources.ResourceManager;
 
@@ -31,6 +32,8 @@ public final class RenderEngine {
 
     private SceneRenderer sceneRenderer;
     private MenuRenderer menuRenderer;
+    private EndScreenRenderer endScreenRenderer;
+    private boolean localWon = false;
 
     private AppMode mode = AppMode.MENU;
 
@@ -106,11 +109,13 @@ public final class RenderEngine {
 
         menuRenderer = new MenuRenderer(resourceManager, this::startGame);
         menuRenderer.init(sceneRenderer.getWindow());
+        endScreenRenderer = new EndScreenRenderer(resourceManager);
     }
 
     private void startGame() {
 
         int selected = menuRenderer.getSelectedCharacterId();
+        core.reset();
         core.setSelectedCharacter(selected);
 
         NetworkInputProvider provider =
@@ -141,6 +146,9 @@ public final class RenderEngine {
 
             if (mode == AppMode.MENU) {
                 menuRenderer.handleEvent(event);
+            } else if (mode == AppMode.END_SCREEN && isAnyButtonPress(event)) {
+                core.reset();
+                mode = AppMode.MENU;
             }
         }
 
@@ -149,14 +157,30 @@ public final class RenderEngine {
             return;
         }
 
+        if (mode == AppMode.END_SCREEN) {
+            endScreenRenderer.render(window, localWon);
+            return;
+        }
+
         RenderSnapshot snapshot = core.getRenderSnapshot();
         if (snapshot == null) return;
 
         sceneRenderer.render(snapshot, alpha);
 
+        if (snapshot.gameOver) {
+            localWon = snapshot.winnerPlayerId == localPlayerId;
+            core.stop();
+            mode = AppMode.END_SCREEN;
+        }
+
         long end = System.nanoTime();
         double ms = (end - start) / 1_000_000.0;
         util.Log.debug("[METRIC][RENDER] frame=" + ms + "ms");
+    }
+
+    private boolean isAnyButtonPress(Event event) {
+        return event.type == Event.Type.KEY_PRESSED
+                || event.type == Event.Type.MOUSE_BUTTON_PRESSED;
     }
 
     private void shutdown() {

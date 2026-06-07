@@ -33,7 +33,9 @@ public final class RenderSnapshotBuilder {
                 effects,
                 camX,
                 camY,
-                cachedLevelData
+                cachedLevelData,
+                current.gameOver,
+                current.winnerPlayerId
         );
     }
 

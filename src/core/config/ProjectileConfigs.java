@@ -10,7 +10,7 @@ public final class ProjectileConfigs {
         ProjectileDefinition bullet = new ProjectileDefinition(0);
 
         bullet.speed = 500f;
-        bullet.baseDamage = 10f;
+        bullet.baseDamage = 13f;
         bullet.hitboxRadius = 5f;
 
         bullet.maxDistance = 600f;

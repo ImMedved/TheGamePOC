@@ -10,7 +10,6 @@ import core.systems.GameSystem;
 import input.InputFrame;
 import input.InputModule;
 import input.InputSnapshot;
-import network.adapter.WorldHasher;
 import network.node.NetworkNode;
 
 import java.util.*;
@@ -26,6 +25,8 @@ public final class CoreEngine {
     private final ExecutorService executor;
 
     private final List<GameSystem> gameSystems;
+    private final List<GameSystem> parallelGameSystems;
+    private final List<GameSystem> sequentialGameSystems;
 
     private final CommandProcessor processor;
     private final AtomicLong idGenerator = new AtomicLong(1);
@@ -40,9 +41,10 @@ public final class CoreEngine {
     private final java.util.concurrent.atomic.AtomicReference<RenderSnapshot> renderSnapshotRef =
             new java.util.concurrent.atomic.AtomicReference<>();
 
-    private final WorldHasher worldHasher = new WorldHasher();
     private final NetworkNode networkNode;
-    private static final int HASH_INTERVAL = 60;
+    private static final int STATE_REPORT_INTERVAL = 60;
+    private final WorldState initialWorld;
+    private int lastReportedStateTick = -1;
 
     private volatile Integer pendingCharacterId = null;
 
@@ -55,9 +57,16 @@ public final class CoreEngine {
                       ProjectileRegistry projectileRegistry,
                       NetworkNode networkNode) {
 
+        this.initialWorld = initial.copy();
         this.previousWorld = initial;
         this.currentWorld = initial;
         this.gameSystems = gameSystems;
+        this.parallelGameSystems = gameSystems.stream()
+                .filter(s -> s.phase() == Phase.PARALLEL)
+                .toList();
+        this.sequentialGameSystems = gameSystems.stream()
+                .filter(s -> s.phase() == Phase.SEQUENTIAL)
+                .toList();
         this.processor = new CommandProcessor(projectileRegistry);
         this.networkNode = networkNode;
 
@@ -70,6 +79,9 @@ public final class CoreEngine {
 
     public void start(java.util.function.Supplier<InputFrame> inputSupplier, long localPlayerId) {
 
+        if (running) {
+            return;
+        }
         running = true;
 
         new Thread(() -> runLoop(inputSupplier, localPlayerId), "CoreLoop").start();
@@ -78,7 +90,16 @@ public final class CoreEngine {
     public void stop() {
         util.Log.info("[CORE] stop requested");
         running = false;
-        executor.shutdown();
+    }
+
+    public void reset() {
+        stop();
+        idGenerator.set(1);
+        lastReportedStateTick = -1;
+        previousWorld = initialWorld.copy();
+        currentWorld = initialWorld.copy();
+        renderSnapshotRef.set(snapshotBuilder.build(previousWorld, currentWorld));
+        pendingCharacterId = null;
     }
 
     private void runLoop(java.util.function.Supplier<InputFrame> inputSupplier, long localPlayerId) {
@@ -135,14 +156,6 @@ public final class CoreEngine {
         }
 
         List<List<Command>> phaseALists = new ArrayList<>();
-
-        List<GameSystem> parallelGameSystems = gameSystems.stream()
-                .filter(s -> s.phase() == Phase.PARALLEL)
-                .toList();
-
-        List<GameSystem> sequentialGameSystems = gameSystems.stream()
-                .filter(s -> s.phase() == Phase.SEQUENTIAL)
-                .toList();
 
         List<Callable<Void>> tasks = new ArrayList<>();
 
@@ -205,14 +218,10 @@ public final class CoreEngine {
 
         int tickIndex = Math.toIntExact(nextWorld.tickIndex);
 
-        if (networkNode != null && tickIndex % HASH_INTERVAL == 0) {
-
-            byte[] hash = worldHasher.hash(nextWorld);
-
-            networkNode.submitStateHash(
-                    tickIndex,
-                    hash
-            );
+        boolean shouldReportState = tickIndex % STATE_REPORT_INTERVAL == 0 || nextWorld.gameOver;
+        if (networkNode != null && shouldReportState && tickIndex != lastReportedStateTick) {
+            networkNode.submitStateFrame(tickIndex, nextWorld);
+            lastReportedStateTick = tickIndex;
         }
 
         RenderSnapshot snapshotRender = snapshotBuilder.build(previousWorld, nextWorld);

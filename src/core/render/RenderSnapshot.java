@@ -14,6 +14,8 @@ public final class RenderSnapshot {
     public final float camY;
 
     public final LevelRenderData level;
+    public final boolean gameOver;
+    public final long winnerPlayerId;
 
     public RenderSnapshot(
             long tickIndex,
@@ -22,7 +24,9 @@ public final class RenderSnapshot {
             List<RenderEffect> effects,
             float camX,
             float camY,
-            LevelRenderData level
+            LevelRenderData level,
+            boolean gameOver,
+            long winnerPlayerId
     ) {
         this.tickIndex = tickIndex;
         this.players = players;
@@ -31,5 +35,7 @@ public final class RenderSnapshot {
         this.camX = camX;
         this.camY = camY;
         this.level = level;
+        this.gameOver = gameOver;
+        this.winnerPlayerId = winnerPlayerId;
     }
 }

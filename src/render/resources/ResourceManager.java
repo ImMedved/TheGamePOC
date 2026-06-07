@@ -24,6 +24,10 @@ public class ResourceManager {
         return loaded;
     }
 
+    public boolean hasTexture(String key) {
+        return java.nio.file.Files.exists(rootPath.resolve(key));
+    }
+
     private Texture loadTexture(String key) {
         try {
             util.Log.debug("[RESOURCE] Loading texture " + key);

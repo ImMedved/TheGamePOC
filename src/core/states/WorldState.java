@@ -10,6 +10,8 @@ public final class WorldState {
     public List<ProjectileState> projectiles;
     public List<EffectData> effects;
     public CameraState camera;
+    public boolean gameOver;
+    public long winnerPlayerId;
 
     public LevelState level;
 
@@ -32,6 +34,8 @@ public final class WorldState {
         WorldState copy = new WorldState();
         copy.tickIndex = this.tickIndex;
         copy.camera = this.camera != null ? this.camera.copy() : null;
+        copy.gameOver = this.gameOver;
+        copy.winnerPlayerId = this.winnerPlayerId;
 
         for (Map.Entry<Long, PlayerState> entry : this.players.entrySet()) {
             copy.players.put(entry.getKey(), entry.getValue().copy());

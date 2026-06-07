@@ -51,14 +51,6 @@ public class Main {
 
         util.Log.info("[NODE] id=" + nodeId + " host=" + host + " validator=" + validator);
 
-        NetworkNode networkNode = startNetwork(nodeId, host, keys, topology);
-
-        Thread.sleep(2000);
-
-        if (host) {
-            networkNode.startGame(UUID.randomUUID(), 1, 2);
-        }
-
         WorldState world = createWorld();
 
         projectileRegistry = new ProjectileRegistry(4);
@@ -68,6 +60,14 @@ public class Main {
         ProjectileConfigs.registerAll(projectileRegistry);
 
         List<GameSystem> systems = createSystems(projectileRegistry, effectRegistry);
+        NetworkNode networkNode = startNetwork(nodeId, host, keys, topology);
+        networkNode.configureRuleValidator(world, systems, projectileRegistry);
+
+        Thread.sleep(2000);
+
+        if (host) {
+            networkNode.startGame(UUID.randomUUID(), 1, 2);
+        }
 
         InputModule inputModule = new InputModule();
 
@@ -161,9 +161,17 @@ public class Main {
         float startY = level.height * 50f;
 
         PlayerState p1 = new PlayerState(1);
+        p1.characterId = 1;
+        p1.health = 100f;
+        p1.maxHealth = 100f;
+        p1.hitboxRadius = 20f;
         p1.position.set(startX, startY);
 
         PlayerState p2 = new PlayerState(2);
+        p2.characterId = 1;
+        p2.health = 100f;
+        p2.maxHealth = 100f;
+        p2.hitboxRadius = 20f;
         p2.position.set(startX + 100, startY);
 
         world.players.put(p1.id, p1);

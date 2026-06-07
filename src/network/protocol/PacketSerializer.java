@@ -32,8 +32,10 @@ public final class PacketSerializer {
                 out.write(signature);
             }
             out.flush();
-            util.Log.debug("[NET] SER payload=" + payload.length +
-                    " signature=" + (signature == null ? 0 : signature.length));
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[NET] SER payload=" + payload.length +
+                        " signature=" + (signature == null ? 0 : signature.length));
+            }
             return baos.toByteArray();
 
         } catch (IOException e) {
@@ -65,7 +67,9 @@ public final class PacketSerializer {
                 signature = new byte[sigSize];
                 in.readFully(signature);
             }
-            util.Log.debug("[NET] DES payload=" + payloadSize + " signature=" + sigSize);
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[NET] DES payload=" + payloadSize + " signature=" + sigSize);
+            }
             return new NetworkPacket(
                     sender,
                     sequence,

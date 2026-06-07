@@ -7,7 +7,7 @@ import network.protocol.PacketSerializer;
 import network.transport.P2PConnection;
 
 import java.security.PublicKey;
-import java.util.Arrays;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class PeerSession {
@@ -23,6 +23,7 @@ public final class PeerSession {
     private final PublicKey peerPublicKey;
 
     private final Consumer<NetworkPacket> packetHandler;
+    private final BiConsumer<NodeId, NetworkPacket> invalidPacketHandler;
 
     private int lastReceivedSequence = -1;
 
@@ -32,7 +33,8 @@ public final class PeerSession {
             PacketSerializer serializer,
             CryptoModule crypto,
             PublicKey peerPublicKey,
-            Consumer<NetworkPacket> packetHandler
+            Consumer<NetworkPacket> packetHandler,
+            BiConsumer<NodeId, NetworkPacket> invalidPacketHandler
     ) {
 
         this.peerId = peerId;
@@ -41,6 +43,7 @@ public final class PeerSession {
         this.crypto = crypto;
         this.peerPublicKey = peerPublicKey;
         this.packetHandler = packetHandler;
+        this.invalidPacketHandler = invalidPacketHandler;
 
         startReceiving();
 
@@ -55,6 +58,7 @@ public final class PeerSession {
 
             if (!verifyPacket(packet)) {
                 util.Log.warn("[NET] Rejected packet with invalid signature from " + peerId);
+                invalidPacketHandler.accept(peerId, packet);
                 return;
             }
 
@@ -65,12 +69,20 @@ public final class PeerSession {
             }
 
             packetHandler.accept(packet);
-            util.Log.debug("[NET] Packet received type=" + packet.type() +
-                    " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[NET] Packet received type=" + packet.type() +
+                        " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
+            }
         });
     }
 
     private boolean verifyPacket(NetworkPacket packet) {
+
+        if (!peerId.equals(packet.sender())) {
+            util.Log.warn("[NET] Rejected packet with spoofed sender=" + packet.sender()
+                    + " on session=" + peerId);
+            return false;
+        }
 
         NetworkPacket unsigned =
                 new NetworkPacket(
@@ -89,12 +101,13 @@ public final class PeerSession {
                 packet.signature(),
                 peerPublicKey);
 
-        byte[] serializedCounter = serializer.serialize(unsigned);
-        util.Log.debug("[NET] Verify sender=" + packet.sender() +
-                " seq=" + packet.sequenceNumber() +
-                " tick=" + packet.tickNumber() +
-                " bytes=" + serializedCounter.length +
-                " result=" + ok);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] Verify sender=" + packet.sender() +
+                    " seq=" + packet.sequenceNumber() +
+                    " tick=" + packet.tickNumber() +
+                    " bytes=" + serialized.length +
+                    " result=" + ok);
+        }
         return ok;
     }
 
@@ -105,14 +118,18 @@ public final class PeerSession {
         if (seq <= lastReceivedSequence)
             return false;
 
-        util.Log.debug("[NET] Sequence check last=" + lastReceivedSequence + " new=" + seq);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] Sequence check last=" + lastReceivedSequence + " new=" + seq);
+        }
         lastReceivedSequence = seq;
         return true;
     }
 
     public void sendPacket(NetworkPacket packet) {
-        util.Log.debug("[NET] SEND packet type=" + packet.type() +
-                " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] SEND packet type=" + packet.type() +
+                    " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
+        }
 
         byte[] data =
                 serializer.serialize(packet);
