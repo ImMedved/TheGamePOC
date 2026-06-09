@@ -69,8 +69,7 @@ public final class AbilitySystem implements GameSystem {
 
         spawnProjectile(context, player, dx1, dy1);
         spawnProjectile(context, player, dx2, dy2);
-        player.tripleShotCooldownRemaining =
-                PlayerState.TRIPLE_SHOT_COOLDOWN;
+        player.tripleShotCooldownRemaining = PlayerState.TRIPLE_SHOT_COOLDOWN;
     }
 
     private void spawnProjectile(SimulationContext context,
@@ -93,8 +92,7 @@ public final class AbilitySystem implements GameSystem {
 
     private void castSpeedBoost(SimulationContext context, PlayerState player) {
         util.Log.debug("[ABILITY] Current multiplier=" + player.speedMultiplier);
-        if (player.speedCooldownRemaining > 0f)
-            return;
+        if (player.speedCooldownRemaining > 0f) return;
         context.addCommand(new ApplySpeedBoostCommand(
                 player.id,
                 2f,
@@ -114,8 +112,7 @@ public final class AbilitySystem implements GameSystem {
     }
 
     private void castTeleport(SimulationContext context, PlayerState player) {
-        if (player.blinkCooldownRemaining > 0f)
-            return;
+        if (player.blinkCooldownRemaining > 0f) return;
         float worldMouseX = context.input(player.id).mouseX;
         float worldMouseY = context.input(player.id).mouseY;
 
@@ -144,9 +141,6 @@ public final class AbilitySystem implements GameSystem {
         float finalDx = targetX - player.position.x;
         float finalDy = targetY - player.position.y;
 
-        //float length = (float)Math.sqrt(finalDx * finalDx + finalDy * finalDy);
-        //float rotation = (float)Math.atan2(finalDy, finalDx);
-
         context.addCommand(new ApplyEffectCommand(
                 EffectFactory.createDashEffect(
                         context.nextId(),
@@ -158,12 +152,7 @@ public final class AbilitySystem implements GameSystem {
                 )
         ));
 
-        context.addCommand(new TeleportPlayerCommand(
-                player.id,
-                targetX,
-                targetY
-        ));
-        player.blinkCooldownRemaining =
-                PlayerState.BLINK_COOLDOWN;
+        context.addCommand(new TeleportPlayerCommand(player.id, targetX, targetY));
+        player.blinkCooldownRemaining = PlayerState.BLINK_COOLDOWN;
     }
 }

@@ -62,7 +62,9 @@ public final class RenderSnapshotBuilder {
                     currPlayer.speedCooldownRemaining,
                     currPlayer.blinkCooldownRemaining,
                     currPlayer.health,
-                    currPlayer.maxHealth
+                    currPlayer.maxHealth,
+                    currPlayer.livesRemaining,
+                    currPlayer.alive
                     )
             );
         }

@@ -20,6 +20,8 @@ public final class RenderPlayer {
 
     public final float health;
     public final float maxHealth;
+    public final int livesRemaining;
+    public final boolean alive;
 
     public RenderPlayer(
             long id,
@@ -34,7 +36,9 @@ public final class RenderPlayer {
             float speedCooldown,
             float blinkCooldown,
             float health,
-            float maxHealth
+            float maxHealth,
+            int livesRemaining,
+            boolean alive
     ) {
         this.id = id;
         this.characterId = characterId;
@@ -49,5 +53,7 @@ public final class RenderPlayer {
         this.blinkCooldown = blinkCooldown;
         this.health = health;
         this.maxHealth = maxHealth;
+        this.livesRemaining = livesRemaining;
+        this.alive = alive;
     }
 }

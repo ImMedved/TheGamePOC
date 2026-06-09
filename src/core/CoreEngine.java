@@ -19,7 +19,7 @@ import java.util.concurrent.locks.LockSupport;
 
 public final class CoreEngine {
 
-    private static final int TICK_RATE = 30;
+    private static final int TICK_RATE = 25;
     private static final float DT = 1f / TICK_RATE;
 
     private final ExecutorService executor;

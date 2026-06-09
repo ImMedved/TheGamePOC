@@ -28,6 +28,9 @@ import java.util.UUID;
 
 public class Main {
 
+    private static final float TILE_SIZE = 100f;
+    private static final int STARTING_LIVES = 3;
+
     static String A_PRIVATE = "MC4CAQAwBQYDK2VwBCIEIEoLrEF7dUGY26UAgtXvj8azOq5TSFIlGeB9lrvqguct";
     static String A_PUBLIC  = "MCowBQYDK2VwAyEAcVejzRXtlfeISy5GLJIudINgt+WLEyAta4EO2gu7e2c=";
 
@@ -157,27 +160,34 @@ public class Main {
 
         world.level = level;
 
-        float startX = level.width * 50f;
-        float startY = level.height * 50f;
-
         PlayerState p1 = new PlayerState(1);
         p1.characterId = 1;
         p1.health = 100f;
         p1.maxHealth = 100f;
+        p1.livesRemaining = STARTING_LIVES;
         p1.hitboxRadius = 20f;
-        p1.position.set(startX, startY);
+        setSpawnTile(p1, 4, 4);
 
         PlayerState p2 = new PlayerState(2);
         p2.characterId = 1;
         p2.health = 100f;
         p2.maxHealth = 100f;
+        p2.livesRemaining = STARTING_LIVES;
         p2.hitboxRadius = 20f;
-        p2.position.set(startX + 100, startY);
+        setSpawnTile(p2, 16, 16);
 
         world.players.put(p1.id, p1);
         world.players.put(p2.id, p2);
 
         return world;
+    }
+
+    private static void setSpawnTile(PlayerState player, int tileX, int tileY) {
+        float spawnX = (tileX - 0.5f) * TILE_SIZE;
+        float spawnY = (tileY - 0.5f) * TILE_SIZE;
+        player.position.set(spawnX, spawnY);
+        player.previousPosition.set(spawnX, spawnY);
+        player.respawnPosition.set(spawnX, spawnY);
     }
 
     private static void startRender(

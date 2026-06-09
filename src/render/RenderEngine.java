@@ -18,7 +18,7 @@ import java.util.concurrent.locks.LockSupport;
 
 public final class RenderEngine {
 
-    private static final int TARGET_FPS = 30;
+    private static final int TARGET_FPS = 25;
     private static final double FRAME_TIME = 1.0 / TARGET_FPS;
     private static final long FRAME_TIME_NANOS = 1_000_000_000L / TARGET_FPS;
 
@@ -117,6 +117,7 @@ public final class RenderEngine {
         int selected = menuRenderer.getSelectedCharacterId();
         core.reset();
         core.setSelectedCharacter(selected);
+        localWon = false;
 
         NetworkInputProvider provider =
                 new NetworkInputProvider(
@@ -165,13 +166,15 @@ public final class RenderEngine {
         RenderSnapshot snapshot = core.getRenderSnapshot();
         if (snapshot == null) return;
 
-        sceneRenderer.render(snapshot, alpha);
-
         if (snapshot.gameOver) {
             localWon = snapshot.winnerPlayerId == localPlayerId;
             core.stop();
             mode = AppMode.END_SCREEN;
+            endScreenRenderer.render(window, localWon);
+            return;
         }
+
+        sceneRenderer.render(snapshot, alpha);
 
         long end = System.nanoTime();
         double ms = (end - start) / 1_000_000.0;

@@ -26,8 +26,7 @@ public final class EffectRegistry {
 
     private void ensureCapacity(int id) {
         if (id >= definitions.length) {
-            EffectDefinition[] newArr =
-                    new EffectDefinition[id + 1];
+            EffectDefinition[] newArr = new EffectDefinition[id + 1];
             System.arraycopy(definitions, 0, newArr, 0, definitions.length);
             definitions = newArr;
         }

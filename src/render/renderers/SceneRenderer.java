@@ -106,6 +106,7 @@ public final class SceneRenderer {
         hudRenderer.render(
                 window,
                 snapshot.players,
+                camera,
                 localPlayerId
         );
         window.display();

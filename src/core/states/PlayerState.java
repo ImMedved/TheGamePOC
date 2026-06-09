@@ -13,11 +13,14 @@ public final class PlayerState {
     public Vector2 position;
     public Vector2 previousPosition;
     public Vector2 velocity;
+    public Vector2 respawnPosition;
 
     public float rotation;
 
     public float health;
     public float maxHealth;
+    public int livesRemaining;
+    public int lastRespawnTick = -1;
 
     public float hitboxRadius;
     public boolean alive;
@@ -44,6 +47,7 @@ public final class PlayerState {
         this.position = new Vector2();
         this.previousPosition = new Vector2();
         this.velocity = new Vector2();
+        this.respawnPosition = new Vector2();
         this.attributes = new HashMap<>();
         this.tags = new HashSet<>();
         this.alive = true;
@@ -56,6 +60,7 @@ public final class PlayerState {
         copy.position = this.position.copy();
         copy.previousPosition = this.previousPosition.copy();
         copy.velocity = this.velocity.copy();
+        copy.respawnPosition = this.respawnPosition.copy();
 
         copy.speedMultiplier = this.speedMultiplier;
         copy.speedBuffRemaining = this.speedBuffRemaining;
@@ -63,6 +68,8 @@ public final class PlayerState {
         copy.rotation = this.rotation;
         copy.health = this.health;
         copy.maxHealth = this.maxHealth;
+        copy.livesRemaining = this.livesRemaining;
+        copy.lastRespawnTick = this.lastRespawnTick;
         copy.hitboxRadius = this.hitboxRadius;
         copy.alive = this.alive;
 

@@ -44,7 +44,8 @@ public final class StateFramePayload {
                         p.position.x,
                         p.position.y,
                         p.health,
-                        p.alive
+                        p.alive,
+                        p.livesRemaining
                 )));
 
         List<ProjectileFrame> projectiles = new ArrayList<>();
@@ -84,6 +85,7 @@ public final class StateFramePayload {
                 out.writeFloat(player.y);
                 out.writeFloat(player.health);
                 out.writeBoolean(player.alive);
+                out.writeInt(player.livesRemaining);
             }
 
             out.writeInt(projectiles.size());
@@ -119,7 +121,8 @@ public final class StateFramePayload {
                         in.readFloat(),
                         in.readFloat(),
                         in.readFloat(),
-                        in.readBoolean()
+                        in.readBoolean(),
+                        in.readInt()
                 ));
             }
 
@@ -142,7 +145,7 @@ public final class StateFramePayload {
         }
     }
 
-    public record PlayerFrame(long id, float x, float y, float health, boolean alive) {
+    public record PlayerFrame(long id, float x, float y, float health, boolean alive, int livesRemaining) {
     }
 
     public record ProjectileFrame(long id, long ownerId, float x, float y, float velocityX, float velocityY) {

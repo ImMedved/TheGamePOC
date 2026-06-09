@@ -4,6 +4,7 @@ import core.render.RenderPlayer;
 import org.jsfml.graphics.*;
 import org.jsfml.system.Vector2f;
 import org.jsfml.window.Mouse;
+import render.Camera;
 import render.resources.AssetKeys;
 import render.resources.ResourceManager;
 
@@ -20,6 +21,10 @@ public final class HudRenderer {
     private static final int BULLET_H = 40;
 
     private static final int ABILITY_SIZE = 64;
+    private static final float PLAYER_BAR_WIDTH = 64f;
+    private static final float PLAYER_BAR_HEIGHT = 8f;
+    private static final float PLAYER_BAR_OFFSET_Y = 48f;
+    private static final float DIGIT_THICKNESS = 2f;
 
     public HudRenderer(ResourceManager resources) {
         bulletTexture = resources.getTexture(AssetKeys.BULLET);
@@ -28,15 +33,100 @@ public final class HudRenderer {
 
     public void render(RenderWindow window,
                        List<RenderPlayer> players,
+                       Camera camera,
                        long localPlayerId) {
 
         if (players.isEmpty()) return;
 
         RenderPlayer player = players.get(Math.toIntExact(localPlayerId)-1);
 
+        renderPlayerBars(window, players, camera, localPlayerId);
         renderCursor(window, player);
         renderHealth(window, player);
         renderAbilities(window, player);
+    }
+
+    private void renderPlayerBars(RenderWindow window,
+                                  List<RenderPlayer> players,
+                                  Camera camera,
+                                  long localPlayerId) {
+
+        for (RenderPlayer player : players) {
+            float screenX = camera.worldToScreenX(player.currX);
+            float screenY = camera.worldToScreenY(player.currY) - PLAYER_BAR_OFFSET_Y;
+            float ratio = player.maxHealth <= 0f ? 0f : Math.max(0f, Math.min(1f, player.health / player.maxHealth));
+
+            RectangleShape bg = new RectangleShape(new Vector2f(PLAYER_BAR_WIDTH, PLAYER_BAR_HEIGHT));
+            bg.setFillColor(new Color(30, 30, 30, 220));
+            bg.setOutlineColor(new Color(0, 0, 0, 220));
+            bg.setOutlineThickness(1f);
+            bg.setPosition(screenX - PLAYER_BAR_WIDTH * 0.5f, screenY);
+            window.draw(bg);
+
+            RectangleShape fill = new RectangleShape(new Vector2f(PLAYER_BAR_WIDTH * ratio, PLAYER_BAR_HEIGHT));
+            fill.setFillColor(player.id == localPlayerId ? new Color(60, 210, 90) : new Color(210, 70, 70));
+            fill.setPosition(screenX - PLAYER_BAR_WIDTH * 0.5f, screenY);
+            window.draw(fill);
+
+            renderLifeCount(window, player.livesRemaining, screenX + PLAYER_BAR_WIDTH * 0.5f + 6f, screenY - 1f);
+        }
+    }
+
+    private void renderLifeCount(RenderWindow window, int livesRemaining, float x, float y) {
+        char[] digits = Integer.toString(Math.max(0, livesRemaining)).toCharArray();
+        float cursorX = x;
+
+        for (char digit : digits) {
+            renderDigit(window, digit, cursorX, y);
+            cursorX += 8f;
+        }
+    }
+
+    private void renderDigit(RenderWindow window, char digit, float x, float y) {
+        boolean[] segments = switch (digit) {
+            case '0' -> new boolean[]{true, true, true, true, true, true, false};
+            case '1' -> new boolean[]{false, true, true, false, false, false, false};
+            case '2' -> new boolean[]{true, true, false, true, true, false, true};
+            case '3' -> new boolean[]{true, true, true, true, false, false, true};
+            case '4' -> new boolean[]{false, true, true, false, false, true, true};
+            case '5' -> new boolean[]{true, false, true, true, false, true, true};
+            case '6' -> new boolean[]{true, false, true, true, true, true, true};
+            case '7' -> new boolean[]{true, true, true, false, false, false, false};
+            case '8' -> new boolean[]{true, true, true, true, true, true, true};
+            case '9' -> new boolean[]{true, true, true, true, false, true, true};
+            default -> new boolean[]{false, false, false, false, false, false, false};
+        };
+
+        Color color = new Color(245, 245, 245);
+
+        if (segments[0]) {
+            drawSegment(window, x, y, 4f, DIGIT_THICKNESS, color);
+        }
+        if (segments[1]) {
+            drawSegment(window, x + 4f, y, DIGIT_THICKNESS, 4f, color);
+        }
+        if (segments[2]) {
+            drawSegment(window, x + 4f, y + 4f, DIGIT_THICKNESS, 4f, color);
+        }
+        if (segments[3]) {
+            drawSegment(window, x, y + 8f, 4f, DIGIT_THICKNESS, color);
+        }
+        if (segments[4]) {
+            drawSegment(window, x, y + 4f, DIGIT_THICKNESS, 4f, color);
+        }
+        if (segments[5]) {
+            drawSegment(window, x, y, DIGIT_THICKNESS, 4f, color);
+        }
+        if (segments[6]) {
+            drawSegment(window, x, y + 4f, 4f, DIGIT_THICKNESS, color);
+        }
+    }
+
+    private void drawSegment(RenderWindow window, float x, float y, float width, float height, Color color) {
+        RectangleShape segment = new RectangleShape(new Vector2f(width, height));
+        segment.setFillColor(color);
+        segment.setPosition(x, y);
+        window.draw(segment);
     }
 
     // CURSOR

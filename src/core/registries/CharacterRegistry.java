@@ -30,8 +30,7 @@ public final class CharacterRegistry {
 
     private void ensureCapacity(int id) {
         if (id >= definitions.length) {
-            CharacterDefinition[] newArr =
-                    new CharacterDefinition[id + 1];
+            CharacterDefinition[] newArr = new CharacterDefinition[id + 1];
             System.arraycopy(definitions, 0, newArr, 0, definitions.length);
             definitions = newArr;
         }

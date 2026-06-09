@@ -33,30 +33,26 @@ public final class ProjectileMoveSystem implements GameSystem {
             float frameDistance = (float)Math.sqrt(dx * dx + dy * dy);
             float newDistance = p.traveledDistance + frameDistance;
 
-            context.addCommand(
-                    new MoveProjectileCommand(
-                            p.id,
-                            newX,
-                            newY,
-                            p.velocity.x,
-                            p.velocity.y,
-                            newElapsed,
-                            newDistance
+            context.addCommand(new MoveProjectileCommand(
+                    p.id,
+                    newX,
+                    newY,
+                    p.velocity.x,
+                    p.velocity.y,
+                    newElapsed,
+                    newDistance
                     )
             );
 
             if (p.maxDistance > 0f && newDistance >= p.maxDistance) {
 
-                context.addCommand(
-                        new ApplyEffectCommand(
-                                EffectFactory.createBulletHole(
-                                        context.nextId(),
-                                        p.id,
-                                        EffectConfigs.BULLET_HOLE,
-                                        newX,
-                                        newY
-                                )
-                        )
+                context.addCommand(new ApplyEffectCommand(EffectFactory.createBulletHole(
+                        context.nextId(),
+                        p.id,
+                        EffectConfigs.BULLET_HOLE,
+                        newX,
+                        newY
+                        ))
                 );
 
                 context.addCommand(new RemoveProjectileCommand(p.id));

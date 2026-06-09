@@ -81,14 +81,24 @@ public final class CommandProcessor {
                 case DamagePlayerCommand d -> {
                     PlayerState player = next.players.get(d.playerId());
                     if (player != null) {
+                        int producedTick = Math.toIntExact(next.tickIndex + 1);
+                        if (player.lastRespawnTick == producedTick) {
+                            continue;
+                        }
                         player.health = Math.max(0f, player.health - d.damage());
                         if (player.health <= 0f) {
-                            player.alive = false;
-                            if (!next.gameOver) {
-                                next.gameOver = true;
-                                next.winnerPlayerId = player.id == 1L ? 2L : 1L;
-                                util.Log.info("[GAME] player=" + player.id
-                                        + " defeated winner=" + next.winnerPlayerId);
+                            player.livesRemaining = Math.max(0, player.livesRemaining - 1);
+
+                            if (player.livesRemaining > 0) {
+                                respawnPlayer(player, producedTick);
+                            } else {
+                                player.alive = false;
+                                if (!next.gameOver) {
+                                    next.gameOver = true;
+                                    next.winnerPlayerId = player.id == 1L ? 2L : 1L;
+                                    util.Log.info("[GAME] player=" + player.id
+                                            + " defeated winner=" + next.winnerPlayerId);
+                                }
                             }
                         }
                     }
@@ -146,5 +156,20 @@ public final class CommandProcessor {
         next.tickIndex++;
 
         return next;
+    }
+
+    private void respawnPlayer(PlayerState player, int producedTick) {
+        player.alive = true;
+        player.health = player.maxHealth;
+        player.lastRespawnTick = producedTick;
+        player.position.set(player.respawnPosition.x, player.respawnPosition.y);
+        player.previousPosition.set(player.respawnPosition.x, player.respawnPosition.y);
+        player.velocity.set(0f, 0f);
+        player.speedMultiplier = 1f;
+        player.speedBuffRemaining = 0f;
+        player.shootCooldownRemaining = 0f;
+        player.tripleShotCooldownRemaining = 0f;
+        player.speedCooldownRemaining = 0f;
+        player.blinkCooldownRemaining = 0f;
     }
 }

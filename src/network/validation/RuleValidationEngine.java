@@ -240,6 +240,10 @@ public final class RuleValidationEngine {
             if (e.alive() != a.alive()) {
                 return "player " + e.id() + " alive mismatch expected=" + e.alive() + " actual=" + a.alive();
             }
+            if (e.livesRemaining() != a.livesRemaining()) {
+                return "player " + e.id() + " lives mismatch expected=" + e.livesRemaining()
+                        + " actual=" + a.livesRemaining();
+            }
         }
 
         if (expected.projectiles.size() != actual.projectiles.size()) {

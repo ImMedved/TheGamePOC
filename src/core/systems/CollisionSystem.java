@@ -26,7 +26,7 @@ public final class CollisionSystem implements GameSystem {
 
         if (level == null) return;
 
-        // ---- Player - Level ----
+        // Player - Level
 
         for (PlayerState player : context.snapshot().players.values()
             .stream()
@@ -64,7 +64,7 @@ public final class CollisionSystem implements GameSystem {
             }
         }
 
-        // ---- Projectile ↔ Level + Projectile ↔ Player ----
+        // Projectile ↔ Level + Projectile ↔ Player
 
         for (ProjectileState projectile : context.snapshot().projectiles) {
 

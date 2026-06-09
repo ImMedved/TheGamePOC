@@ -24,17 +24,10 @@ public final class CooldownSystem implements GameSystem {
 
             float dt = context.dt();
 
-            p.shootCooldownRemaining =
-                    Math.max(0f, p.shootCooldownRemaining - dt);
-
-            p.tripleShotCooldownRemaining =
-                    Math.max(0f, p.tripleShotCooldownRemaining - dt);
-
-            p.speedCooldownRemaining =
-                    Math.max(0f, p.speedCooldownRemaining - dt);
-
-            p.blinkCooldownRemaining =
-                    Math.max(0f, p.blinkCooldownRemaining - dt);
+            p.shootCooldownRemaining = Math.max(0f, p.shootCooldownRemaining - dt);
+            p.tripleShotCooldownRemaining = Math.max(0f, p.tripleShotCooldownRemaining - dt);
+            p.speedCooldownRemaining = Math.max(0f, p.speedCooldownRemaining - dt);
+            p.blinkCooldownRemaining = Math.max(0f, p.blinkCooldownRemaining - dt);
         }
     }
 }

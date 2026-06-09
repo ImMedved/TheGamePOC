@@ -60,9 +60,9 @@ public final class LevelLoader {
 
         return switch (textureId) {
 
-            case 0, 1, 2, 3 -> 0;
+            case 0, 2, 3 -> 0;
 
-            case 4, 5, 7, 8 ->
+            case 1, 4, 5, 7, 8 ->
                     TileCollisionFlags.BLOCK_PLAYER |
                             TileCollisionFlags.BLOCK_PROJECTILE;
 

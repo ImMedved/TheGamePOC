@@ -33,14 +33,12 @@ public final class ProjectileSpawnSystem implements GameSystem {
             InputSnapshot input = context.input(player.id);
             if (input == null) continue;
 
-            if (!input.shoot)
-                continue;
+            if (!input.shoot) continue;
 
-            if (player.id != input.ownerId)
-                continue;
+            if (player.id != input.ownerId) continue;
 
-            if (player.shootCooldownRemaining > 0f)
-                continue;
+            if (player.shootCooldownRemaining > 0f) continue;
+
             if (!player.alive) continue;
 
             int projectileType = 0;
