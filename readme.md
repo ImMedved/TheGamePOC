@@ -5,6 +5,8 @@ The application is a multiplayer game with both clients running locally. Docker 
 To launch, clone the repository locally on Windows 11, start the Docker daemon, and run the following command from the admin PowerShell:
 ```powershell -ExecutionPolicy Bypass -File .\run-docker.ps1```
 
+Add -LogLevel DEBUG for detailed logs. Logs are stored in logs/ directory.
+
 # File Structure
 
 The project is divided into four modules, including logging and an entry point.

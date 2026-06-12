@@ -73,6 +73,7 @@ public final class LockstepSynchronizer {
 
         return tickInputs;
     }
+
     public synchronized Map<NodeId, byte[]> waitForInputs(int tick) {
 
         while (true) {

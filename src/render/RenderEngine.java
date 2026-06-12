@@ -26,7 +26,6 @@ public final class RenderEngine {
     private final NetworkNode networkNode;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private Thread renderThread;
 
     private SceneRenderer sceneRenderer;
     private MenuRenderer menuRenderer;
@@ -35,7 +34,6 @@ public final class RenderEngine {
 
     private AppMode mode = AppMode.MENU;
 
-    private long previousTime;
     private double accumulator = 0.0;
 
     private final long localPlayerId;
@@ -60,7 +58,7 @@ public final class RenderEngine {
         util.Log.info("[RENDER] start requested running=" + running.get());
         if (running.get()) return;
         running.set(true);
-        renderThread = new Thread(this::runLoop, "RenderThread");
+        Thread renderThread = new Thread(this::runLoop, "RenderThread");
         renderThread.start();
     }
 
@@ -73,7 +71,7 @@ public final class RenderEngine {
         util.Log.info("[RENDER] run loop started");
         init();
 
-        previousTime = System.nanoTime();
+        long previousTime = System.nanoTime();
 
         while (running.get()) {
 
