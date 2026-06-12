@@ -4,7 +4,6 @@ import network.model.NodeId;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 public final class LockstepSynchronizer {
 
@@ -17,7 +16,10 @@ public final class LockstepSynchronizer {
     }
 
     public synchronized void submitLocalInput(int tick, byte[] input) {
-        util.Log.debug("[LOCKSTEP] Local input tick=" + tick);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[LOCKSTEP] Local input tick=" + tick + " bytes=" + input.length
+                    + " bufferedTicks=" + inputs.size());
+        }
         storeInput(localNodeId, tick, input);
         notifyAll();
     }
@@ -27,7 +29,10 @@ public final class LockstepSynchronizer {
             int tick,
             byte[] input
     ) {
-        util.Log.debug("[LOCKSTEP] Remote input tick=" + tick + " from " + peerId);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[LOCKSTEP] Remote input tick=" + tick + " from=" + peerId
+                    + " bytes=" + input.length + " bufferedTicks=" + inputs.size());
+        }
         storeInput(peerId, tick, input);
         notifyAll();
     }
@@ -47,13 +52,24 @@ public final class LockstepSynchronizer {
 
         Map<NodeId, byte[]> tickInputs = inputs.get(tick);
 
-        if (tickInputs == null)
+        if (tickInputs == null) {
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[LOCKSTEP] tryGetInputs tick=" + tick + " state=missing");
+            }
             return null;
+        }
 
-        if (tickInputs.size() < 2)
+        if (tickInputs.size() < 2) {
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[LOCKSTEP] tryGetInputs tick=" + tick + " state=waiting size=" + tickInputs.size());
+            }
             return null;
+        }
 
         inputs.remove(tick);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[LOCKSTEP] tryGetInputs tick=" + tick + " state=ready");
+        }
 
         return tickInputs;
     }
@@ -66,11 +82,16 @@ public final class LockstepSynchronizer {
             if (tickInputs != null && tickInputs.size() >= 2) {
 
                 inputs.remove(tick);
-                util.Log.debug("[LOCKSTEP] Inputs ready for tick " + tick);
+                if (util.Log.isDebugEnabled()) {
+                    util.Log.debug("[LOCKSTEP] Inputs ready tick=" + tick + " bufferedTicks=" + inputs.size());
+                }
                 return tickInputs;
             }
 
             try {
+                if (util.Log.isDebugEnabled()) {
+                    util.Log.debug("[LOCKSTEP] Waiting for inputs tick=" + tick + " bufferedTicks=" + inputs.size());
+                }
                 wait();
             } catch (InterruptedException ignored) {}
         }

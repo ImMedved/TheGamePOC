@@ -5,6 +5,7 @@ import core.states.WorldState;
 import core.systems.GameSystem;
 import network.crypto.CryptoModule;
 import network.lockstep.LockstepSynchronizer;
+import network.model.CharacterSelectPayload;
 import network.model.GameStartPayload;
 import network.model.NetworkPacket;
 import network.model.NodeId;
@@ -38,6 +39,7 @@ public final class NetworkNode {
     private final LockstepSynchronizer lockstep;
     private RuleValidationEngine ruleValidator;
     private final PrivateKey privateKey;
+    private final Map<Long, Integer> selectedCharacters = new HashMap<>();
 
     private int sequenceCounter = 0;
     private final ExecutorService consensusExecutor =
@@ -61,6 +63,10 @@ public final class NetworkNode {
 
     public void startGame(UUID gameId, long playerA, long playerB) {
         util.Log.info("[GAME][NET] Host starting game " + gameId);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[GAME][NET] startGame players=" + playerA + "," + playerB +
+                    " peers=" + sessions.size());
+        }
         GameStartPayload payload =
                 new GameStartPayload(gameId, playerA, playerB);
 
@@ -68,6 +74,9 @@ public final class NetworkNode {
         consensusExecutor.submit(() -> runVdfAndSelectValidator(payload));
 
         byte[] payloadBytes = payload.toBytes();
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[GAME][NET] GAME_START payloadBytes=" + payloadBytes.length);
+        }
 
         int seq = sequenceCounter++;
 
@@ -108,6 +117,10 @@ public final class NetworkNode {
             PublicKey peerKey
     ) {
         util.Log.info("[NET] Peer added: " + peerId);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] Creating PeerSession peer=" + peerId +
+                    " knownPeers=" + sessions.size());
+        }
         PeerSession session =
                 new PeerSession(
                         peerId,
@@ -127,7 +140,11 @@ public final class NetworkNode {
             NetworkPacket packet
     ) {
         if (util.Log.isDebugEnabled()) {
-            util.Log.debug("[NET] Handling packet type=" + packet.type() + " tick=" + packet.tickNumber());
+            util.Log.debug("[NET] Handling packet peer=" + peer +
+                    " type=" + packet.type() +
+                    " tick=" + packet.tickNumber() +
+                    " seq=" + packet.sequenceNumber() +
+                    " payload=" + packet.payload().length);
         }
         switch (packet.type()) {
 
@@ -175,7 +192,30 @@ public final class NetworkNode {
                     }
                 }
             }
-            case GAME_START -> handleGameStart(packet);
+            case CHARACTER_SELECT -> {
+                CharacterSelectPayload payload = CharacterSelectPayload.fromBytes(packet.payload());
+
+                if (payload.playerId != packet.sender().value()) {
+                    util.Log.warn("[NET] rejected character selection sender=" + packet.sender()
+                            + " claimedPlayer=" + payload.playerId);
+                    return;
+                }
+
+                selectedCharacters.put(payload.playerId, payload.characterId);
+
+                if (util.Log.isDebugEnabled()) {
+                    util.Log.debug("[NET] character selected player=" + payload.playerId
+                            + " character=" + payload.characterId
+                            + " selections=" + selectedCharacters);
+                }
+            }
+            case GAME_START -> {
+                if (util.Log.isDebugEnabled()) {
+                    util.Log.debug("[GAME][NET] GAME_START received from=" + peer +
+                            " tick=" + packet.tickNumber());
+                }
+                handleGameStart(packet);
+            }
 
             case VOID -> handleVoid(packet);
         }
@@ -183,6 +223,11 @@ public final class NetworkNode {
 
     public void submitLocalInput(int tick, byte[] input) {
 
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] submitLocalInput tick=" + tick +
+                    " bytes=" + input.length +
+                    " peers=" + sessions.size());
+        }
         lockstep.submitLocalInput(tick, input);
 
         NetworkPacket packet =
@@ -195,14 +240,17 @@ public final class NetworkNode {
         broadcast(packet);
     }
 
-    public Map<NodeId, byte[]> tryGetInputs(int tick) {
-        return lockstep.tryGetInputs(tick);
-    }
-
     public void submitStateFrame(int tick, WorldState world) {
 
         StateFramePayload payload = StateFramePayload.fromWorld(world);
         byte[] payloadBytes = payload.toBytes();
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[VALIDATOR][NET] submitStateFrame tick=" + tick +
+                    " players=" + payload.players.size() +
+                    " projectiles=" + payload.projectiles.size() +
+                    " gameOver=" + payload.gameOver +
+                    " winner=" + payload.winnerPlayerId);
+        }
 
         NetworkPacket packet =
                 createPacket(
@@ -212,6 +260,29 @@ public final class NetworkNode {
                 );
 
         broadcast(packet);
+    }
+
+    public void submitCharacterSelection(long playerId, int characterId) {
+        selectedCharacters.put(playerId, characterId);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] submitCharacterSelection player=" + playerId +
+                    " character=" + characterId +
+                    " selections=" + selectedCharacters);
+        }
+
+        CharacterSelectPayload payload = new CharacterSelectPayload(playerId, characterId);
+        NetworkPacket packet =
+                createPacket(
+                        NetworkPacket.PacketType.CHARACTER_SELECT,
+                        0,
+                        payload.toBytes()
+                );
+
+        broadcast(packet);
+    }
+
+    public int getSelectedCharacterId(long playerId) {
+        return selectedCharacters.getOrDefault(playerId, 1);
     }
 
     public void configureRuleValidator(
@@ -229,6 +300,12 @@ public final class NetworkNode {
     ) {
 
         byte[] payloadCopy = payload.clone();
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] createPacket type=" + type +
+                    " tick=" + tick +
+                    " payload=" + payloadCopy.length +
+                    " seq=" + sequenceCounter);
+        }
 
         NetworkPacket unsignedPacket =
                 new NetworkPacket(
@@ -254,10 +331,24 @@ public final class NetworkNode {
     }
 
     private void broadcast(NetworkPacket packet) {
-
-        for (PeerSession session : sessions.values()) {
-
-            session.sendPacket(packet);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] broadcast type=" + packet.type() +
+                    " tick=" + packet.tickNumber() +
+                    " seq=" + packet.sequenceNumber() +
+                    " peers=" + sessions.size());
+        }
+        for (var it = sessions.entrySet().iterator(); it.hasNext();) {
+            var entry = it.next();
+            try {
+                entry.getValue().sendPacket(packet);
+            } catch (RuntimeException e) {
+                util.Log.warn("[NET] dropping peer " + entry.getKey() + " after send failure: " + e.getMessage());
+                try {
+                    entry.getValue().close();
+                } catch (Exception ignored) {
+                }
+                it.remove();
+            }
         }
     }
 
@@ -268,7 +359,6 @@ public final class NetworkNode {
     private volatile UUID currentGameId;
     private final VDFModule vdf = new VDFModule();
 
-    private NodeId validatorNodeId;
     private boolean isValidator;
 
     private void handleGameStart(NetworkPacket packet) {
@@ -279,6 +369,11 @@ public final class NetworkNode {
             return;
         currentGameId = payload.gameId;
         util.Log.info("[GAME][NET] start " + payload.gameId);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[GAME][NET] handleGameStart playerA=" + payload.playerA +
+                    " playerB=" + payload.playerB +
+                    " currentGameId=" + currentGameId);
+        }
 
         consensusExecutor.submit(() -> runVdfAndSelectValidator(payload));
     }
@@ -297,6 +392,10 @@ public final class NetworkNode {
     private void runVdfAndSelectValidator(GameStartPayload payload) {
 
         List<Long> nodeIds = List.of(1L, 2L, 3L);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[CONSENSUS] VDF start gameId=" + payload.gameId +
+                    " nodes=" + nodeIds);
+        }
 
         byte[] seed = VDFSeed.create(
                 payload.gameId,
@@ -306,10 +405,13 @@ public final class NetworkNode {
         byte[] entropy = vdf.compute(seed);
 
         util.Log.debug("[VDF][NET] entropy=" + bytesToHex(entropy));
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[VDF][NET] seedBytes=" + seed.length + " entropyBytes=" + entropy.length);
+        }
 
         long validator = 3L;
 
-        validatorNodeId = new NodeId(validator);
+        NodeId validatorNodeId = new NodeId(validator);
 
         isValidator = validatorNodeId.equals(localNodeId);
 
@@ -358,6 +460,11 @@ public final class NetworkNode {
 
         } else {
             if (ruleValidator != null) {
+                if (util.Log.isDebugEnabled()) {
+                    util.Log.debug("[VALIDATOR] validating input player=" + player +
+                            " tick=" + tick +
+                            " payload=" + packet.payload().length);
+                }
                 RuleValidationEngine.ValidationResult result = ruleValidator.acceptInput(packet);
                 if (!result.valid()) {
                     reportRuleViolation(result);
@@ -373,6 +480,11 @@ public final class NetworkNode {
         util.Log.warn("[VALIDATOR] desync culprit=" + result.culprit()
                 + " tick=" + result.tick()
                 + " reason=" + result.reason());
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[VALIDATOR] violation detail culprit=" + result.culprit() +
+                    " tick=" + result.tick() +
+                    " reason=" + result.reason());
+        }
     }
 
     private void handleInvalidSignature(NodeId peer, NetworkPacket packet) {
@@ -381,12 +493,20 @@ public final class NetworkNode {
                     + " claimedSender=" + packet.sender()
                     + " tick=" + packet.tickNumber()
                     + " type=" + packet.type());
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[VALIDATOR] invalid signature payload=" + packet.payload().length +
+                        " signature=" + (packet.signature() == null ? 0 : packet.signature().length));
+            }
             sendVoid(packet.tickNumber());
         } else {
             util.Log.warn("[NET] invalid signature from=" + peer
                     + " claimedSender=" + packet.sender()
                     + " tick=" + packet.tickNumber()
                     + " type=" + packet.type());
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[NET] invalid signature payload=" + packet.payload().length +
+                        " signature=" + (packet.signature() == null ? 0 : packet.signature().length));
+            }
         }
     }
 
@@ -394,6 +514,9 @@ public final class NetworkNode {
         if (currentGameId == null) {
             util.Log.warn("[VALIDATOR] void requested before game id is known tick=" + tick);
             return;
+        }
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[VALIDATOR] sendVoid tick=" + tick + " gameId=" + currentGameId);
         }
 
         ValidationPayload payload =
@@ -435,7 +558,13 @@ public final class NetworkNode {
         ValidationPayload payload = ValidationPayload.fromBytes(packet.payload());
 
         util.Log.warn("[GAME] VOID detected at tick " + payload.tick);
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[GAME] VOID packet sender=" + packet.sender() +
+                    " seq=" + packet.sequenceNumber() +
+                    " gameId=" + payload.gameId +
+                    " tick=" + payload.tick);
+        }
 
-        // остановить игру
+        // Остановить игру
     }
 }

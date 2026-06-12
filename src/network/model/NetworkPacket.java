@@ -5,6 +5,7 @@ public final class NetworkPacket {
     public enum PacketType {
         INPUT,
         STATE_FRAME,
+        CHARACTER_SELECT,
 
         GAME_START,
         VDF_RESULT,

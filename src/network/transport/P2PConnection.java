@@ -13,8 +13,6 @@ public final class P2PConnection {
 
     private volatile boolean running;
 
-    private Thread receiveThread;
-
     public P2PConnection(Socket socket) {
 
         try {
@@ -39,8 +37,11 @@ public final class P2PConnection {
     public void startReceiving(Consumer<byte[]> packetHandler) {
 
         running = true;
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] Transport receive thread starting socket=" + socket.getRemoteSocketAddress());
+        }
 
-        receiveThread = new Thread(() -> {
+        Thread receiveThread = new Thread(() -> {
 
             try {
 
@@ -54,7 +55,8 @@ public final class P2PConnection {
 
                     packetHandler.accept(data);
                     if (util.Log.isDebugEnabled()) {
-                        util.Log.debug("[NET] Transport received bytes=" + data.length);
+                        util.Log.debug("[NET] Transport received bytes=" + data.length
+                                + " peer=" + socket.getRemoteSocketAddress());
                     }
                 }
 
@@ -65,7 +67,8 @@ public final class P2PConnection {
 
                 try {
                     socket.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
 
             }
 
@@ -95,7 +98,8 @@ public final class P2PConnection {
 
         try {
             if (util.Log.isDebugEnabled()) {
-                util.Log.debug("[NET] Transport send bytes=" + data.length);
+                util.Log.debug("[NET] Transport send bytes=" + data.length
+                        + " peer=" + socket.getRemoteSocketAddress());
             }
             out.writeInt(data.length);
 
@@ -111,6 +115,9 @@ public final class P2PConnection {
     public void close() {
 
         running = false;
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] Closing transport peer=" + socket.getRemoteSocketAddress());
+        }
 
         try {
             socket.close();

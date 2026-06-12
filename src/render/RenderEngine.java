@@ -3,7 +3,6 @@ package render;
 import core.CoreEngine;
 import core.render.RenderSnapshot;
 import input.InputModule;
-import input.InputSnapshot;
 import network.node.NetworkNode;
 import network.adapter.NetworkInputProvider;
 import org.jsfml.window.event.Event;
@@ -12,7 +11,6 @@ import render.renderers.EndScreenRenderer;
 import render.renderers.SceneRenderer;
 import render.resources.ResourceManager;
 
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
 
@@ -107,7 +105,7 @@ public final class RenderEngine {
         sceneRenderer = new SceneRenderer(resourceManager, inputModule, localPlayerId);
         sceneRenderer.init();
 
-        menuRenderer = new MenuRenderer(resourceManager, this::startGame);
+        menuRenderer = new MenuRenderer(resourceManager, this::startGame, this::publishSelectedCharacter);
         menuRenderer.init(sceneRenderer.getWindow());
         endScreenRenderer = new EndScreenRenderer(resourceManager);
     }
@@ -116,7 +114,9 @@ public final class RenderEngine {
 
         int selected = menuRenderer.getSelectedCharacterId();
         core.reset();
-        core.setSelectedCharacter(selected);
+        publishSelectedCharacter(selected);
+        core.setPlayerCharacter(localPlayerId, selected);
+        core.setPlayerCharacter(remotePlayerId, networkNode.getSelectedCharacterId(remotePlayerId));
         localWon = false;
 
         NetworkInputProvider provider =
@@ -131,6 +131,10 @@ public final class RenderEngine {
         core.start(provider, localPlayerId);
 
         mode = AppMode.GAME;
+    }
+
+    private void publishSelectedCharacter(int characterId) {
+        networkNode.submitCharacterSelection(localPlayerId, characterId);
     }
 
     private void renderFrame(float alpha) {

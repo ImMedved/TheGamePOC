@@ -5,12 +5,15 @@ import org.jsfml.window.event.Event;
 import render.resources.AssetKeys;
 import render.resources.ResourceManager;
 
+import java.util.function.Consumer;
+
 public final class MenuRenderer {
 
     private static final float WINDOW_WIDTH = 1280f;
     private static final float WINDOW_HEIGHT = 720f;
 
     private final Runnable onStart;
+    private final Consumer<Integer> onCharacterSelected;
 
     private final Texture backgroundTexture;
     private final Texture startButtonTexture;
@@ -28,10 +31,12 @@ public final class MenuRenderer {
 
     private static final int FRAME_SIZE = 64;
     private static final int CHAR_ROWS = 4;
-    private static final int CHAR_COLS = 3;
 
-    public MenuRenderer(ResourceManager resources, Runnable onStart) {
+    public MenuRenderer(ResourceManager resources,
+                        Runnable onStart,
+                        Consumer<Integer> onCharacterSelected) {
         this.onStart = onStart;
+        this.onCharacterSelected = onCharacterSelected;
         this.backgroundTexture = resources.getTexture(AssetKeys.BACKGROUND);
         this.startButtonTexture = resources.getTexture(AssetKeys.START_BUTTON);
         this.charactersTexture = resources.getTexture(AssetKeys.CHARS);
@@ -65,11 +70,9 @@ public final class MenuRenderer {
         float startX = WINDOW_WIDTH * 0.5f - totalWidth * 0.5f;
         float y = 500f;
 
-        for (int i = 0; i < CHARACTER_COUNT; i++) {
+        for (int charIndex = 0; charIndex < CHARACTER_COUNT; charIndex++) {
 
             Sprite sprite = new Sprite(charactersTexture);
-
-            int charIndex = i;
 
             int charRowBlock = charIndex * CHAR_ROWS;
 
@@ -83,10 +86,10 @@ public final class MenuRenderer {
                     FRAME_SIZE
             ));
 
-            sprite.setPosition(startX + i * spacing, y);
+            sprite.setPosition(startX + charIndex * spacing, y);
             sprite.setScale(2f, 2f);
 
-            characterButtons[i] = sprite;
+            characterButtons[charIndex] = sprite;
         }
     }
 
@@ -116,7 +119,10 @@ public final class MenuRenderer {
                         .getGlobalBounds()
                         .contains(mx, my)) {
 
-                    selectedCharacterId = i;
+                    if (selectedCharacterId != i) {
+                        selectedCharacterId = i;
+                        onCharacterSelected.accept(selectedCharacterId);
+                    }
                 }
             }
 

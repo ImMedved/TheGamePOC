@@ -50,8 +50,15 @@ public final class PeerSession {
     }
 
     private void startReceiving() {
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[NET] PeerSession start peer=" + peerId);
+        }
 
         connection.startReceiving(data -> {
+
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[NET] Packet buffer received peer=" + peerId + " bytes=" + data.length);
+            }
 
             NetworkPacket packet =
                     serializer.deserialize(data);
@@ -71,7 +78,10 @@ public final class PeerSession {
             packetHandler.accept(packet);
             if (util.Log.isDebugEnabled()) {
                 util.Log.debug("[NET] Packet received type=" + packet.type() +
-                        " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
+                        " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber() +
+                        " sender=" + packet.sender() +
+                        " payload=" + packet.payload().length +
+                        " signature=" + (packet.signature() == null ? 0 : packet.signature().length));
             }
         });
     }
@@ -106,6 +116,8 @@ public final class PeerSession {
                     " seq=" + packet.sequenceNumber() +
                     " tick=" + packet.tickNumber() +
                     " bytes=" + serialized.length +
+                    " payload=" + packet.payload().length +
+                    " signature=" + (packet.signature() == null ? 0 : packet.signature().length) +
                     " result=" + ok);
         }
         return ok;
@@ -119,7 +131,8 @@ public final class PeerSession {
             return false;
 
         if (util.Log.isDebugEnabled()) {
-            util.Log.debug("[NET] Sequence check last=" + lastReceivedSequence + " new=" + seq);
+            util.Log.debug("[NET] Sequence check peer=" + peerId +
+                    " last=" + lastReceivedSequence + " new=" + seq);
         }
         lastReceivedSequence = seq;
         return true;
@@ -128,16 +141,13 @@ public final class PeerSession {
     public void sendPacket(NetworkPacket packet) {
         if (util.Log.isDebugEnabled()) {
             util.Log.debug("[NET] SEND packet type=" + packet.type() +
-                    " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber());
+                    " tick=" + packet.tickNumber() + " seq=" + packet.sequenceNumber() +
+                    " peer=" + peerId);
         }
 
         byte[] data =
                 serializer.serialize(packet);
         connection.send(data);
-    }
-
-    public NodeId peerId() {
-        return peerId;
     }
 
     public void close() {

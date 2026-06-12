@@ -26,7 +26,6 @@ public final class RuleValidationEngine {
     private static final float FLOAT_TOLERANCE_RATIO = 0.05f;
     private static final float DT = 1f / 30f;
 
-    private final List<GameSystem> gameSystems;
     private final List<GameSystem> parallelGameSystems;
     private final List<GameSystem> sequentialGameSystems;
     private final CommandProcessor processor;
@@ -47,7 +46,6 @@ public final class RuleValidationEngine {
             ProjectileRegistry projectileRegistry
     ) {
         this.expectedWorld = initialWorld.copy();
-        this.gameSystems = gameSystems;
         this.parallelGameSystems = gameSystems.stream()
                 .filter(s -> s.phase() == Phase.PARALLEL)
                 .toList();
@@ -59,6 +57,12 @@ public final class RuleValidationEngine {
     }
 
     public synchronized ValidationResult acceptInput(NetworkPacket packet) {
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[VALIDATOR] acceptInput sender=" + packet.sender() +
+                    " tick=" + packet.tickNumber() +
+                    " seq=" + packet.sequenceNumber() +
+                    " payload=" + packet.payload().length);
+        }
         InputSnapshot input;
         try {
             input = inputCodec.decode(packet.payload());
@@ -83,6 +87,13 @@ public final class RuleValidationEngine {
     }
 
     public synchronized ValidationResult acceptStateReport(NodeId sender, StateFramePayload report) {
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[VALIDATOR] acceptStateReport sender=" + sender +
+                    " tick=" + report.tick +
+                    " players=" + report.players.size() +
+                    " projectiles=" + report.projectiles.size() +
+                    " gameOver=" + report.gameOver);
+        }
         reportsByTick
                 .computeIfAbsent(report.tick, ignored -> new HashMap<>())
                 .put(sender, report);
@@ -127,6 +138,10 @@ public final class RuleValidationEngine {
         while (true) {
             Map<Long, InputSnapshot> inputs = inputsByTick.get(nextTick);
             if (inputs == null || !inputs.containsKey(1L) || !inputs.containsKey(2L)) {
+                if (util.Log.isDebugEnabled()) {
+                    util.Log.debug("[VALIDATOR] simulateReadyTicks waiting tick=" + nextTick +
+                            " state=" + (inputs == null ? "missing" : "partial:" + inputs.size()));
+                }
                 return;
             }
 
@@ -138,6 +153,11 @@ public final class RuleValidationEngine {
             expectedWorld = simulateOneTick(expectedWorld, frame);
             int producedTick = Math.toIntExact(expectedWorld.tickIndex);
             expectedByTick.put(producedTick, expectedWorld.copy());
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[VALIDATOR] simulated tick=" + nextTick +
+                        " producedTick=" + producedTick +
+                        " expectedCache=" + expectedByTick.size());
+            }
             inputsByTick.remove(nextTick);
             pruneOldTicks(producedTick);
 
@@ -196,15 +216,28 @@ public final class RuleValidationEngine {
     private ValidationResult compareReport(NodeId sender, StateFramePayload report) {
         WorldState expected = expectedByTick.get(report.tick);
         if (expected == null) {
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[VALIDATOR] compareReport no expected state tick=" + report.tick +
+                        " sender=" + sender);
+            }
             return ValidationResult.valid(sender, report.tick);
         }
 
         StateFramePayload expectedReport = StateFramePayload.fromWorld(expected);
         String mismatch = compare(expectedReport, report);
         if (mismatch != null) {
+            if (util.Log.isDebugEnabled()) {
+                util.Log.debug("[VALIDATOR] compareReport mismatch sender=" + sender +
+                        " tick=" + report.tick +
+                        " reason=" + mismatch);
+            }
             return ValidationResult.invalid(sender, report.tick, mismatch);
         }
 
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[VALIDATOR] compareReport ok sender=" + sender +
+                    " tick=" + report.tick);
+        }
         return ValidationResult.valid(sender, report.tick);
     }
 
@@ -274,6 +307,9 @@ public final class RuleValidationEngine {
 
     private void pruneOldTicks(int currentTick) {
         int cutoff = currentTick - 180;
+        if (util.Log.isDebugEnabled()) {
+            util.Log.debug("[VALIDATOR] pruneOldTicks currentTick=" + currentTick + " cutoff=" + cutoff);
+        }
         expectedByTick.keySet().removeIf(tick -> tick < cutoff);
         reportsByTick.keySet().removeIf(tick -> tick < cutoff);
         inputsByTick.keySet().removeIf(tick -> tick < cutoff);

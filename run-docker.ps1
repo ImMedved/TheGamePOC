@@ -1,8 +1,13 @@
 param(
     [ValidateSet("DEBUG", "INFO", "WARN", "ERROR")]
     [string]$LogLevel = "INFO",
-    [switch]$SoftwareRendering
+    [switch]$SoftwareRendering,
+    [switch]$UseVSync
 )
+
+if (-not $PSBoundParameters.ContainsKey("SoftwareRendering")) {
+    $SoftwareRendering = $true
+}
 
 $ErrorActionPreference = "Stop"
 
@@ -77,5 +82,6 @@ New-Item -ItemType Directory -Path ".\logs" -Force | Out-Null
 $env:DISPLAY = "host.docker.internal:0.0"
 $env:LOG_LEVEL = $LogLevel
 $env:LIBGL_ALWAYS_SOFTWARE = if ($SoftwareRendering) { "1" } else { "0" }
+$env:USE_VSYNC = if ($UseVSync) { "true" } else { "false" }
 
 docker compose up --build

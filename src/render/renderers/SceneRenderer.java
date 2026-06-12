@@ -16,7 +16,6 @@ public final class SceneRenderer {
     private static final int WINDOW_HEIGHT = 720;
 
     private final ResourceManager resources;
-    private final InputModule inputModule;
 
     private RenderWindow window;
 
@@ -36,7 +35,6 @@ public final class SceneRenderer {
 
     public SceneRenderer(ResourceManager resources, InputModule inputModule, long localPlayerId) {
         this.resources = resources;
-        this.inputModule = inputModule;
         this.localPlayerId = localPlayerId;
     }
 
@@ -49,7 +47,13 @@ public final class SceneRenderer {
                 WindowStyle.DEFAULT
         );
 
-        window.setFramerateLimit(30);
+        boolean useVsync =
+                Boolean.parseBoolean(System.getenv().getOrDefault("USE_VSYNC", "false"));
+        if (useVsync) {
+            window.setVerticalSyncEnabled(true);
+        } else {
+            window.setFramerateLimit(60);
+        }
 
         camera.setViewport(WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -79,14 +83,7 @@ public final class SceneRenderer {
             levelInitialized = true;
         }
 
-        if (!snapshot.players.isEmpty()) {
-            var focus = snapshot.players.get(Math.toIntExact(localPlayerId)-1);
-
-            float x = focus.prevX + (focus.currX - focus.prevX) * alpha;
-            float y = focus.prevY + (focus.currY - focus.prevY) * alpha;
-
-            camera.setPosition(snapshot.camX, snapshot.camY);
-        }
+        if (!snapshot.players.isEmpty()) camera.setPosition(snapshot.camX, snapshot.camY);
 
         batchManager.beginFrame();
 
@@ -100,9 +97,7 @@ public final class SceneRenderer {
         for (var entry : batchManager.getAll().entrySet()) {
             window.draw(entry.getValue().getVertexArray(), entry.getKey().getStates());
         }
-        if (util.Log.isDebugEnabled()) {
-            util.Log.debug("[RENDER] batch count=" + batchManager.getAll().size());
-        }
+        if (util.Log.isDebugEnabled()) util.Log.debug("[RENDER] batch count=" + batchManager.getAll().size());
         hudRenderer.render(
                 window,
                 snapshot.players,

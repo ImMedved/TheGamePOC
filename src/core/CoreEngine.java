@@ -5,11 +5,10 @@ import core.registries.ProjectileRegistry;
 import core.render.RenderSnapshot;
 import core.render.RenderSnapshotBuilder;
 import core.states.WorldState;
+import core.states.PlayerState;
 import core.systems.*;
 import core.systems.GameSystem;
 import input.InputFrame;
-import input.InputModule;
-import input.InputSnapshot;
 import network.node.NetworkNode;
 
 import java.util.*;
@@ -24,7 +23,6 @@ public final class CoreEngine {
 
     private final ExecutorService executor;
 
-    private final List<GameSystem> gameSystems;
     private final List<GameSystem> parallelGameSystems;
     private final List<GameSystem> sequentialGameSystems;
 
@@ -46,10 +44,10 @@ public final class CoreEngine {
     private final WorldState initialWorld;
     private int lastReportedStateTick = -1;
 
-    private volatile Integer pendingCharacterId = null;
+    private final Map<Long, Integer> pendingCharacterIds = new ConcurrentHashMap<>();
 
-    public void setSelectedCharacter(int characterId) {
-        this.pendingCharacterId = characterId;
+    public void setPlayerCharacter(long playerId, int characterId) {
+        pendingCharacterIds.put(playerId, characterId);
     }
 
     public CoreEngine(WorldState initial,
@@ -60,13 +58,8 @@ public final class CoreEngine {
         this.initialWorld = initial.copy();
         this.previousWorld = initial;
         this.currentWorld = initial;
-        this.gameSystems = gameSystems;
-        this.parallelGameSystems = gameSystems.stream()
-                .filter(s -> s.phase() == Phase.PARALLEL)
-                .toList();
-        this.sequentialGameSystems = gameSystems.stream()
-                .filter(s -> s.phase() == Phase.SEQUENTIAL)
-                .toList();
+        this.parallelGameSystems = gameSystems.stream().filter(s -> s.phase() == Phase.PARALLEL).toList();
+        this.sequentialGameSystems = gameSystems.stream().filter(s -> s.phase() == Phase.SEQUENTIAL).toList();
         this.processor = new CommandProcessor(projectileRegistry);
         this.networkNode = networkNode;
 
@@ -99,7 +92,7 @@ public final class CoreEngine {
         previousWorld = initialWorld.copy();
         currentWorld = initialWorld.copy();
         renderSnapshotRef.set(snapshotBuilder.build(previousWorld, currentWorld));
-        pendingCharacterId = null;
+        pendingCharacterIds.clear();
     }
 
     private void runLoop(java.util.function.Supplier<InputFrame> inputSupplier, long localPlayerId) {
@@ -136,13 +129,16 @@ public final class CoreEngine {
         }
         long start = System.nanoTime();
 
-        if (pendingCharacterId != null) {
+        if (!pendingCharacterIds.isEmpty()) {
             util.Log.debug("[CORE] Players count=" + currentWorld.players.size());
-            for (var player : currentWorld.players.values()) {
-                player.characterId = pendingCharacterId;
+            for (var entry : pendingCharacterIds.entrySet()) {
+                PlayerState player = currentWorld.players.get(entry.getKey());
+                if (player != null) {
+                    player.characterId = entry.getValue();
+                }
             }
 
-            pendingCharacterId = null;
+            pendingCharacterIds.clear();
         }
 
         WorldState snapshot = currentWorld;
@@ -233,9 +229,7 @@ public final class CoreEngine {
         long end = System.nanoTime();
         double ms = (end - start) / 1_000_000.0;
 
-        if (debug) {
-            util.Log.debug("[METRIC][CORE] tick time=" + ms + "ms");
-        }
+        if (debug) util.Log.debug("[METRIC][CORE] tick time=" + ms + "ms");
     }
 
     public RenderSnapshot getRenderSnapshot() {
